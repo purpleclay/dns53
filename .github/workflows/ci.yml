@@ -78,6 +78,7 @@ jobs:
             ./.goreleaser.yml
             ./Taskfile.yaml
             ./.github/workflows/**
+            ./CODE_OF_CONDUCT.md
       - name: Code Coverage
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v3
