@@ -1,0 +1,196 @@
+# Copyright (c) 2022 Purple Clay
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# in the Software without restriction, including without limitation the rights
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+before:
+  hooks:
+    - ./scripts/completions.sh
+    - ./scripts/manpages.sh
+
+builds:
+  - id: dns53
+    main: ./cmd
+    binary: dns53
+    ldflags:
+      - -s -w
+      - -X main.version={{.Tag}}
+      - -X main.gitCommit={{.Commit}}
+      - -X main.gitBranch=main
+      - -X main.buildDate={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - "386"
+      - arm
+      - arm64
+    goarm:
+      - "7"
+    ignore:
+      - goos: darwin
+        goarch: "386"
+
+archives:
+  - id: dns53-archive
+    format: tar.gz
+    name_template: |-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}-{{ .Arch }}
+    builds:
+      - dns53
+    replacements:
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+
+sboms:
+  - artifacts: archive
+
+# Use Keyless experimental signing with cosign, see: https://github.com/sigstore/cosign/blob/main/KEYLESS.md
+signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    certificate: "${artifact}.pem"
+    output: true
+    artifacts: checksum
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+
+brews:
+  - name: dns53
+    tap:
+      owner: purpleclay
+      name: homebrew-tap
+    folder: Formula
+    homepage: "https://github.com/purpleclay/dns53"
+    description: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately"
+    license: MIT
+    install: |
+      bin.install "dns53"
+
+      bash_output = Utils.safe_popen_read(bin/"dns53", "completion", "bash")
+      (bash_completion/"dns53").write bash_output
+
+      zsh_output = Utils.safe_popen_read(bin/"dns53", "completion", "zsh")
+      (zsh_completion/"_dns53").write zsh_output
+
+      fish_output = Utils.safe_popen_read(bin/"dns53", "completion", "fish")
+      (fish_completion/"dns53.fish").write fish_output
+
+      man1.install "manpages/dns53.1.gz"
+    test: |
+      installed_version = shell_output("#{bin}/dns53 version --short 2>&1")
+      assert_match "v#{version}", installed_version
+
+scoop:
+  bucket:
+    owner: purpleclay
+    name: scoops
+  homepage: "https://github.com/purpleclay/dns53"
+  description: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately"
+  license: MIT
+
+nfpms:
+  - file_name_template: "{{ .ConventionalFileName }}"
+    id: packages
+    homepage: "https://github.com/purpleclay/dns53"
+    description: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately"
+    maintainer: Purple Clay <purpleclaygh@gmail.com>
+    license: MIT
+    vendor: Purple Clay
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: ./completions/dns53.bash
+        dst: /usr/share/bash-completion/completions/dns53
+        file_info:
+          mode: 0644
+      - src: ./completions/dns53.fish
+        dst: /usr/share/fish/completions/dns53.fish
+        file_info:
+          mode: 0644
+      - src: ./completions/dns53.zsh
+        dst: /usr/share/zsh/vendor-completions/_dns53
+        file_info:
+          mode: 0644
+      - src: ./LICENSE
+        dst: /usr/share/doc/dns53/copyright
+        file_info:
+          mode: 0644
+      - src: ./manpages/dns53.1.gz
+        dst: /usr/share/man/man1/dns53.1.gz
+        file_info:
+          mode: 0644
+    formats:
+      - apk
+      - deb
+      - rpm
+    deb:
+      lintian_overrides:
+        - statically-linked-binary
+        - changelog-file-missing-in-native-package
+
+publishers:
+  - name: fury.io
+    ids:
+      - packages
+    env:
+      - "FURY_TOKEN={{ .Env.FURY_TOKEN }}"
+    cmd: ./scripts/fury-upload.sh {{ .ArtifactName }}
+
+aurs:
+  - homepage: "https://github.com/purpleclay/dns53"
+    description: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately"
+    maintainers:
+      - "Purple Clay <purple clay at gmail dot com>"
+    license: MIT
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/dns53-bin.git"
+    package: |-
+      # bin
+      install -Dm755 "./dns53" "${pkgdir}/usr/bin/dns53"
+
+      # license
+      install -Dm644 "./LICENSE.md" "${pkgdir}/usr/share/licenses/dns53/LICENSE"
+
+      # completions
+      mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
+      mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
+      mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
+      install -Dm644 "./completions/dns53.bash" "${pkgdir}/usr/share/bash-completion/completions/dns53"
+      install -Dm644 "./completions/dns53.zsh" "${pkgdir}/usr/share/zsh/site-functions/_dns53"
+      install -Dm644 "./completions/dns53.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/dns53.fish"
+
+      # manpages
+      install -Dm644 "./manpages/dns53.1.gz" "${pkgdir}/usr/share/man/man1/dns53.1.gz"

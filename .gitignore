@@ -13,3 +13,11 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Built dependencies
+bin/
+completions/
+manpages/
+
+# GoReleaser build output
+dist/
