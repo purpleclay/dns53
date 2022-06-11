@@ -1,0 +1,84 @@
+# Copyright (c) 2022 Purple Clay
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# in the Software without restriction, including without limitation the rights
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  ci:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set Git Line Endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        if: matrix.os == 'windows-latest'
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Cache Go
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Test
+        run: task test
+      - name: Build
+        run: task build
+      # All static checks from this point should run on linux as it is the
+      # fastest platform
+      - name: Lint Code
+        if: matrix.os == 'ubuntu-latest'
+        uses: golangci/golangci-lint-action@v3.2.0
+        with:
+          skip-go-installation: true
+      - name: misspell
+        if: matrix.os == 'ubuntu-latest'
+        uses: reviewdog/action-misspell@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          locale: "UK"
+          exclude: |
+            ./go.mod
+            ./go.sum
+            ./.goreleaser.yml
+            ./Taskfile.yaml
+            ./.github/workflows/**
+            ./CODE_OF_CONDUCT.md
+      - name: Code Coverage
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v3

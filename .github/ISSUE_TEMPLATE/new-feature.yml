@@ -1,0 +1,63 @@
+# Copyright (c) 2022 Purple Clay
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# in the Software without restriction, including without limitation the rights
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+name: New Feature
+description: Suggest a new feature
+title: "[Feature]: "
+labels: [enhancement, triage]
+assignees:
+  - purpleclay
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this new feature request. Please be as descriptive and concise as possible. We value all input from the community.
+  - type: textarea
+    id: describe-feature
+    attributes:
+      label: Describe your feature
+      description: A clear and concise description of the feature you are requesting.
+      placeholder: Your feature?
+    validations:
+      required: true
+  - type: textarea
+    id: potential-solution
+    attributes:
+      label: Your potential solution
+      description: A clear and concise description of your potential solution.
+      placeholder: Your potential solution?
+    validations:
+      required: true
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Any additional information?
+      description: Please provide any additional information about your feature request here
+      placeholder: Any additional information?
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/purpleclay/dns53/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
