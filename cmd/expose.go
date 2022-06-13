@@ -24,27 +24,35 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"io"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/purpleclay/dns53/pkg/ec2"
 	"github.com/spf13/cobra"
 )
 
-// dns53 broadcast
-// dns53 expose
-
-func Execute(out io.Writer) error {
-	rootCmd := &cobra.Command{
-		Use:   "dns53",
-		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
+func newExposeCmd(out io.Writer) *cobra.Command {
+	expCmd := &cobra.Command{
+		Use:                   "expose",
+		Short:                 "Generate a DNS A-Record and privately expose this EC2",
+		DisableFlagsInUseLine: true,
+		Args:                  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+			// TODO: create a connection to AWS
+			// TODO: create model
+			// TODO: create bubbletea program
+
+			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithEC2IMDSEndpoint("http://localhost:1338"))
+			if err != nil {
+				return err
+			}
+
+			meta, err := ec2.InstanceMetadata(cfg)
+			fmt.Printf("%#v\n", meta)
+			return err
 		},
 	}
 
-	rootCmd.AddCommand(newVersionCmd(out))
-	rootCmd.AddCommand(newManPagesCmd(out))
-	rootCmd.AddCommand(newCompletionCmd(out))
-	rootCmd.AddCommand(newExposeCmd(out))
-
-	return rootCmd.ExecuteContext(context.Background())
+	return expCmd
 }

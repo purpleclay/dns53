@@ -29,7 +29,7 @@ tasks:
   build:
     desc: Build the dns53 binary
     cmds:
-      - go build -ldflags '-s -w {{.LDFLAGS}}' -o '{{.BINDIR}}/{{.BINNAME}}' ./cmd
+      - go build -ldflags '-s -w {{.LDFLAGS}}' -o '{{.BINDIR}}/{{.BINNAME}}' .
 
   test:
     desc: Run the tests
@@ -40,6 +40,11 @@ tasks:
     desc: Lint the code using golangci
     cmds:
       - golangci-lint run --timeout 5m0s
+
+  fmt:
+    desc: gofumpt all code
+    cmds:
+      - gofumpt -w -l .
 
   clean:
     desc: Remove any built artifacts

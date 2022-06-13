@@ -20,31 +20,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package cmd
+package tui
 
 import (
-	"context"
-	"io"
-
-	"github.com/spf13/cobra"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-// dns53 broadcast
-// dns53 expose
+// DashboardModel ...
+type DashboardModel struct{}
 
-func Execute(out io.Writer) error {
-	rootCmd := &cobra.Command{
-		Use:   "dns53",
-		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
-	}
+// Dashboard ...
+func Dashboard() *DashboardModel {
+	return &DashboardModel{}
+}
 
-	rootCmd.AddCommand(newVersionCmd(out))
-	rootCmd.AddCommand(newManPagesCmd(out))
-	rootCmd.AddCommand(newCompletionCmd(out))
-	rootCmd.AddCommand(newExposeCmd(out))
+// Init ...
+func (m DashboardModel) Init() tea.Cmd {
+	return textinput.Blink
+}
 
-	return rootCmd.ExecuteContext(context.Background())
+// Update ...
+func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, tea.Quit
+}
+
+// View ...
+func (m DashboardModel) View() string {
+	return ""
 }

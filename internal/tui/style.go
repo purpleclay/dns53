@@ -20,31 +20,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package cmd
-
-import (
-	"context"
-	"io"
-
-	"github.com/spf13/cobra"
-)
-
-// dns53 broadcast
-// dns53 expose
-
-func Execute(out io.Writer) error {
-	rootCmd := &cobra.Command{
-		Use:   "dns53",
-		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
-	}
-
-	rootCmd.AddCommand(newVersionCmd(out))
-	rootCmd.AddCommand(newManPagesCmd(out))
-	rootCmd.AddCommand(newCompletionCmd(out))
-	rootCmd.AddCommand(newExposeCmd(out))
-
-	return rootCmd.ExecuteContext(context.Background())
-}
+package tui
