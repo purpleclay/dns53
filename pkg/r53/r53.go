@@ -24,14 +24,11 @@ package r53
 
 import (
 	"context"
-	"net"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
-
-// TODO: define an interface that can be used during testing
 
 // PrivateHostedZone ...
 type PrivateHostedZone struct {
@@ -40,9 +37,12 @@ type PrivateHostedZone struct {
 }
 
 // ByVPC ...
-func ByVPC(cfg aws.Config) ([]PrivateHostedZone, error) {
+func ByVPC(cfg aws.Config, vpc, region string) ([]PrivateHostedZone, error) {
 	c := awsr53.NewFromConfig(cfg)
-	resp, err := c.ListHostedZonesByVPC(context.TODO(), &awsr53.ListHostedZonesByVPCInput{})
+	resp, err := c.ListHostedZonesByVPC(context.TODO(), &awsr53.ListHostedZonesByVPCInput{
+		VPCId:     aws.String(vpc),
+		VPCRegion: types.VPCRegion(region),
+	})
 	if err != nil {
 		return []PrivateHostedZone{}, err
 	}
@@ -59,12 +59,7 @@ func ByVPC(cfg aws.Config) ([]PrivateHostedZone, error) {
 func AssociateRecord(cfg aws.Config, phzID, ip string) error {
 	c := awsr53.NewFromConfig(cfg)
 
-	// Select the correct resource record set type based on the IP address
-	var rrtype types.RRType = types.RRTypeA
-	pip := net.ParseIP(ip)
-	if pip.To4() == nil {
-		rrtype = types.RRTypeAaaa
-	}
+	// TODO: randomly generate name
 
 	_, err := c.ChangeResourceRecordSets(context.TODO(), &awsr53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(phzID),
@@ -73,8 +68,35 @@ func AssociateRecord(cfg aws.Config, phzID, ip string) error {
 				{
 					Action: types.ChangeActionCreate,
 					ResourceRecordSet: &types.ResourceRecordSet{
-						Name: aws.String(""),
-						Type: rrtype,
+						Name: aws.String("testing"),
+						Type: types.RRTypeA,
+						ResourceRecords: []types.ResourceRecord{
+							{
+								Value: aws.String(ip),
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	return err
+}
+
+// DisassociateRecord ...
+func DisassociateRecord(cfg aws.Config, phzID, ip string) error {
+	c := awsr53.NewFromConfig(cfg)
+
+	_, err := c.ChangeResourceRecordSets(context.TODO(), &awsr53.ChangeResourceRecordSetsInput{
+		HostedZoneId: aws.String(phzID),
+		ChangeBatch: &types.ChangeBatch{
+			Changes: []types.Change{
+				{
+					Action: types.ChangeActionDelete,
+					ResourceRecordSet: &types.ResourceRecordSet{
+						Name: aws.String("testing"),
+						Type: types.RRTypeA,
 						ResourceRecords: []types.ResourceRecord{
 							{
 								Value: aws.String(ip),

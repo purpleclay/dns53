@@ -24,6 +24,7 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -33,6 +34,9 @@ import (
 const (
 	// IPv4Path ...
 	IPv4Path = "local-ipv4"
+
+	// MacAddress ...
+	MacAddress = "mac"
 )
 
 // Metadata ...
@@ -56,9 +60,15 @@ func InstanceMetadata(cfg aws.Config) (Metadata, error) {
 		return Metadata{}, err
 	}
 
+	vpc, err := VPC(c)
+	if err != nil {
+		return Metadata{}, err
+	}
+
 	return Metadata{
 		Region: region,
 		IPv4:   ipv4,
+		VPC:    vpc,
 	}, nil
 }
 
@@ -88,7 +98,24 @@ func IPv4Address(c *imds.Client) (string, error) {
 
 // VPC ...
 func VPC(c *imds.Client) (string, error) {
-	// Retrieve mac address and then retrieve associated VPC
+	mac, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+		Path: MacAddress,
+	})
+	if err != nil {
+		return "", err
+	}
+	defer mac.Content.Close()
+	md, _ := ioutil.ReadAll(mac.Content)
 
-	return "", nil
+	// Use the MAC address to retrieve the VPC associated with the EC2 instance
+	out, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+		Path: fmt.Sprintf("network/interfaces/macs/%s/vpc-id", string(md)),
+	})
+	if err != nil {
+		return "", err
+	}
+	defer mac.Content.Close()
+	data, _ := ioutil.ReadAll(out.Content)
+
+	return string(data), nil
 }
