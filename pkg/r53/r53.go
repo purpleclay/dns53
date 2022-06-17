@@ -56,10 +56,8 @@ func ByVPC(cfg aws.Config, vpc, region string) ([]PrivateHostedZone, error) {
 }
 
 // AssociateRecord ...
-func AssociateRecord(cfg aws.Config, phzID, ip string) error {
+func AssociateRecord(cfg aws.Config, phzID, name, ip string) error {
 	c := awsr53.NewFromConfig(cfg)
-
-	// TODO: randomly generate name
 
 	_, err := c.ChangeResourceRecordSets(context.TODO(), &awsr53.ChangeResourceRecordSetsInput{
 		HostedZoneId: aws.String(phzID),
@@ -68,7 +66,7 @@ func AssociateRecord(cfg aws.Config, phzID, ip string) error {
 				{
 					Action: types.ChangeActionCreate,
 					ResourceRecordSet: &types.ResourceRecordSet{
-						Name: aws.String("testing.k3d"),
+						Name: aws.String(name),
 						Type: types.RRTypeA,
 						ResourceRecords: []types.ResourceRecord{
 							{
@@ -86,7 +84,7 @@ func AssociateRecord(cfg aws.Config, phzID, ip string) error {
 }
 
 // DisassociateRecord ...
-func DisassociateRecord(cfg aws.Config, phzID, ip string) error {
+func DisassociateRecord(cfg aws.Config, phzID, name, ip string) error {
 	c := awsr53.NewFromConfig(cfg)
 
 	_, err := c.ChangeResourceRecordSets(context.TODO(), &awsr53.ChangeResourceRecordSetsInput{
@@ -96,7 +94,7 @@ func DisassociateRecord(cfg aws.Config, phzID, ip string) error {
 				{
 					Action: types.ChangeActionDelete,
 					ResourceRecordSet: &types.ResourceRecordSet{
-						Name: aws.String("testing"),
+						Name: aws.String(name),
 						Type: types.RRTypeA,
 						ResourceRecords: []types.ResourceRecord{
 							{

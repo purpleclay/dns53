@@ -133,7 +133,7 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
-			r53.DisassociateRecord(m.cfg, m.Connected.PHZ, m.EC2.IPv4)
+			r53.DisassociateRecord(m.cfg, m.Connected.PHZ, m.Connected.DNS, m.EC2.IPv4)
 
 			return m, tea.Quit
 		case "enter":
@@ -145,10 +145,12 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			cmds = append(cmds, func() tea.Msg {
-				if err := r53.AssociateRecord(m.cfg, m.Connected.PHZ, m.EC2.IPv4); err != nil {
+				name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.EC2.IPv4, ".", "-"), m.Connected.Name)
+
+				if err := r53.AssociateRecord(m.cfg, m.Connected.PHZ, name, m.EC2.IPv4); err != nil {
 					return errMsg{err}
 				}
-				return association{"testing > " + m.EC2.IPv4}
+				return association{name}
 			})
 		}
 	case association:
