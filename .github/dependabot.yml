@@ -25,7 +25,7 @@ updates:
     schedule:
       interval: "daily"
     labels:
-      - "dependencies"
+      - "dependabot"
     commit-message:
       prefix: "feat"
       include: "scope"
@@ -34,7 +34,7 @@ updates:
     schedule:
       interval: "daily"
     labels:
-      - "dependencies"
+      - "dependabot"
     commit-message:
       prefix: "chore"
       include: "scope"
