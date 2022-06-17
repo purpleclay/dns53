@@ -30,13 +30,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
 
-// PrivateHostedZone ...
+// PrivateHostedZone identifies an AWS Route53 Private Hosted Zone (PHZ)
 type PrivateHostedZone struct {
 	ID   string
 	Name string
 }
 
-// ByVPC ...
+// ByVPC finds all Route53 Private Hosted Zones associated with a given VPC ID
 func ByVPC(cfg aws.Config, vpc, region string) ([]PrivateHostedZone, error) {
 	c := awsr53.NewFromConfig(cfg)
 	resp, err := c.ListHostedZonesByVPC(context.TODO(), &awsr53.ListHostedZonesByVPCInput{
@@ -55,7 +55,8 @@ func ByVPC(cfg aws.Config, vpc, region string) ([]PrivateHostedZone, error) {
 	return phz, nil
 }
 
-// AssociateRecord ...
+// AssociateRecord creates a new A-Record entry within a given Route53 Private Hosted Zone
+// for the specified Record Name and target EC2 IPv4 address
 func AssociateRecord(cfg aws.Config, phzID, name, ip string) error {
 	c := awsr53.NewFromConfig(cfg)
 
@@ -83,7 +84,8 @@ func AssociateRecord(cfg aws.Config, phzID, name, ip string) error {
 	return err
 }
 
-// DisassociateRecord ...
+// DisassociateRecord attempts to delete an existing A-Record entry within a given Route53
+// Private Hosted Zone, based on the specified Record Name and target EC2 IPv4 address
 func DisassociateRecord(cfg aws.Config, phzID, name, ip string) error {
 	c := awsr53.NewFromConfig(cfg)
 

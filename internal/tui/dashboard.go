@@ -36,7 +36,6 @@ import (
 	"golang.org/x/term"
 )
 
-// DashboardModel ...
 type DashboardModel struct {
 	cfg     aws.Config
 	PHZ     list.Model
@@ -47,7 +46,6 @@ type DashboardModel struct {
 	Connected *Connection
 }
 
-// Connection ...
 type Connection struct {
 	PHZ  string
 	Name string
@@ -69,7 +67,7 @@ type errMsg struct{ err error }
 
 func (e errMsg) Error() string { return e.err.Error() }
 
-// Dashboard ...
+// Dashboard creates the initial model for the TUI
 func Dashboard(cfg aws.Config) (*DashboardModel, error) {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
@@ -82,7 +80,6 @@ func Dashboard(cfg aws.Config) (*DashboardModel, error) {
 	return m, nil
 }
 
-// Init ...
 func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.Loading.Tick,
@@ -97,7 +94,6 @@ func (m DashboardModel) Init() tea.Cmd {
 	)
 }
 
-// Update ...
 func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -165,7 +161,6 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-// View ...
 func (m DashboardModel) View() string {
 	if m.Err != nil {
 		return fmt.Sprintf("\nWe had some trouble: %v\n\n", m.Err)

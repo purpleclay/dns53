@@ -32,21 +32,24 @@ import (
 )
 
 const (
-	// IPv4Path ...
+	// IPv4Path defines the path to the private IPv4 address of the EC2
+	// instance within IMDS
 	IPv4Path = "local-ipv4"
 
-	// MacAddress ...
+	// MacAddress defines the path to the private MAC address of the EC2
+	// instance within IMDS
 	MacAddress = "mac"
 )
 
-// Metadata ...
+// Metadata contains metadata associated with an EC2 instance
 type Metadata struct {
 	IPv4   string
 	Region string
 	VPC    string
 }
 
-// InstanceMetadata ...
+// InstanceMetadata attempts to retrieve useful metadata associated with
+// the current EC2 instance by querying IMDS
 func InstanceMetadata(cfg aws.Config) (Metadata, error) {
 	c := imds.NewFromConfig(cfg)
 
@@ -72,7 +75,7 @@ func InstanceMetadata(cfg aws.Config) (Metadata, error) {
 	}, nil
 }
 
-// Region ...
+// Region retrieves the region associated with the current EC2
 func Region(c *imds.Client) (string, error) {
 	out, err := c.GetRegion(context.TODO(), &imds.GetRegionInput{})
 	if err != nil {
@@ -82,7 +85,7 @@ func Region(c *imds.Client) (string, error) {
 	return out.Region, nil
 }
 
-// IPv4Address ...
+// IPv4Address retrieves the IPv4 address associated with the current EC2
 func IPv4Address(c *imds.Client) (string, error) {
 	out, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
 		Path: IPv4Path,
@@ -96,7 +99,7 @@ func IPv4Address(c *imds.Client) (string, error) {
 	return string(data), nil
 }
 
-// VPC ...
+// VPC retrieves the VPC associated with the current EC2
 func VPC(c *imds.Client) (string, error) {
 	mac, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
 		Path: MacAddress,
