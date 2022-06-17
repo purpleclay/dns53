@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/charmbracelet/bubbles/list"
@@ -36,9 +35,6 @@ import (
 	"github.com/purpleclay/dns53/pkg/r53"
 	"golang.org/x/term"
 )
-
-// TODO: store >
-// metadata, phzid
 
 // DashboardModel ...
 type DashboardModel struct {
@@ -113,20 +109,16 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case ec2.Metadata:
+		m.EC2 = msg
+
 		// Dynamically retrieve R53 PHZ from AWS based on the EC2 metadata
 		cmds = append(cmds, func() tea.Msg {
-			time.Sleep(3 * time.Second)
-			//phzs, _ := r53.ByVPC(m.cfg, meta.VPC, meta.Region)
-			return []r53.PrivateHostedZone{
-				{
-					Name: "Zone1",
-					ID:   "abcdef12345",
-				},
-				{
-					Name: "Zone2",
-					ID:   "abcdef54321",
-				},
+			phzs, err := r53.ByVPC(m.cfg, msg.VPC, msg.Region)
+			if err != nil {
+				return errMsg{err}
 			}
+
+			return phzs
 		})
 	case []r53.PrivateHostedZone:
 		// PHZ have been successfully retrieved. Load them into the list
@@ -141,27 +133,29 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
+			r53.DisassociateRecord(m.cfg, m.Connected.PHZ, m.EC2.IPv4)
+
 			return m, tea.Quit
 		case "enter":
 			i := m.PHZ.SelectedItem().(initListItem)
 			m.Connected = &Connection{
-				PHZ:  i.description,
-				Name: i.name,
+				PHZ:  i.name,
+				Name: i.description,
 				DNS:  "connecting...",
 			}
 
 			cmds = append(cmds, func() tea.Msg {
-				time.Sleep(3 * time.Second)
-
-				// TODO: actually query AWS and generate the required association
-				return association{"1111.1111.1111.1111 > 10.0.0.0"}
+				if err := r53.AssociateRecord(m.cfg, m.Connected.PHZ, m.EC2.IPv4); err != nil {
+					return errMsg{err}
+				}
+				return association{"testing > " + m.EC2.IPv4}
 			})
 		}
 	case association:
 		m.Connected.DNS = msg.dns
 	}
 
-	if len(m.PHZ.Items()) > 0 {
+	if len(m.PHZ.Items()) > 0 && m.Connected == nil {
 		m.PHZ, cmd = m.PHZ.Update(msg)
 		cmds = append(cmds, cmd)
 	}

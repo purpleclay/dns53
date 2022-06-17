@@ -37,7 +37,7 @@ func Execute(out io.Writer) error {
 		Use:   "dns53",
 		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithEC2IMDSEndpoint("http://localhost:1338"))
+			cfg, err := config.LoadDefaultConfig(context.TODO())
 			if err != nil {
 				return err
 			}

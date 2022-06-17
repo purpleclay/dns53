@@ -68,13 +68,14 @@ func AssociateRecord(cfg aws.Config, phzID, ip string) error {
 				{
 					Action: types.ChangeActionCreate,
 					ResourceRecordSet: &types.ResourceRecordSet{
-						Name: aws.String("testing"),
+						Name: aws.String("testing.k3d"),
 						Type: types.RRTypeA,
 						ResourceRecords: []types.ResourceRecord{
 							{
 								Value: aws.String(ip),
 							},
 						},
+						TTL: aws.Int64(300),
 					},
 				},
 			},
