@@ -21,7 +21,6 @@ tasks:
   default:
     desc: Runs all of the default tasks
     cmds:
-      - task: clean
       - task: lint
       - task: test
       - task: build
@@ -29,7 +28,7 @@ tasks:
   build:
     desc: Build the dns53 binary
     cmds:
-      - go build -ldflags '-s -w {{.LDFLAGS}}' -o '{{.BINDIR}}/{{.BINNAME}}' ./cmd
+      - go build -ldflags '-s -w {{.LDFLAGS}}' .
 
   test:
     desc: Run the tests
@@ -41,7 +40,7 @@ tasks:
     cmds:
       - golangci-lint run --timeout 5m0s
 
-  clean:
-    desc: Remove any built artifacts
+  fmt:
+    desc: gofumpt all code
     cmds:
-      - rm -rf {{.BINDIR}}
+      - gofumpt -w -l .

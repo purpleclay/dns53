@@ -26,6 +26,9 @@ import (
 	"context"
 	"io"
 
+	"github.com/aws/aws-sdk-go-v2/config"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/purpleclay/dns53/internal/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +37,17 @@ func Execute(out io.Writer) error {
 		Use:   "dns53",
 		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+			cfg, err := config.LoadDefaultConfig(context.TODO())
+			if err != nil {
+				return err
+			}
+
+			model, err := tui.Dashboard(cfg)
+			if err != nil {
+				return err
+			}
+
+			return tea.NewProgram(model).Start()
 		},
 	}
 
