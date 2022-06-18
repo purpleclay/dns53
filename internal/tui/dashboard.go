@@ -125,11 +125,12 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.PHZ.SetItems(items)
 	case errMsg:
 		m.Err = msg
-		return m, tea.Quit
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
-			r53.DisassociateRecord(m.cfg, m.Connected.PHZ, m.Connected.DNS, m.EC2.IPv4)
+			if m.Connected != nil && m.Connected.DNS != "connecting..." {
+				r53.DisassociateRecord(m.cfg, m.Connected.PHZ, m.Connected.DNS, m.EC2.IPv4)
+			}
 
 			return m, tea.Quit
 		case "enter":
@@ -162,10 +163,6 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m DashboardModel) View() string {
-	if m.Err != nil {
-		return fmt.Sprintf("\nWe had some trouble: %v\n\n", m.Err)
-	}
-
 	var b strings.Builder
 
 	if m.Connected != nil {
@@ -175,16 +172,21 @@ func (m DashboardModel) View() string {
 		b.WriteRune('\n')
 		b.WriteString("DNS: " + m.Connected.DNS)
 		b.WriteRune('\n')
+	} else {
+		// If PHZs have been retrieved, no longer render the spinner
+		if len(m.PHZ.Items()) == 0 {
+			str := fmt.Sprintf("%s Retrieving PHZs from AWS...\n\n", m.Loading.View())
+			b.WriteString(str)
+		} else {
+			b.WriteString(m.PHZ.View())
+		}
+	}
+
+	if m.Err != nil {
+		b.WriteString(fmt.Sprintf("\nERROR: %v\n\n", m.Err))
 		return b.String()
 	}
 
-	// If PHZs have been retrieved, no longer render the spinner
-	if len(m.PHZ.Items()) == 0 {
-		str := fmt.Sprintf("%s Retrieving PHZs from AWS...\n\n", m.Loading.View())
-		b.WriteString(str)
-	} else {
-		b.WriteString(m.PHZ.View())
-	}
-
+	b.WriteString("\n\n(ctrl+c) to quit")
 	return b.String()
 }

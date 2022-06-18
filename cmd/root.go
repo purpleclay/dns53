@@ -47,7 +47,7 @@ func Execute(out io.Writer) error {
 				return err
 			}
 
-			return tea.NewProgram(model).Start()
+			return tea.NewProgram(model, tea.WithAltScreen()).Start()
 		},
 	}
 
