@@ -184,7 +184,6 @@ func (m DashboardModel) View() string {
 
 	if m.Err != nil {
 		b.WriteString(fmt.Sprintf("\nERROR: %v\n\n", m.Err))
-		return b.String()
 	}
 
 	b.WriteString("\n\n(ctrl+c) to quit")
