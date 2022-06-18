@@ -26,6 +26,7 @@ updates:
       interval: "daily"
     labels:
       - "dependabot"
+      - "pinned"
     commit-message:
       prefix: "feat"
       include: "scope"
@@ -35,6 +36,7 @@ updates:
       interval: "daily"
     labels:
       - "dependabot"
+      - "pinned"
     commit-message:
       prefix: "chore"
       include: "scope"
