@@ -32,12 +32,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type options struct {
+	region  string
+	profile string
+}
+
 func Execute(out io.Writer) error {
+	opts := options{}
+
 	rootCmd := &cobra.Command{
 		Use:   "dns53",
 		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.LoadDefaultConfig(context.TODO())
+			optsFn := []func(*config.LoadOptions) error{}
+			if opts.profile != "" {
+				optsFn = append(optsFn, config.WithSharedConfigProfile(opts.profile))
+			}
+
+			if opts.region != "" {
+				optsFn = append(optsFn, config.WithRegion(opts.region))
+			}
+
+			cfg, err := config.LoadDefaultConfig(context.TODO(), optsFn...)
 			if err != nil {
 				return err
 			}
@@ -50,6 +66,10 @@ func Execute(out io.Writer) error {
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()
 		},
 	}
+
+	f := rootCmd.Flags()
+	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
+	f.StringVar(&opts.profile, "profile", "", "the name of an AWS named profile to use when loading credentials")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))
