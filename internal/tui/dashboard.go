@@ -74,8 +74,13 @@ func Dashboard(cfg aws.Config) (*DashboardModel, error) {
 	m := &DashboardModel{cfg: cfg}
 
 	m.PHZ = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
+	m.PHZ.Styles.Title = Heading
+	m.PHZ.Styles.HelpStyle = MenuText
+	m.PHZ.Title = "R53 PHZ"
+
 	m.Loading = spinner.New()
 	m.Loading.Spinner = spinner.Dot
+	m.Loading.Style = Spinner
 
 	return m, nil
 }
@@ -165,6 +170,8 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m DashboardModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(fmt.Sprintf("%s\n\n", Title.Render("dns53")))
+
 	if m.Connected != nil {
 		b.WriteString("PHZ: " + m.Connected.PHZ)
 		b.WriteRune('\n')
@@ -183,9 +190,9 @@ func (m DashboardModel) View() string {
 	}
 
 	if m.Err != nil {
-		b.WriteString(fmt.Sprintf("\nERROR: %v\n\n", m.Err))
+		b.WriteString(fmt.Sprintf("\n%s %v\n\n", ErrorLabel, m.Err))
 	}
 
-	b.WriteString("\n\n(ctrl+c) to quit")
+	b.WriteString(fmt.Sprintf("\n\n%s\n", MenuText.Render("(ctrl+c) to quit")))
 	return b.String()
 }
