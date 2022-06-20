@@ -31,13 +31,13 @@ jobs:
     steps:
       - name: Fetch Metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v1.1.1
+        uses: dependabot/fetch-metadata@v1.3.1
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
       # Will only merge if all checks pass and approvals are present
       - name: Auto-merge PR
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
