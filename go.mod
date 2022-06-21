@@ -9,9 +9,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.1
 	github.com/charmbracelet/bubbles v0.11.0
 	github.com/charmbracelet/bubbletea v0.21.0
+	github.com/charmbracelet/lipgloss v0.5.0
 	github.com/muesli/mango-cobra v1.1.0
 	github.com/muesli/roff v0.1.0
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
 
@@ -25,7 +26,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.11.9 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.7 // indirect
 	github.com/aws/smithy-go v1.11.3 // indirect
-	github.com/charmbracelet/lipgloss v0.5.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
