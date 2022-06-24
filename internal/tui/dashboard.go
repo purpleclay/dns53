@@ -31,6 +31,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/pkg/ec2"
 	"github.com/purpleclay/dns53/pkg/r53"
 	"golang.org/x/term"
@@ -74,13 +75,13 @@ func Dashboard(cfg aws.Config) (*DashboardModel, error) {
 	m := &DashboardModel{cfg: cfg}
 
 	m.PHZ = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
-	m.PHZ.Styles.Title = Heading
-	m.PHZ.Styles.HelpStyle = MenuText
-	m.PHZ.Title = "R53 PHZ"
+	m.PHZ.Styles.HelpStyle = listHelpStyle
+	m.PHZ.SetShowFilter(false)
+	m.PHZ.SetShowTitle(false)
 
 	m.Loading = spinner.New()
 	m.Loading.Spinner = spinner.Dot
-	m.Loading.Style = Spinner
+	m.Loading.Style = spinnerStyle
 
 	return m, nil
 }
@@ -168,9 +169,27 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m DashboardModel) View() string {
+	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	rw := width - 5
+
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("%s\n\n", Title.Render("dns53")))
+	// Render the title bar
+	name := titleItemStyle.Padding(0, 3).Render("dns53")
+	version := titleItemStyle.Padding(0, 2).Render("v0.1.0")
+	menu := titleMenuStyle.Copy().
+		Width(rw - lipgloss.Width(name) - lipgloss.Width(version)).
+		PaddingLeft(2).
+		Render("quit (ctrl+c)")
+
+	bar := lipgloss.JoinHorizontal(lipgloss.Top,
+		name,
+		menu,
+		version,
+	)
+
+	b.WriteString(titleBarStyle.Width(rw).Render(bar))
+	b.WriteRune('\n')
 
 	if m.Connected != nil {
 		b.WriteString("PHZ: " + m.Connected.PHZ)
@@ -190,9 +209,8 @@ func (m DashboardModel) View() string {
 	}
 
 	if m.Err != nil {
-		b.WriteString(fmt.Sprintf("\n%s %v\n\n", ErrorLabel, m.Err))
+		b.WriteString(fmt.Sprintf("\n%s %v\n\n", errorLabelStyle, m.Err))
 	}
 
-	b.WriteString(fmt.Sprintf("\n\n%s\n", MenuText.Render("(ctrl+c) to quit")))
 	return b.String()
 }
