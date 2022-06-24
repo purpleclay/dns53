@@ -209,7 +209,14 @@ func (m DashboardModel) View() string {
 	}
 
 	if m.Err != nil {
-		b.WriteString(fmt.Sprintf("\n%s %v\n\n", errorLabelStyle, m.Err))
+		errorPanelStyle := lipgloss.NewStyle().MarginLeft(1).Width(rw)
+
+		errorPanel := lipgloss.JoinVertical(lipgloss.Top,
+			fmt.Sprintf("\n\n%s", errorLabelStyle),
+			fmt.Sprintf("\n%s\n", m.Err.Error()),
+		)
+
+		b.WriteString(errorPanelStyle.Render(errorPanel))
 	}
 
 	return b.String()

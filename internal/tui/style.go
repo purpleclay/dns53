@@ -64,6 +64,5 @@ var (
 			Foreground(text).
 			Bold(true).
 			Padding(0, 1).
-			MarginLeft(1).
 			Render("Error:")
 )
