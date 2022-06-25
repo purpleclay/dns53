@@ -22,31 +22,61 @@ SOFTWARE.
 
 package tui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 var (
-	Purple = lipgloss.Color("#3a0ca3")
-	Header = lipgloss.Color("#b5179e")
-	Error  = lipgloss.Color("#d00000")
-	White  = lipgloss.Color("#ffffff")
-	Feint  = lipgloss.Color("#888888")
+	// Colours
 
-	Spinner = lipgloss.NewStyle().Foreground(lipgloss.Color("#7209b7"))
+	primary   = lipgloss.Color("#3A0CA3")
+	secondary = lipgloss.Color("#8333B7")
+	feint     = lipgloss.Color("#888888")
+	red       = lipgloss.Color("#d00000")
+	text      = lipgloss.Color("#FFFFFF")
 
-	Title = lipgloss.NewStyle().
-		Background(Purple).
-		Foreground(White).
-		Bold(true).
-		Padding(0, 1)
+	// Common
 
-	Heading = lipgloss.NewStyle().Background(Header).Foreground(White)
+	br = "\n"
 
-	ErrorLabel = lipgloss.NewStyle().
-			Background(Error).
-			Foreground(White).
+	// Title Bar
+
+	titleBarStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#BFBDC0")).
+			Background(lipgloss.Color("#36313B")).Margin(1)
+
+	titleItemStyle = lipgloss.NewStyle().
+			Inherit(titleBarStyle).
+			Foreground(lipgloss.Color("#FFFDF5")).
+			Background(primary)
+
+	titleMenuStyle = lipgloss.NewStyle().Inherit(titleBarStyle)
+
+	// Spinner
+
+	spinnerStyle = lipgloss.NewStyle().
+			Foreground(secondary).
+			Bold(true).
+			MarginLeft(1)
+
+	// List
+
+	listHelpStyle = lipgloss.NewStyle().Foreground(feint)
+
+	// Error
+
+	errorLabelStyle = lipgloss.NewStyle().
+			Background(red).
+			Foreground(text).
 			Bold(true).
 			Padding(0, 1).
 			Render("Error:")
 
-	MenuText = lipgloss.NewStyle().Foreground(Feint)
+	// Dashboard
+
+	dashboardLabel = lipgloss.NewStyle().
+			Background(secondary).
+			Foreground(text).
+			Bold(true).
+			MarginLeft(1)
 )

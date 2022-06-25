@@ -31,6 +31,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/pkg/ec2"
 	"github.com/purpleclay/dns53/pkg/r53"
 	"golang.org/x/term"
@@ -44,6 +45,7 @@ type DashboardModel struct {
 
 	Err       error
 	Connected *Connection
+	Version   string
 }
 
 type Connection struct {
@@ -68,19 +70,19 @@ type errMsg struct{ err error }
 func (e errMsg) Error() string { return e.err.Error() }
 
 // Dashboard creates the initial model for the TUI
-func Dashboard(cfg aws.Config) (*DashboardModel, error) {
+func Dashboard(cfg aws.Config, version string) (*DashboardModel, error) {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	m := &DashboardModel{cfg: cfg}
+	m := &DashboardModel{cfg: cfg, Version: version}
 
 	m.PHZ = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
-	m.PHZ.Styles.Title = Heading
-	m.PHZ.Styles.HelpStyle = MenuText
-	m.PHZ.Title = "R53 PHZ"
+	m.PHZ.Styles.HelpStyle = listHelpStyle
+	m.PHZ.SetShowFilter(false)
+	m.PHZ.SetShowTitle(false)
 
 	m.Loading = spinner.New()
 	m.Loading.Spinner = spinner.Dot
-	m.Loading.Style = Spinner
+	m.Loading.Style = spinnerStyle
 
 	return m, nil
 }
@@ -168,17 +170,55 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m DashboardModel) View() string {
+	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
+	rw := width - 5
+
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("%s\n\n", Title.Render("dns53")))
+	// Render the title bar
+	name := titleItemStyle.Padding(0, 3).Render("dns53")
+	version := titleItemStyle.Padding(0, 2).Render(m.Version)
+	menu := titleMenuStyle.Copy().
+		Width(rw - lipgloss.Width(name) - lipgloss.Width(version)).
+		PaddingLeft(2).
+		Render("quit (ctrl+c)")
+
+	bar := lipgloss.JoinHorizontal(lipgloss.Top,
+		name,
+		menu,
+		version,
+	)
+
+	b.WriteString(titleBarStyle.Width(rw).Render(bar))
+	b.WriteString(br)
 
 	if m.Connected != nil {
-		b.WriteString("PHZ: " + m.Connected.PHZ)
-		b.WriteRune('\n')
-		b.WriteString("Name: " + m.Connected.Name)
-		b.WriteRune('\n')
-		b.WriteString("DNS: " + m.Connected.DNS)
-		b.WriteRune('\n')
+		phzLabel := dashboardLabel.Padding(0, 2).Render("PHZ:")
+		ec2MetaLabel := dashboardLabel.Padding(0, 2).Render("EC2:")
+		dnsLabel := dashboardLabel.Padding(0, 2).Render("DNS:")
+
+		lbl := lipgloss.NewStyle().Width(20)
+
+		phz := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(phzLabel),
+			fmt.Sprintf("%s [%s]", m.Connected.Name, m.Connected.PHZ))
+
+		ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(ec2MetaLabel),
+			fmt.Sprintf("%s   :>   %s   :>   %s", m.EC2.IPv4, m.EC2.Region, m.EC2.VPC))
+
+		dns := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(dnsLabel),
+			fmt.Sprintf("%s   ~>   localhost   [A]", m.Connected.DNS))
+
+		dashboard := lipgloss.JoinVertical(lipgloss.Top,
+			phz,
+			br,
+			ec2Meta,
+			br,
+			dns)
+
+		b.WriteString(lipgloss.NewStyle().MarginTop(3).Render(dashboard))
 	} else {
 		// If PHZs have been retrieved, no longer render the spinner
 		if len(m.PHZ.Items()) == 0 {
@@ -190,9 +230,15 @@ func (m DashboardModel) View() string {
 	}
 
 	if m.Err != nil {
-		b.WriteString(fmt.Sprintf("\n%s %v\n\n", ErrorLabel, m.Err))
+		errorPanelStyle := lipgloss.NewStyle().MarginLeft(1).Width(rw)
+
+		errorPanel := lipgloss.JoinVertical(lipgloss.Top,
+			fmt.Sprintf("\n\n%s", errorLabelStyle),
+			fmt.Sprintf("\n%s\n", m.Err.Error()),
+		)
+
+		b.WriteString(errorPanelStyle.Render(errorPanel))
 	}
 
-	b.WriteString(fmt.Sprintf("\n\n%s\n", MenuText.Render("(ctrl+c) to quit")))
 	return b.String()
 }

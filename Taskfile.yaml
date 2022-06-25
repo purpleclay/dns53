@@ -12,10 +12,10 @@ vars:
   GIT_BRANCH:
     sh: git branch --show-current
   LDFLAGS: >
-    -X main.version=dev-{{.GIT_SHA}}
-    -X main.gitCommit={{.GIT_COMMIT}}
-    -X main.gitBranch={{.GIT_BRANCH}}
-    -X main.buildDate={{now | date "2006-01-02T15:04:05Z07:00"}}
+    -X github.com/purpleclay/dns53/cmd.version=dev-{{.GIT_SHA}}
+    -X github.com/purpleclay/dns53/cmd.gitCommit={{.GIT_COMMIT}}
+    -X github.com/purpleclay/dns53/cmd.gitBranch={{.GIT_BRANCH}}
+    -X github.com/purpleclay/dns53/cmd.buildDate={{now | date "2006-01-02T15:04:05Z07:00"}}
 
 tasks:
   default:

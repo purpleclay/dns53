@@ -58,7 +58,7 @@ func Execute(out io.Writer) error {
 				return err
 			}
 
-			model, err := tui.Dashboard(cfg)
+			model, err := tui.Dashboard(cfg, version)
 			if err != nil {
 				return err
 			}
