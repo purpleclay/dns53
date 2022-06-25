@@ -45,6 +45,7 @@ type DashboardModel struct {
 
 	Err       error
 	Connected *Connection
+	Version   string
 }
 
 type Connection struct {
@@ -69,10 +70,10 @@ type errMsg struct{ err error }
 func (e errMsg) Error() string { return e.err.Error() }
 
 // Dashboard creates the initial model for the TUI
-func Dashboard(cfg aws.Config) (*DashboardModel, error) {
+func Dashboard(cfg aws.Config, version string) (*DashboardModel, error) {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	m := &DashboardModel{cfg: cfg}
+	m := &DashboardModel{cfg: cfg, Version: version}
 
 	m.PHZ = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
 	m.PHZ.Styles.HelpStyle = listHelpStyle
@@ -176,7 +177,7 @@ func (m DashboardModel) View() string {
 
 	// Render the title bar
 	name := titleItemStyle.Padding(0, 3).Render("dns53")
-	version := titleItemStyle.Padding(0, 2).Render("v0.1.0")
+	version := titleItemStyle.Padding(0, 2).Render(m.Version)
 	menu := titleMenuStyle.Copy().
 		Width(rw - lipgloss.Width(name) - lipgloss.Width(version)).
 		PaddingLeft(2).
@@ -189,15 +190,35 @@ func (m DashboardModel) View() string {
 	)
 
 	b.WriteString(titleBarStyle.Width(rw).Render(bar))
-	b.WriteRune('\n')
+	b.WriteString(br)
 
 	if m.Connected != nil {
-		b.WriteString("PHZ: " + m.Connected.PHZ)
-		b.WriteRune('\n')
-		b.WriteString("Name: " + m.Connected.Name)
-		b.WriteRune('\n')
-		b.WriteString("DNS: " + m.Connected.DNS)
-		b.WriteRune('\n')
+		phzLabel := dashboardLabel.Padding(0, 2).Render("PHZ:")
+		ec2MetaLabel := dashboardLabel.Padding(0, 2).Render("EC2:")
+		dnsLabel := dashboardLabel.Padding(0, 2).Render("DNS:")
+
+		lbl := lipgloss.NewStyle().Width(20)
+
+		phz := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(phzLabel),
+			fmt.Sprintf("%s [%s]", m.Connected.Name, m.Connected.PHZ))
+
+		ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(ec2MetaLabel),
+			fmt.Sprintf("%s   :>   %s   :>   %s", m.EC2.IPv4, m.EC2.Region, m.EC2.VPC))
+
+		dns := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(dnsLabel),
+			fmt.Sprintf("%s   ~>   localhost   [A]", m.Connected.DNS))
+
+		dashboard := lipgloss.JoinVertical(lipgloss.Top,
+			phz,
+			br,
+			ec2Meta,
+			br,
+			dns)
+
+		b.WriteString(lipgloss.NewStyle().MarginTop(3).Render(dashboard))
 	} else {
 		// If PHZs have been retrieved, no longer render the spinner
 		if len(m.PHZ.Items()) == 0 {

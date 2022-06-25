@@ -22,16 +22,22 @@ SOFTWARE.
 
 package tui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 var (
 	// Colours
 
-	primary = lipgloss.Color("#3A0CA3")
-	// secondary = lipgloss.Color("#7209B7")
-	feint = lipgloss.Color("#888888")
-	red   = lipgloss.Color("#d00000")
-	text  = lipgloss.Color("#FFFFFF")
+	primary   = lipgloss.Color("#3A0CA3")
+	secondary = lipgloss.Color("#8333B7")
+	feint     = lipgloss.Color("#888888")
+	red       = lipgloss.Color("#d00000")
+	text      = lipgloss.Color("#FFFFFF")
+
+	// Common
+
+	br = "\n"
 
 	// Title Bar
 
@@ -49,7 +55,7 @@ var (
 	// Spinner
 
 	spinnerStyle = lipgloss.NewStyle().
-			Foreground(primary).
+			Foreground(secondary).
 			Bold(true).
 			MarginLeft(1)
 
@@ -65,4 +71,12 @@ var (
 			Bold(true).
 			Padding(0, 1).
 			Render("Error:")
+
+	// Dashboard
+
+	dashboardLabel = lipgloss.NewStyle().
+			Background(secondary).
+			Foreground(text).
+			Bold(true).
+			MarginLeft(1)
 )
