@@ -30,11 +30,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
 
+// TODO: rename to HostedZone
+
 // PrivateHostedZone identifies an AWS Route53 Private Hosted Zone (PHZ)
 type PrivateHostedZone struct {
 	ID   string
 	Name string
 }
+
+// TODO: retrieve all hosted zones (public and private)
 
 // ByVPC finds all Route53 Private Hosted Zones associated with a given VPC ID
 func ByVPC(cfg aws.Config, vpc, region string) ([]PrivateHostedZone, error) {

@@ -38,58 +38,67 @@ import (
 )
 
 type DashboardModel struct {
-	cfg     aws.Config
-	PHZ     list.Model
-	EC2     ec2.Metadata
-	Loading spinner.Model
-
-	Err       error
-	Connected *Connection
-	Version   string
+	cfg       aws.Config
+	version   string
+	phz       list.Model
+	ec2       ec2.Metadata
+	loading   spinner.Model
+	err       error
+	connected *connection
 }
 
-type Connection struct {
-	PHZ  string
-	Name string
-	DNS  string
+type connection struct {
+	phz  string
+	name string
+	dns  string
 }
 
-type association struct{ dns string }
+type association struct {
+	dns string
+}
 
-type initListItem struct {
+type hostedZoneItem struct {
 	name        string
 	description string
 }
 
-func (i initListItem) Title() string       { return i.name }
-func (i initListItem) Description() string { return i.description }
-func (i initListItem) FilterValue() string { return i.name }
+func (i hostedZoneItem) Title() string       { return i.name }
+func (i hostedZoneItem) Description() string { return i.description }
+func (i hostedZoneItem) FilterValue() string { return i.name }
 
-type errMsg struct{ err error }
+// Used to capture any error message that has been reported
+type errMsg struct {
+	err error
+}
 
-func (e errMsg) Error() string { return e.err.Error() }
+func (e errMsg) Error() string {
+	return e.err.Error()
+}
 
 // Dashboard creates the initial model for the TUI
 func Dashboard(cfg aws.Config, version string) (*DashboardModel, error) {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	m := &DashboardModel{cfg: cfg, Version: version}
+	m := &DashboardModel{cfg: cfg, version: version}
 
-	m.PHZ = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
-	m.PHZ.Styles.HelpStyle = listHelpStyle
-	m.PHZ.SetShowFilter(false)
-	m.PHZ.SetShowTitle(false)
+	m.phz = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
+	m.phz.Styles.HelpStyle = listHelpStyle
+	m.phz.SetShowFilter(false)
+	m.phz.SetShowTitle(false)
+	m.phz.SetShowHelp(false)
+	m.phz.DisableQuitKeybindings()
 
-	m.Loading = spinner.New()
-	m.Loading.Spinner = spinner.Dot
-	m.Loading.Style = spinnerStyle
+	m.loading = spinner.New()
+	m.loading.Spinner = spinner.Dot
+	m.loading.Style = spinnerStyle
 
 	return m, nil
 }
 
+// Init initialises the model ready for its first update and render
 func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
-		m.Loading.Tick,
+		m.loading.Tick,
 		func() tea.Msg {
 			meta, err := ec2.InstanceMetadata(m.cfg)
 			if err != nil {
@@ -101,20 +110,21 @@ func (m DashboardModel) Init() tea.Cmd {
 	)
 }
 
+// Update handles all IO operations
 func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
 	)
 
-	m.Loading, cmd = m.Loading.Update(msg)
+	m.loading, cmd = m.loading.Update(msg)
 	cmds = append(cmds, cmd)
 
 	switch msg := msg.(type) {
 	case ec2.Metadata:
-		m.EC2 = msg
+		m.ec2 = msg
 
-		// Dynamically retrieve R53 PHZ from AWS based on the EC2 metadata
+		// Dynamically retrieve R53 phz from AWS based on the EC2 metadata
 		cmds = append(cmds, func() tea.Msg {
 			phzs, err := r53.ByVPC(m.cfg, msg.VPC, msg.Region)
 			if err != nil {
@@ -127,48 +137,49 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// PHZ have been successfully retrieved. Load them into the list
 		items := make([]list.Item, 0, len(msg))
 		for _, phz := range msg {
-			items = append(items, initListItem{name: phz.ID, description: phz.Name})
+			items = append(items, hostedZoneItem{name: phz.ID, description: phz.Name})
 		}
-		m.PHZ.SetItems(items)
+		m.phz.SetItems(items)
 	case errMsg:
-		m.Err = msg
+		m.err = msg
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
-			if m.Connected != nil && m.Connected.DNS != "connecting..." {
-				r53.DisassociateRecord(m.cfg, m.Connected.PHZ, m.Connected.DNS, m.EC2.IPv4)
+			if m.connected != nil && m.connected.dns != "connecting..." {
+				r53.DisassociateRecord(m.cfg, m.connected.phz, m.connected.dns, m.ec2.IPv4)
 			}
 
 			return m, tea.Quit
 		case "enter":
-			i := m.PHZ.SelectedItem().(initListItem)
-			m.Connected = &Connection{
-				PHZ:  i.name,
-				Name: i.description,
-				DNS:  "connecting...",
+			i := m.phz.SelectedItem().(hostedZoneItem)
+			m.connected = &connection{
+				phz:  i.name,
+				name: i.description,
+				dns:  "connecting...",
 			}
 
 			cmds = append(cmds, func() tea.Msg {
-				name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.EC2.IPv4, ".", "-"), m.Connected.Name)
+				name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.name)
 
-				if err := r53.AssociateRecord(m.cfg, m.Connected.PHZ, name, m.EC2.IPv4); err != nil {
+				if err := r53.AssociateRecord(m.cfg, m.connected.phz, name, m.ec2.IPv4); err != nil {
 					return errMsg{err}
 				}
 				return association{name}
 			})
 		}
 	case association:
-		m.Connected.DNS = msg.dns
+		m.connected.dns = msg.dns
 	}
 
-	if len(m.PHZ.Items()) > 0 && m.Connected == nil {
-		m.PHZ, cmd = m.PHZ.Update(msg)
+	if len(m.phz.Items()) > 0 && m.connected == nil {
+		m.phz, cmd = m.phz.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
+// View will attempt to render the current dashboard based on the model
 func (m DashboardModel) View() string {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	rw := width - 5
@@ -177,7 +188,7 @@ func (m DashboardModel) View() string {
 
 	// Render the title bar
 	name := titleItemStyle.Padding(0, 3).Render("dns53")
-	version := titleItemStyle.Padding(0, 2).Render(m.Version)
+	version := titleItemStyle.Padding(0, 2).Render(m.version)
 	menu := titleMenuStyle.Copy().
 		Width(rw - lipgloss.Width(name) - lipgloss.Width(version)).
 		PaddingLeft(2).
@@ -192,24 +203,24 @@ func (m DashboardModel) View() string {
 	b.WriteString(titleBarStyle.Width(rw).Render(bar))
 	b.WriteString(br)
 
-	if m.Connected != nil {
-		phzLabel := dashboardLabel.Padding(0, 2).Render("PHZ:")
+	if m.connected != nil {
+		phzLabel := dashboardLabel.Padding(0, 2).Render("phz:")
 		ec2MetaLabel := dashboardLabel.Padding(0, 2).Render("EC2:")
-		dnsLabel := dashboardLabel.Padding(0, 2).Render("DNS:")
+		dnsLabel := dashboardLabel.Padding(0, 2).Render("dns:")
 
 		lbl := lipgloss.NewStyle().Width(20)
 
 		phz := lipgloss.JoinHorizontal(lipgloss.Top,
 			lbl.Render(phzLabel),
-			fmt.Sprintf("%s [%s]", m.Connected.Name, m.Connected.PHZ))
+			fmt.Sprintf("%s [%s]", m.connected.name, m.connected.phz))
 
 		ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
 			lbl.Render(ec2MetaLabel),
-			fmt.Sprintf("%s   :>   %s   :>   %s", m.EC2.IPv4, m.EC2.Region, m.EC2.VPC))
+			fmt.Sprintf("%s   :>   %s   :>   %s", m.ec2.IPv4, m.ec2.Region, m.ec2.VPC))
 
 		dns := lipgloss.JoinHorizontal(lipgloss.Top,
 			lbl.Render(dnsLabel),
-			fmt.Sprintf("%s   ~>   localhost   [A]", m.Connected.DNS))
+			fmt.Sprintf("%s   ~>   localhost   [A]", m.connected.dns))
 
 		dashboard := lipgloss.JoinVertical(lipgloss.Top,
 			phz,
@@ -220,21 +231,21 @@ func (m DashboardModel) View() string {
 
 		b.WriteString(lipgloss.NewStyle().MarginTop(3).Render(dashboard))
 	} else {
-		// If PHZs have been retrieved, no longer render the spinner
-		if len(m.PHZ.Items()) == 0 {
-			str := fmt.Sprintf("%s Retrieving PHZs from AWS...\n\n", m.Loading.View())
+		// If phzs have been retrieved, no longer render the spinner
+		if len(m.phz.Items()) == 0 {
+			str := fmt.Sprintf("%s Retrieving phzs from AWS...\n\n", m.loading.View())
 			b.WriteString(str)
 		} else {
-			b.WriteString(m.PHZ.View())
+			b.WriteString(m.phz.View())
 		}
 	}
 
-	if m.Err != nil {
+	if m.err != nil {
 		errorPanelStyle := lipgloss.NewStyle().MarginLeft(1).Width(rw)
 
 		errorPanel := lipgloss.JoinVertical(lipgloss.Top,
 			fmt.Sprintf("\n\n%s", errorLabelStyle),
-			fmt.Sprintf("\n%s\n", m.Err.Error()),
+			fmt.Sprintf("\n%s\n", m.err.Error()),
 		)
 
 		b.WriteString(errorPanelStyle.Render(errorPanel))
