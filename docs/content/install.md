@@ -61,17 +61,23 @@ yay -S dns53-bin
 
 Download and manually install one of the `.deb`, `.rpm` or `.apk` packages from the [Releases](https://github.com/purpleclay/dns53/releases) page.
 
-```sh
-sudo apt install dns53_*.deb
-```
+=== "Apt"
 
-```sh
-sudo yum localinstall dns53_*.rpm
-```
+    ```sh
+    sudo apt install dns53_*.deb
+    ```
 
-```sh
-sudo apk add --no-cache --allow-untrusted dns53_*.apk
-```
+=== "Yum"
+
+    ```sh
+    sudo yum localinstall dns53_*.rpm
+    ```
+
+=== "Apk"
+
+    ```sh
+    sudo apk add --no-cache --allow-untrusted dns53_*.apk
+    ```
 
 ### Manually
 
@@ -128,6 +134,6 @@ All binaries can be verified using the checksum file, which has been signed usin
    sha256sum --ignore-missing -c checksums.txt
    ```
 
-!!!tip "Don't mix versions"
+!!!warning "Don't mix versions"
 
     For checksum verification to work, all artefacts must be downloaded from the same release
