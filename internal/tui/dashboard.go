@@ -203,9 +203,9 @@ func (m DashboardModel) View() string {
 	b.WriteString(br)
 
 	if m.connected != nil {
-		phzLabel := dashboardLabel.Padding(0, 2).Render("phz:")
+		phzLabel := dashboardLabel.Padding(0, 2).Render("PHZ:")
 		ec2MetaLabel := dashboardLabel.Padding(0, 2).Render("EC2:")
-		dnsLabel := dashboardLabel.Padding(0, 2).Render("dns:")
+		dnsLabel := dashboardLabel.Padding(0, 2).Render("DNS:")
 
 		lbl := lipgloss.NewStyle().Width(20)
 
