@@ -17,6 +17,7 @@ brew install purpleclay/tap/dns53
 To use [Scoop](https://scoop.sh/):
 
 ```sh
+scoop bucket add purpleclay https://github.com/purpleclay/scoop-bucket.git
 scoop install dns53
 ```
 
@@ -78,6 +79,12 @@ Download and manually install one of the `.deb`, `.rpm` or `.apk` packages from 
     ```sh
     sudo apk add --no-cache --allow-untrusted dns53_*.apk
     ```
+
+### Go Install
+
+```sh
+go install github.com/purpleclay/dns53@latest
+```
 
 ### Manually
 
