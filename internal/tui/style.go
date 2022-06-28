@@ -61,7 +61,7 @@ var (
 
 	// List
 
-	listHelpStyle = lipgloss.NewStyle().Foreground(feint).MarginLeft(1)
+	listHelpStyle = lipgloss.NewStyle().Foreground(feint).MarginLeft(2)
 
 	// Error
 

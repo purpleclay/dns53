@@ -64,7 +64,7 @@ type hostedZoneItem struct {
 
 func (i hostedZoneItem) Title() string       { return i.name }
 func (i hostedZoneItem) Description() string { return i.description }
-func (i hostedZoneItem) FilterValue() string { return i.name }
+func (i hostedZoneItem) FilterValue() string { return i.description }
 
 // Used to capture any error message that has been reported
 type errMsg struct {
@@ -85,7 +85,6 @@ func Dashboard(cfg aws.Config, version string) (*DashboardModel, error) {
 	m.phz.Styles.HelpStyle = listHelpStyle
 	m.phz.SetShowFilter(false)
 	m.phz.SetShowTitle(false)
-	m.phz.SetShowHelp(false)
 	m.phz.DisableQuitKeybindings()
 
 	m.loading = spinner.New()
