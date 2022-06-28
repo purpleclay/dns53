@@ -39,6 +39,7 @@ type PrivateHostedZone struct {
 // ByVPC finds all Route53 Private Hosted Zones associated with a given VPC ID
 func ByVPC(cfg aws.Config, vpc, region string) ([]PrivateHostedZone, error) {
 	c := awsr53.NewFromConfig(cfg)
+
 	resp, err := c.ListHostedZonesByVPC(context.TODO(), &awsr53.ListHostedZonesByVPCInput{
 		VPCId:     aws.String(vpc),
 		VPCRegion: types.VPCRegion(region),
