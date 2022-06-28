@@ -1,0 +1,48 @@
+site_name: dns53
+site_description: Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately
+copyright: Built with ❤️ by Purple Clay
+repo_name: purpleclay/dns53
+repo_url: https://github.com/purpleclay/dns53
+edit_uri: edit/main/docs/content
+docs_dir: content
+
+theme:
+  name: material
+  features:
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - search.share
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - install.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/purpleclay
+      name: Purple Clay on GitHub
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - footnotes
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - md_in_html
+  - meta
+  - toc:
+      permalink: true
