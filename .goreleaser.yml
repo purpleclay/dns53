@@ -27,10 +27,10 @@ builds:
   - id: dns53
     ldflags:
       - -s -w
-      - -X main.version={{.Tag}}
-      - -X main.gitCommit={{.Commit}}
-      - -X main.gitBranch=main
-      - -X main.buildDate={{.Date}}
+      - -X github.com/purpleclay/dns53/cmd.version={{.Tag}}
+      - -X github.com/purpleclay/dns53/cmd.gitCommit={{.Commit}}
+      - -X github.com/purpleclay/dns53/cmd.gitBranch=main
+      - -X github.com/purpleclay/dns53/cmd.buildDate={{.Date}}
     env:
       - CGO_ENABLED=0
     goos:
@@ -116,7 +116,7 @@ brews:
 scoop:
   bucket:
     owner: purpleclay
-    name: scoops
+    name: scoop-bucket
   homepage: "https://github.com/purpleclay/dns53"
   description: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately"
   license: MIT
@@ -182,7 +182,7 @@ aurs:
       install -Dm755 "./dns53" "${pkgdir}/usr/bin/dns53"
 
       # license
-      install -Dm644 "./LICENSE.md" "${pkgdir}/usr/share/licenses/dns53/LICENSE"
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/dns53/LICENSE"
 
       # completions
       mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
