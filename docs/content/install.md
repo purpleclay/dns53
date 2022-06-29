@@ -86,6 +86,20 @@ Download and manually install one of the `.deb`, `.rpm` or `.apk` packages from 
 go install github.com/purpleclay/dns53@latest
 ```
 
+### Bash Script
+
+To install the latest version using a bash script:
+
+```sh
+curl https://raw.githubusercontent.com/purpleclay/dns53/main/scripts/install | bash
+```
+
+A specific version can be downloaded by using the `-v` flag. By default the script uses `sudo`, which can be turned off by using the `--no-sudo` flag.
+
+```sh
+curl https://raw.githubusercontent.com/purpleclay/dns53/main/scripts/install | bash -s -- -v v0.1.0 --no-sudo
+```
+
 ### Manually
 
 Binary downloads of dns53 can be found on the [Releases](https://github.com/purpleclay/dns53/releases) page. Unpack the dns53 binary and add it to your `PATH`.
