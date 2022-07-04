@@ -37,23 +37,33 @@ import (
 	"golang.org/x/term"
 )
 
+// DashboardModel ...
 type DashboardModel struct {
-	cfg       aws.Config
-	version   string
-	phz       list.Model
+	opts DashboardOptions
+
+	// bubbles used for capturing input from the user
+	phz     list.Model
+	loading spinner.Model
+
+	// data used to render final dashboard
 	ec2       ec2.Metadata
-	loading   spinner.Model
-	err       error
 	connected *connection
+	err       error
+}
+
+// DashboardOptions ...
+type DashboardOptions struct {
+	Config  aws.Config
+	Version string
+	PhzID   string
+}
+
+type associationRequest struct {
+	phz r53.PrivateHostedZone
 }
 
 type connection struct {
-	phz  string
-	name string
-	dns  string
-}
-
-type association struct {
+	phz r53.PrivateHostedZone
 	dns string
 }
 
@@ -76,10 +86,10 @@ func (e errMsg) Error() string {
 }
 
 // Dashboard creates the initial model for the TUI
-func Dashboard(cfg aws.Config, version string) (*DashboardModel, error) {
+func Dashboard(opts DashboardOptions) (*DashboardModel, error) {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	m := &DashboardModel{cfg: cfg, version: version}
+	m := &DashboardModel{opts: opts}
 
 	m.phz = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
 	m.phz.Styles.HelpStyle = listHelpStyle
@@ -99,7 +109,7 @@ func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.loading.Tick,
 		func() tea.Msg {
-			meta, err := ec2.InstanceMetadata(m.cfg)
+			meta, err := ec2.InstanceMetadata(m.opts.Config)
 			if err != nil {
 				return errMsg{err}
 			}
@@ -123,15 +133,12 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case ec2.Metadata:
 		m.ec2 = msg
 
-		// Dynamically retrieve R53 phz from AWS based on the EC2 metadata
-		cmds = append(cmds, func() tea.Msg {
-			phzs, err := r53.ByVPC(m.cfg, msg.VPC, msg.Region)
-			if err != nil {
-				return errMsg{err}
-			}
-
-			return phzs
-		})
+		// If the PHZ is already known by this point, attempt an association
+		if m.opts.PhzID != "" {
+			cmds = append(cmds, m.queryHostedZone)
+		} else {
+			cmds = append(cmds, m.queryHostedZones)
+		}
 	case []r53.PrivateHostedZone:
 		// PHZ have been successfully retrieved. Load them into the list
 		items := make([]list.Item, 0, len(msg))
@@ -145,30 +152,31 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			if m.connected != nil && m.connected.dns != "connecting..." {
-				r53.DisassociateRecord(m.cfg, m.connected.phz, m.connected.dns, m.ec2.IPv4)
+				r53.DisassociateRecord(m.opts.Config, m.connected.phz.ID, m.connected.dns, m.ec2.IPv4)
 			}
 
 			return m, tea.Quit
 		case "enter":
 			i := m.phz.SelectedItem().(hostedZoneItem)
-			m.connected = &connection{
-				phz:  i.name,
-				name: i.description,
-				dns:  "connecting...",
-			}
 
 			cmds = append(cmds, func() tea.Msg {
-				name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.name)
-
-				if err := r53.AssociateRecord(m.cfg, m.connected.phz, name, m.ec2.IPv4); err != nil {
-					return errMsg{err}
+				return associationRequest{
+					phz: r53.PrivateHostedZone{ID: i.name, Name: i.description},
 				}
-				return association{name}
 			})
 		}
-	case association:
+	case associationRequest:
+		m.connected = &connection{
+			phz: msg.phz,
+			dns: "connecting...",
+		}
+
+		cmds = append(cmds, m.initAssociation)
+	case connection:
 		m.connected.dns = msg.dns
 	}
+
+	// TODO: trigger update on bubbles as needed
 
 	if len(m.phz.Items()) > 0 && m.connected == nil {
 		m.phz, cmd = m.phz.Update(msg)
@@ -187,7 +195,7 @@ func (m DashboardModel) View() string {
 
 	// Render the title bar
 	name := titleItemStyle.Padding(0, 3).Render("dns53")
-	version := titleItemStyle.Padding(0, 2).Render(m.version)
+	version := titleItemStyle.Padding(0, 2).Render(m.opts.Version)
 	menu := titleMenuStyle.Copy().
 		Width(rw - lipgloss.Width(name) - lipgloss.Width(version)).
 		PaddingLeft(2).
@@ -211,7 +219,7 @@ func (m DashboardModel) View() string {
 
 		phz := lipgloss.JoinHorizontal(lipgloss.Top,
 			lbl.Render(phzLabel),
-			fmt.Sprintf("%s [%s]", m.connected.name, m.connected.phz))
+			fmt.Sprintf("%s [%s]", m.connected.phz.ID, m.connected.phz.Name))
 
 		ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
 			lbl.Render(ec2MetaLabel),
@@ -251,4 +259,32 @@ func (m DashboardModel) View() string {
 	}
 
 	return b.String()
+}
+
+func (m DashboardModel) queryHostedZones() tea.Msg {
+	phzs, err := r53.ByVPC(m.opts.Config, m.ec2.VPC, m.ec2.Region)
+	if err != nil {
+		return errMsg{err}
+	}
+
+	return phzs
+}
+
+func (m DashboardModel) queryHostedZone() tea.Msg {
+	phz, err := r53.ByID(m.opts.Config, m.opts.PhzID)
+	if err != nil {
+		return errMsg{err}
+	}
+
+	return associationRequest{phz: phz}
+}
+
+func (m DashboardModel) initAssociation() tea.Msg {
+	name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
+
+	if err := r53.AssociateRecord(m.opts.Config, m.connected.phz.ID, name, m.ec2.IPv4); err != nil {
+		return errMsg{err}
+	}
+
+	return connection{dns: name, phz: m.connected.phz}
 }

@@ -24,16 +24,36 @@ package r53
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
 
+// TODO: turn this into an interface that can be used to mock tests
+
 // PrivateHostedZone identifies an AWS Route53 Private Hosted Zone (PHZ)
 type PrivateHostedZone struct {
 	ID   string
 	Name string
+}
+
+// ByID attempts to retrieve a Route53 Private Hosted Zone by its given ID
+func ByID(cfg aws.Config, id string) (PrivateHostedZone, error) {
+	c := awsr53.NewFromConfig(cfg)
+
+	resp, err := c.GetHostedZone(context.TODO(), &awsr53.GetHostedZoneInput{
+		Id: aws.String(id),
+	})
+	if err != nil {
+		return PrivateHostedZone{}, err
+	}
+
+	return PrivateHostedZone{
+		ID:   strings.TrimPrefix(*resp.HostedZone.Id, "/hostedzone/"),
+		Name: *resp.HostedZone.Name,
+	}, nil
 }
 
 // ByVPC finds all Route53 Private Hosted Zones associated with a given VPC ID
@@ -104,6 +124,7 @@ func DisassociateRecord(cfg aws.Config, phzID, name, ip string) error {
 								Value: aws.String(ip),
 							},
 						},
+						TTL: aws.Int64(300),
 					},
 				},
 			},
