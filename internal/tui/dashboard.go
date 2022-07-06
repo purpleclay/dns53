@@ -23,6 +23,7 @@ SOFTWARE.
 package tui
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -53,9 +54,10 @@ type DashboardModel struct {
 
 // DashboardOptions ...
 type DashboardOptions struct {
-	Config  aws.Config
-	Version string
-	PhzID   string
+	Config    aws.Config
+	R53Client *r53.Client
+	Version   string
+	PhzID     string
 }
 
 type associationRequest struct {
@@ -119,6 +121,8 @@ func (m DashboardModel) Init() tea.Cmd {
 	)
 }
 
+// TODO: fix styling issues, as dashboard jumps when rendering with --phz-id
+
 // Update handles all IO operations
 func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
@@ -152,7 +156,13 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			if m.connected != nil && m.connected.dns != "connecting..." {
-				r53.DisassociateRecord(m.opts.Config, m.connected.phz.ID, m.connected.dns, m.ec2.IPv4)
+				record := r53.ResourceRecord{
+					PhzID:    m.connected.phz.ID,
+					Name:     m.connected.dns,
+					Resource: m.ec2.IPv4,
+				}
+
+				m.opts.R53Client.DisassociateRecord(context.TODO(), record)
 			}
 
 			return m, tea.Quit
@@ -261,8 +271,10 @@ func (m DashboardModel) View() string {
 	return b.String()
 }
 
+// TODO: should these be methods off the model, or should values just be passed in?
+
 func (m DashboardModel) queryHostedZones() tea.Msg {
-	phzs, err := r53.ByVPC(m.opts.Config, m.ec2.VPC, m.ec2.Region)
+	phzs, err := m.opts.R53Client.ByVPC(context.TODO(), m.ec2.VPC, m.ec2.Region)
 	if err != nil {
 		return errMsg{err}
 	}
@@ -271,7 +283,7 @@ func (m DashboardModel) queryHostedZones() tea.Msg {
 }
 
 func (m DashboardModel) queryHostedZone() tea.Msg {
-	phz, err := r53.ByID(m.opts.Config, m.opts.PhzID)
+	phz, err := m.opts.R53Client.ByID(context.TODO(), m.opts.PhzID)
 	if err != nil {
 		return errMsg{err}
 	}
@@ -282,7 +294,13 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 func (m DashboardModel) initAssociation() tea.Msg {
 	name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
 
-	if err := r53.AssociateRecord(m.opts.Config, m.connected.phz.ID, name, m.ec2.IPv4); err != nil {
+	record := r53.ResourceRecord{
+		PhzID:    m.connected.phz.ID,
+		Name:     name,
+		Resource: m.ec2.IPv4,
+	}
+
+	if err := m.opts.R53Client.AssociateRecord(context.TODO(), record); err != nil {
 		return errMsg{err}
 	}
 

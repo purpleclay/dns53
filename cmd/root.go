@@ -27,8 +27,10 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/purpleclay/dns53/internal/tui"
+	"github.com/purpleclay/dns53/pkg/r53"
 	"github.com/spf13/cobra"
 )
 
@@ -60,9 +62,10 @@ func Execute(out io.Writer) error {
 			}
 
 			model, err := tui.Dashboard(tui.DashboardOptions{
-				Config:  cfg,
-				Version: version,
-				PhzID:   opts.phzID,
+				Config:    cfg,
+				R53Client: r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
+				Version:   version,
+				PhzID:     opts.phzID,
 			})
 			if err != nil {
 				return err

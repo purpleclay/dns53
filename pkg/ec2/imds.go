@@ -31,6 +31,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
+// TODO: turn this into an interface for testing purposes
+
 const (
 	// IPv4Path defines the path to the private IPv4 address of the EC2
 	// instance within IMDS
