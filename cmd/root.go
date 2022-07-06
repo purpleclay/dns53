@@ -27,9 +27,11 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/purpleclay/dns53/internal/tui"
+	"github.com/purpleclay/dns53/pkg/imds"
 	"github.com/purpleclay/dns53/pkg/r53"
 	"github.com/spf13/cobra"
 )
@@ -62,10 +64,10 @@ func Execute(out io.Writer) error {
 			}
 
 			model, err := tui.Dashboard(tui.DashboardOptions{
-				Config:    cfg,
-				R53Client: r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
-				Version:   version,
-				PhzID:     opts.phzID,
+				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
+				IMDSClient: imds.NewFromAPI(awsimds.NewFromConfig(cfg)),
+				Version:    version,
+				PhzID:      opts.phzID,
 			})
 			if err != nil {
 				return err

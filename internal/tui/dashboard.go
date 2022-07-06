@@ -28,12 +28,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/pkg/ec2"
+	"github.com/purpleclay/dns53/pkg/imds"
 	"github.com/purpleclay/dns53/pkg/r53"
 	"golang.org/x/term"
 )
@@ -47,17 +46,17 @@ type DashboardModel struct {
 	loading spinner.Model
 
 	// data used to render final dashboard
-	ec2       ec2.Metadata
+	ec2       imds.Metadata
 	connected *connection
 	err       error
 }
 
 // DashboardOptions ...
 type DashboardOptions struct {
-	Config    aws.Config
-	R53Client *r53.Client
-	Version   string
-	PhzID     string
+	IMDSClient *imds.Client
+	R53Client  *r53.Client
+	Version    string
+	PhzID      string
 }
 
 type associationRequest struct {
@@ -111,7 +110,7 @@ func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.loading.Tick,
 		func() tea.Msg {
-			meta, err := ec2.InstanceMetadata(m.opts.Config)
+			meta, err := m.opts.IMDSClient.InstanceMetadata(context.TODO())
 			if err != nil {
 				return errMsg{err}
 			}
@@ -134,7 +133,7 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	switch msg := msg.(type) {
-	case ec2.Metadata:
+	case imds.Metadata:
 		m.ec2 = msg
 
 		// If the PHZ is already known by this point, attempt an association
