@@ -27,14 +27,19 @@ import (
 	"io"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/purpleclay/dns53/internal/tui"
+	"github.com/purpleclay/dns53/pkg/imds"
+	"github.com/purpleclay/dns53/pkg/r53"
 	"github.com/spf13/cobra"
 )
 
 type options struct {
 	region  string
 	profile string
+	phzID   string
 }
 
 func Execute(out io.Writer) error {
@@ -58,7 +63,12 @@ func Execute(out io.Writer) error {
 				return err
 			}
 
-			model, err := tui.Dashboard(cfg, version)
+			model, err := tui.Dashboard(tui.DashboardOptions{
+				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
+				IMDSClient: imds.NewFromAPI(awsimds.NewFromConfig(cfg)),
+				Version:    version,
+				PhzID:      opts.phzID,
+			})
 			if err != nil {
 				return err
 			}
@@ -69,7 +79,8 @@ func Execute(out io.Writer) error {
 
 	f := rootCmd.Flags()
 	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
-	f.StringVar(&opts.profile, "profile", "", "the name of an AWS named profile to use when loading credentials")
+	f.StringVar(&opts.profile, "profile", "", "the AWS named profile to use when loading credentials")
+	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))

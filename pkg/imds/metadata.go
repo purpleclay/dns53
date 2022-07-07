@@ -20,15 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package ec2
+package imds
 
 import (
 	"context"
 	"fmt"
 	"io/ioutil"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
 const (
@@ -41,6 +40,20 @@ const (
 	MacAddress = "mac"
 )
 
+// MetadataClientAPI ...
+type MetadataClientAPI interface {
+	// GetRegion ...
+	GetRegion(ctx context.Context, params *awsimds.GetRegionInput, optFns ...func(*awsimds.Options)) (*awsimds.GetRegionOutput, error)
+
+	// GetMetadata ...
+	GetMetadata(ctx context.Context, params *awsimds.GetMetadataInput, optFns ...func(*awsimds.Options)) (*awsimds.GetMetadataOutput, error)
+}
+
+// Client ...
+type Client struct {
+	api MetadataClientAPI
+}
+
 // Metadata contains metadata associated with an EC2 instance
 type Metadata struct {
 	IPv4   string
@@ -48,22 +61,25 @@ type Metadata struct {
 	VPC    string
 }
 
+// NewFromAPI ...
+func NewFromAPI(api MetadataClientAPI) *Client {
+	return &Client{api: api}
+}
+
 // InstanceMetadata attempts to retrieve useful metadata associated with
 // the current EC2 instance by querying IMDS
-func InstanceMetadata(cfg aws.Config) (Metadata, error) {
-	c := imds.NewFromConfig(cfg)
-
-	region, err := Region(c)
+func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
+	region, err := region(ctx, c.api)
 	if err != nil {
 		return Metadata{}, err
 	}
 
-	ipv4, err := IPv4Address(c)
+	ipv4, err := ipv4(ctx, c.api)
 	if err != nil {
 		return Metadata{}, err
 	}
 
-	vpc, err := VPC(c)
+	vpcID, err := vpc(ctx, c.api)
 	if err != nil {
 		return Metadata{}, err
 	}
@@ -71,13 +87,12 @@ func InstanceMetadata(cfg aws.Config) (Metadata, error) {
 	return Metadata{
 		Region: region,
 		IPv4:   ipv4,
-		VPC:    vpc,
+		VPC:    vpcID,
 	}, nil
 }
 
-// Region retrieves the region associated with the current EC2
-func Region(c *imds.Client) (string, error) {
-	out, err := c.GetRegion(context.TODO(), &imds.GetRegionInput{})
+func region(ctx context.Context, api MetadataClientAPI) (string, error) {
+	out, err := api.GetRegion(context.TODO(), &awsimds.GetRegionInput{})
 	if err != nil {
 		return "", err
 	}
@@ -85,9 +100,8 @@ func Region(c *imds.Client) (string, error) {
 	return out.Region, nil
 }
 
-// IPv4Address retrieves the IPv4 address associated with the current EC2
-func IPv4Address(c *imds.Client) (string, error) {
-	out, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+func ipv4(ctx context.Context, api MetadataClientAPI) (string, error) {
+	out, err := api.GetMetadata(context.TODO(), &awsimds.GetMetadataInput{
 		Path: IPv4Path,
 	})
 	if err != nil {
@@ -99,9 +113,8 @@ func IPv4Address(c *imds.Client) (string, error) {
 	return string(data), nil
 }
 
-// VPC retrieves the VPC associated with the current EC2
-func VPC(c *imds.Client) (string, error) {
-	mac, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
+	mac, err := api.GetMetadata(context.TODO(), &awsimds.GetMetadataInput{
 		Path: MacAddress,
 	})
 	if err != nil {
@@ -111,7 +124,7 @@ func VPC(c *imds.Client) (string, error) {
 	md, _ := ioutil.ReadAll(mac.Content)
 
 	// Use the MAC address to retrieve the VPC associated with the EC2 instance
-	out, err := c.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+	out, err := api.GetMetadata(context.TODO(), &awsimds.GetMetadataInput{
 		Path: fmt.Sprintf("network/interfaces/macs/%s/vpc-id", string(md)),
 	})
 	if err != nil {
