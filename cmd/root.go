@@ -79,7 +79,7 @@ func Execute(out io.Writer) error {
 
 	f := rootCmd.Flags()
 	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
-	f.StringVar(&opts.profile, "profile", "", "the name of an AWS named profile to use when loading credentials")
+	f.StringVar(&opts.profile, "profile", "", "the AWS named profile to use when loading credentials")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
