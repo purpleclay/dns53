@@ -38,3 +38,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CONFIG_FILE: docs/mkdocs.yml
+      - name: Set Custom Domain
+        uses: octokit/request-action@v2.x
+        id: pages_domain
+        with:
+          route: PUT /repos/{owner}/{repo}/pages
+          owner: purpleclay
+          repo: dns53
+          cname: purpleclay.dev/dns53
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
