@@ -70,6 +70,30 @@ archives:
 checksum:
   name_template: "checksums.txt"
 
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^test"
+      - "^chore"
+      - "^ci"
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 1
+    - title: "Bug Fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 2
+    - title: "Dependency Updates"
+      regexp: "^.*feat\\(deps\\)*:+.*$"
+      order: 3
+    - title: "Documentation"
+      regexp: "^.*docs[(\\w)]*:+.*$"
+      order: 4
+    - title: "Other Work"
+      order: 10
+
 sboms:
   - artifacts: archive
 
@@ -194,3 +218,12 @@ aurs:
 
       # manpages
       install -Dm644 "./manpages/dns53.1.gz" "${pkgdir}/usr/share/man/man1/dns53.1.gz"
+
+release:
+  footer: |
+    **Full Changelog**: https://github.com/purpleclay/dns53/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    ## What to do next?
+
+    - Read the [documentation](https://purpleclay.github.io/dns53/)
+    - Follow us on [Twitter](https://twitter.com/purpleclaydev)
