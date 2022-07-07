@@ -120,8 +120,6 @@ func (m DashboardModel) Init() tea.Cmd {
 	)
 }
 
-// TODO: fix styling issues, as dashboard jumps when rendering with --phz-id
-
 // Update handles all IO operations
 func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
@@ -184,8 +182,6 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case connection:
 		m.connected.dns = msg.dns
 	}
-
-	// TODO: trigger update on bubbles as needed
 
 	if len(m.phz.Items()) > 0 && m.connected == nil {
 		m.phz, cmd = m.phz.Update(msg)
@@ -269,8 +265,6 @@ func (m DashboardModel) View() string {
 
 	return b.String()
 }
-
-// TODO: should these be methods off the model, or should values just be passed in?
 
 func (m DashboardModel) queryHostedZones() tea.Msg {
 	phzs, err := m.opts.R53Client.ByVPC(context.TODO(), m.ec2.VPC, m.ec2.Region)
