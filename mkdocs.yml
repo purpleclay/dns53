@@ -3,8 +3,7 @@ site_description: Dynamic DNS within Amazon Route53. Expose your EC2 quickly, ea
 copyright: Always thinking. Forever learning. 💡
 repo_name: purpleclay/dns53
 repo_url: https://github.com/purpleclay/dns53
-edit_uri: edit/main/docs/content
-docs_dir: content
+edit_uri: edit/main/docs
 
 theme:
   name: material
@@ -36,6 +35,12 @@ plugins:
   - search
   - minify:
       minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+  - git-committers:
+      repository: squidfunk/mkdocs-material
+      token: !ENV GH_TOKEN
 
 markdown_extensions:
   - admonition
