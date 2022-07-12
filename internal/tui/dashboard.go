@@ -37,7 +37,8 @@ import (
 	"golang.org/x/term"
 )
 
-// DashboardModel ...
+// DashboardModel defines the underlying model used for updating
+// and rendering the dashboard TUI
 type DashboardModel struct {
 	opts DashboardOptions
 
@@ -51,7 +52,8 @@ type DashboardModel struct {
 	err       error
 }
 
-// DashboardOptions ...
+// DashboardOptions defines all of the supported options when initialising
+// the Dashboard model
 type DashboardOptions struct {
 	IMDSClient *imds.Client
 	R53Client  *r53.Client

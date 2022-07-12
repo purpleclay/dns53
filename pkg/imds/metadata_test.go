@@ -36,7 +36,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInstanceMetadata(t *testing.T) {
+func TestIntegration_InstanceMetadata(t *testing.T) {
 	ctx := context.Background()
 	container := aemm.MustStart(ctx)
 	defer container.Terminate(ctx)

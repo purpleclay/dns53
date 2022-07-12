@@ -86,6 +86,5 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v3
         with:
-          directory: ./cover
-          files: ./cover/unittest.out,./cover/integrationtest.out
-          path_to_write_report: ./cover/coverage.out
+          files: ./unittest.out,./integrationtest.out
+          path_to_write_report: ./coverage.out
