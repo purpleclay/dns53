@@ -5,6 +5,7 @@ version: "3"
 vars:
   BINDIR: bin
   BINNAME: dns53
+  COVERDIR: cover
   GIT_COMMIT:
     sh: git rev-parse HEAD
   GIT_SHA:
@@ -21,8 +22,10 @@ tasks:
   default:
     desc: Runs all of the default tasks
     cmds:
+      - task: clean
       - task: lint
       - task: test
+      - task: integration-test
       - task: build
 
   build:
@@ -30,10 +33,24 @@ tasks:
     cmds:
       - go build -ldflags '-s -w {{.LDFLAGS}}' .
 
+  cover-prep:
+    desc: Prerequisites for code coverage reporting
+    cmds:
+      - mkdir -p {{.COVERDIR}}
+    status:
+      - test -d {{.COVERDIR}}
+
   test:
     desc: Run the tests
+    deps: [cover-prep]
     cmds:
-      - go test -race -vet=off -p 1 -covermode=atomic -coverprofile=coverage.out ./...
+      - go test -tags=!integration -race -vet=off -p 1 -covermode=atomic -coverprofile={{.COVERDIR}}/unittest.out ./...
+
+  integration-test:
+    desc: Run the integration tests
+    deps: [cover-prep]
+    cmds:
+      - go test -tags=integration -race -vet=off -p 1 -covermode=atomic -coverprofile={{.COVERDIR}}/integrationtest.out ./...
 
   lint:
     desc: Lint the code using golangci
@@ -44,3 +61,9 @@ tasks:
     desc: gofumpt all code
     cmds:
       - gofumpt -w -l .
+
+  clean:
+    desc: Delete all artefacts from recent build
+    cmds:
+      - rm ./{{.BINNAME}}
+      - rm -rf {{.COVERDIR}}
