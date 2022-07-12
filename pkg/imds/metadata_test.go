@@ -1,3 +1,5 @@
+//go:build integration
+
 /*
 Copyright (c) 2022 Purple Clay
 
