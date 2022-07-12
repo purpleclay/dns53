@@ -21,8 +21,10 @@ tasks:
   default:
     desc: Runs all of the default tasks
     cmds:
+      - task: clean
       - task: lint
       - task: test
+      - task: integration-test
       - task: build
 
   build:
@@ -33,7 +35,12 @@ tasks:
   test:
     desc: Run the tests
     cmds:
-      - go test -race -vet=off -p 1 -covermode=atomic -coverprofile=coverage.out ./...
+      - go test -tags=!integration -race -vet=off -p 1 -covermode=atomic -coverprofile=unittest.out ./...
+
+  integration-test:
+    desc: Run the integration tests
+    cmds:
+      - go test -run=TestIntegration -tags=integration -race -vet=off -p 1 -covermode=atomic -coverprofile=integrationtest.out ./...
 
   lint:
     desc: Lint the code using golangci
@@ -44,3 +51,9 @@ tasks:
     desc: gofumpt all code
     cmds:
       - gofumpt -w -l .
+
+  clean:
+    desc: Delete all artefacts from recent build
+    cmds:
+      - rm ./{{.BINNAME}}
+      - rm -rf {{.COVERDIR}}

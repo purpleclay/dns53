@@ -31,25 +31,21 @@ import (
 )
 
 const (
-	// IPv4Path defines the path to the private IPv4 address of the EC2
-	// instance within IMDS
-	IPv4Path = "local-ipv4"
-
-	// MacAddress defines the path to the private MAC address of the EC2
-	// instance within IMDS
-	MacAddress = "mac"
+	pathIPv4            = "local-ipv4"
+	pathMacAddress      = "mac"
+	pathPlacementRegion = "placement/region"
 )
 
-// MetadataClientAPI ...
+// MetadataClientAPI defines the API for interacting with the Amazon
+// EC2 Instance Metadata Service (IMDS)
 type MetadataClientAPI interface {
-	// GetRegion ...
-	GetRegion(ctx context.Context, params *awsimds.GetRegionInput, optFns ...func(*awsimds.Options)) (*awsimds.GetRegionOutput, error)
-
-	// GetMetadata ...
+	// GetMetadata uses the path provided to request information from the Amazon
+	// EC2 Instance Metadata Service
 	GetMetadata(ctx context.Context, params *awsimds.GetMetadataInput, optFns ...func(*awsimds.Options)) (*awsimds.GetMetadataOutput, error)
 }
 
-// Client ...
+// Client defines the client for interacting with the Amazon EC2 Instance
+// Metadata Service (IMDS)
 type Client struct {
 	api MetadataClientAPI
 }
@@ -61,7 +57,7 @@ type Metadata struct {
 	VPC    string
 }
 
-// NewFromAPI ...
+// NewFromAPI returns a new client from the provided IMDS API implementation
 func NewFromAPI(api MetadataClientAPI) *Client {
 	return &Client{api: api}
 }
@@ -92,17 +88,21 @@ func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
 }
 
 func region(ctx context.Context, api MetadataClientAPI) (string, error) {
-	out, err := api.GetRegion(context.TODO(), &awsimds.GetRegionInput{})
+	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
+		Path: pathPlacementRegion,
+	})
 	if err != nil {
 		return "", err
 	}
+	defer out.Content.Close()
 
-	return out.Region, nil
+	data, _ := ioutil.ReadAll(out.Content)
+	return string(data), nil
 }
 
 func ipv4(ctx context.Context, api MetadataClientAPI) (string, error) {
-	out, err := api.GetMetadata(context.TODO(), &awsimds.GetMetadataInput{
-		Path: IPv4Path,
+	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
+		Path: pathIPv4,
 	})
 	if err != nil {
 		return "", err
@@ -114,8 +114,8 @@ func ipv4(ctx context.Context, api MetadataClientAPI) (string, error) {
 }
 
 func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
-	mac, err := api.GetMetadata(context.TODO(), &awsimds.GetMetadataInput{
-		Path: MacAddress,
+	mac, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
+		Path: pathMacAddress,
 	})
 	if err != nil {
 		return "", err
@@ -124,7 +124,7 @@ func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
 	md, _ := ioutil.ReadAll(mac.Content)
 
 	// Use the MAC address to retrieve the VPC associated with the EC2 instance
-	out, err := api.GetMetadata(context.TODO(), &awsimds.GetMetadataInput{
+	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
 		Path: fmt.Sprintf("network/interfaces/macs/%s/vpc-id", string(md)),
 	})
 	if err != nil {

@@ -31,37 +31,45 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
 
-// DNSClientAPI ...
+// DNSClientAPI defines the API for interacting with Amazon Route 53
 type DNSClientAPI interface {
-	// GetHostedZone ...
+	// GetHostedZone retrieves information about a specified hosted zone including
+	// the four name servers assigned to the hosted zone
 	GetHostedZone(ctx context.Context, params *awsr53.GetHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.GetHostedZoneOutput, error)
 
-	// ListHostedZonesByVPC ...
+	// ListHostedZonesByVPC lists all of the private hosted zones that a specified VPC
+	// is associated with
 	ListHostedZonesByVPC(ctx context.Context, params *awsr53.ListHostedZonesByVPCInput, optFns ...func(*awsr53.Options)) (*awsr53.ListHostedZonesByVPCOutput, error)
 
-	// ChangeResourceRecordSets ...
+	// ChangeResourceRecordSets creates, changes, or deletes a resource record set,
+	// which contains authoritative DNS information for a specified domain name or subdomain name
 	ChangeResourceRecordSets(ctx context.Context, params *awsr53.ChangeResourceRecordSetsInput, optFns ...func(*awsr53.Options)) (*awsr53.ChangeResourceRecordSetsOutput, error)
 }
 
-// Client ...
+// Client defines the client for interacting with Amazon Route 53
 type Client struct {
 	api DNSClientAPI
 }
 
 // PrivateHostedZone identifies an AWS Route53 Private Hosted Zone (PHZ)
 type PrivateHostedZone struct {
-	ID   string
+	// ID of the AWS Route53 Private Hosted Zone (PHZ)
+	ID string
+
+	// Name of the AWS Route53 Hosted Zone (PHZ). This will be the CNAME
+	// of the parent domain
 	Name string
 }
 
-// ResourceRecord ...
+// ResourceRecord represents a DNS record type that is supported by an
+// AWS Route53 Private Hosted Zone (PHZ)
 type ResourceRecord struct {
 	PhzID    string
 	Name     string
 	Resource string
 }
 
-// NewFromAPI ...
+// NewFromAPI returns a new client from the provided DNS API implementation
 func NewFromAPI(api DNSClientAPI) *Client {
 	return &Client{api: api}
 }
