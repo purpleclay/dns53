@@ -296,7 +296,7 @@ func (m DashboardModel) initAssociation() tea.Msg {
 
 	var name string
 	if m.opts.DNSName != "" {
-		name = m.opts.DNSName + "." + m.connected.phz.Name
+		name = appendDNSSuffix(m.opts.DNSName, m.connected.phz.Name)
 
 		// Check if the provided name contains a template
 		if strings.Contains(name, "{{") {
@@ -328,4 +328,21 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	}
 
 	return connection{dns: name, phz: m.connected.phz}
+}
+
+func appendDNSSuffix(dns, domain string) string {
+	if strings.HasSuffix(dns, "dns53."+domain) {
+		return dns
+	}
+
+	// If suffix has only been partially set, trim it
+	if strings.HasSuffix(dns, ".dns53") {
+		dns = strings.TrimSuffix(dns, ".dns53")
+	}
+
+	if strings.HasSuffix(dns, "."+domain) {
+		dns = strings.TrimSuffix(dns, "."+domain)
+	}
+
+	return fmt.Sprintf("%s.dns53.%s", dns, domain)
 }
