@@ -68,8 +68,9 @@ func Execute(out io.Writer) error {
 	opts := options{}
 
 	rootCmd := &cobra.Command{
-		Use:     "dns53",
-		Short:   "Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 53 Private Hosted Zone (PHZ)",
+		Use: "dns53",
+		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
+53 Private Hosted Zone (PHZ)`,
 		Long:    longDesc,
 		Example: examples,
 		RunE: func(cmd *cobra.Command, args []string) error {
