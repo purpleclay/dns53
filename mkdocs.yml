@@ -21,9 +21,11 @@ theme:
 nav:
   - Home: index.md
   - install.md
+  - Quick Start: quickstart.md
   - Usage:
       - IAM: iam.md
       - Command Line: cli.md
+      - Named Templates: template.md
 
 extra:
   social:
