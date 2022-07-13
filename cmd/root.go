@@ -82,8 +82,6 @@ func Execute(out io.Writer) error {
 				optsFn = append(optsFn, config.WithRegion(opts.region))
 			}
 
-			optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
-
 			cfg, err := config.LoadDefaultConfig(context.TODO(), optsFn...)
 			if err != nil {
 				return err
