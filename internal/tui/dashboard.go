@@ -336,13 +336,8 @@ func appendDNSSuffix(dns, domain string) string {
 	}
 
 	// If suffix has only been partially set, trim it
-	if strings.HasSuffix(dns, ".dns53") {
-		dns = strings.TrimSuffix(dns, ".dns53")
-	}
-
-	if strings.HasSuffix(dns, "."+domain) {
-		dns = strings.TrimSuffix(dns, "."+domain)
-	}
+	dns = strings.TrimSuffix(dns, ".dns53")
+	dns = strings.TrimSuffix(dns, "."+domain)
 
 	return fmt.Sprintf("%s.dns53.%s", dns, domain)
 }
