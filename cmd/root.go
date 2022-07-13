@@ -40,6 +40,7 @@ type options struct {
 	region  string
 	profile string
 	phzID   string
+	dnsName string
 }
 
 func Execute(out io.Writer) error {
@@ -58,6 +59,8 @@ func Execute(out io.Writer) error {
 				optsFn = append(optsFn, config.WithRegion(opts.region))
 			}
 
+			optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
+
 			cfg, err := config.LoadDefaultConfig(context.TODO(), optsFn...)
 			if err != nil {
 				return err
@@ -68,6 +71,7 @@ func Execute(out io.Writer) error {
 				IMDSClient: imds.NewFromAPI(awsimds.NewFromConfig(cfg)),
 				Version:    version,
 				PhzID:      opts.phzID,
+				DNSName:    opts.dnsName,
 			})
 			if err != nil {
 				return err
@@ -81,6 +85,7 @@ func Execute(out io.Writer) error {
 	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
 	f.StringVar(&opts.profile, "profile", "", "the AWS named profile to use when loading credentials")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
+	f.StringVar(&opts.dnsName, "dns-name", "", "use the DNS name when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))
