@@ -23,10 +23,12 @@ SOFTWARE.
 package tui
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -59,6 +61,7 @@ type DashboardOptions struct {
 	R53Client  *r53.Client
 	Version    string
 	PhzID      string
+	DNSName    string
 }
 
 type associationRequest struct {
@@ -287,12 +290,37 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 }
 
 func (m DashboardModel) initAssociation() tea.Msg {
-	name := fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
+	// Sanitise the IPv4 within the EC2 Metadata Object
+	ipv4 := m.ec2.IPv4
+	m.ec2.IPv4 = strings.ReplaceAll(m.ec2.IPv4, ".", "-")
+
+	var name string
+	if m.opts.DNSName != "" {
+		name = appendDNSSuffix(m.opts.DNSName, m.connected.phz.Name)
+
+		// Check if the provided name contains a template
+		if strings.Contains(name, "{{") {
+			tmpl, err := template.New("dns").Parse(name)
+			if err != nil {
+				return errMsg{err}
+			}
+
+			var out bytes.Buffer
+			if err := tmpl.Execute(&out, m.ec2); err != nil {
+				return errMsg{err}
+			}
+
+			name = out.String()
+		}
+	} else {
+		// By default include the dns53 suffix
+		name = fmt.Sprintf("%s.dns53.%s", m.ec2.IPv4, m.connected.phz.Name)
+	}
 
 	record := r53.ResourceRecord{
 		PhzID:    m.connected.phz.ID,
 		Name:     name,
-		Resource: m.ec2.IPv4,
+		Resource: ipv4,
 	}
 
 	if err := m.opts.R53Client.AssociateRecord(context.TODO(), record); err != nil {
@@ -300,4 +328,16 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	}
 
 	return connection{dns: name, phz: m.connected.phz}
+}
+
+func appendDNSSuffix(dns, domain string) string {
+	if strings.HasSuffix(dns, "dns53."+domain) {
+		return dns
+	}
+
+	// If suffix has only been partially set, trim it
+	dns = strings.TrimSuffix(dns, ".dns53")
+	dns = strings.TrimSuffix(dns, "."+domain)
+
+	return fmt.Sprintf("%s.dns53.%s", dns, domain)
 }

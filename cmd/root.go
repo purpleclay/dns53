@@ -36,18 +36,43 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	longDesc = `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
+53 Private Hosted Zone (PHZ).
+
+Your EC2 will be exposed through a dynamically generated resource record that will automatically 
+be deleted when dns53 exits. Let dns53 name your resource record for you, or customise it to your needs. 
+
+Built using Bubbletea 🧋`
+	examples = `  # Launch the TUI and use the wizard to select a PHZ
+  dns53
+
+  # Launch the TUI using a chosen PHZ, effectively skipping the wizard
+  dns53 --phz-id Z000000000ABCDEFGHIJK
+
+  # Launch the TUI with a given domain name
+  dns53 --dns-name custom.domain
+
+  # Launch the TUI with a templated domain name
+  dns53 --dns-name "{{.IPv4}}.{{.Region}}"`
+)
+
 type options struct {
 	region  string
 	profile string
 	phzID   string
+	dnsName string
 }
 
 func Execute(out io.Writer) error {
 	opts := options{}
 
 	rootCmd := &cobra.Command{
-		Use:   "dns53",
-		Short: "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately",
+		Use: "dns53",
+		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
+53 Private Hosted Zone (PHZ)`,
+		Long:    longDesc,
+		Example: examples,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			optsFn := []func(*config.LoadOptions) error{}
 			if opts.profile != "" {
@@ -68,6 +93,7 @@ func Execute(out io.Writer) error {
 				IMDSClient: imds.NewFromAPI(awsimds.NewFromConfig(cfg)),
 				Version:    version,
 				PhzID:      opts.phzID,
+				DNSName:    opts.dnsName,
 			})
 			if err != nil {
 				return err
@@ -81,6 +107,7 @@ func Execute(out io.Writer) error {
 	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
 	f.StringVar(&opts.profile, "profile", "", "the AWS named profile to use when loading credentials")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
+	f.StringVar(&opts.dnsName, "dns-name", "", "use the DNS name when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))

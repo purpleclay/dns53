@@ -64,8 +64,14 @@ type PrivateHostedZone struct {
 // ResourceRecord represents a DNS record type that is supported by an
 // AWS Route53 Private Hosted Zone (PHZ)
 type ResourceRecord struct {
-	PhzID    string
-	Name     string
+	// PhzID of the AWS Route53 Private Hosted Zone (PHZ)
+	PhzID string
+
+	// Name of the resource record that will be either be created, updated
+	// or deleted within the AWS Route53 Private Hosted Zone (PHZ)
+	Name string
+
+	// Resource contains the value associated with the resource record
 	Resource string
 }
 
@@ -86,7 +92,7 @@ func (r *Client) ByID(ctx context.Context, id string) (PrivateHostedZone, error)
 	// Trim off the static prefix from the Hosted Zone ID
 	return PrivateHostedZone{
 		ID:   strings.TrimPrefix(*resp.HostedZone.Id, "/hostedzone/"),
-		Name: *resp.HostedZone.Name,
+		Name: strings.TrimSuffix(*resp.HostedZone.Name, "."),
 	}, nil
 }
 
@@ -102,7 +108,10 @@ func (r *Client) ByVPC(ctx context.Context, vpc, region string) ([]PrivateHosted
 
 	phz := make([]PrivateHostedZone, 0, len(resp.HostedZoneSummaries))
 	for _, hzs := range resp.HostedZoneSummaries {
-		phz = append(phz, PrivateHostedZone{ID: *hzs.HostedZoneId, Name: *hzs.Name})
+		phz = append(phz, PrivateHostedZone{
+			ID:   *hzs.HostedZoneId,
+			Name: strings.TrimSuffix(*hzs.Name, "."),
+		})
 	}
 
 	return phz, nil

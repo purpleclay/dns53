@@ -21,7 +21,6 @@ tasks:
   default:
     desc: Runs all of the default tasks
     cmds:
-      - task: clean
       - task: lint
       - task: test
       - task: integration-test
@@ -56,4 +55,5 @@ tasks:
     desc: Delete all artefacts from recent build
     cmds:
       - rm ./{{.BINNAME}}
-      - rm -rf {{.COVERDIR}}
+    status:
+      - test -f ./{{.BINNAME}}

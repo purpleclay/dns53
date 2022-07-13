@@ -52,9 +52,14 @@ type Client struct {
 
 // Metadata contains metadata associated with an EC2 instance
 type Metadata struct {
-	IPv4   string
+	// IPv4 is the private IPv4 address of the launched instance
+	IPv4 string
+
+	// Region of where the EC2 instance was launched
 	Region string
-	VPC    string
+
+	// VPC ID of where the EC2 instance was launched
+	VPC string
 }
 
 // NewFromAPI returns a new client from the provided IMDS API implementation
