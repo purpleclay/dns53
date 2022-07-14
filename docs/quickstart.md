@@ -25,13 +25,13 @@ If you want more control over the generated domain name for your exposed EC2, yo
 === "As is"
 
     ```sh
-    dns53 --dns-name my.ec2
+    dns53 --domain-name my.ec2
     ```
 
 === "Templated"
 
     ```sh
-    dns53 --dns-name "{{.IPv4}}.{{.Region}}"
+    dns53 --domain-name "{{.IPv4}}.{{.Region}}"
     ```
 
 `dns53` will automatically suffix any domain with `.dns53.<R53_ROOT_DOMAIN>`
