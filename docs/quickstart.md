@@ -15,7 +15,7 @@ dns53
 Skip the wizard and expose your EC2 straight away.
 
 ```sh
-dns53 --phz-id AAAAAAAAAAAAAAAAA
+dns53 --phz-id Z000000000ABCDEFGHIJK
 ```
 
 ## Custom Domain Name

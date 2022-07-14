@@ -223,7 +223,7 @@ func (m DashboardModel) View() string {
 	if m.connected != nil {
 		phzLabel := dashboardLabel.Padding(0, 2).Render("PHZ:")
 		ec2MetaLabel := dashboardLabel.Padding(0, 2).Render("EC2:")
-		dnsLabel := dashboardLabel.Padding(0, 2).Render("DNS:")
+		domainLabel := dashboardLabel.Padding(0, 2).Render("Domain:")
 
 		lbl := lipgloss.NewStyle().Width(20)
 
@@ -235,8 +235,8 @@ func (m DashboardModel) View() string {
 			lbl.Render(ec2MetaLabel),
 			fmt.Sprintf("%s   :>   %s   :>   %s", m.ec2.IPv4, m.ec2.Region, m.ec2.VPC))
 
-		dns := lipgloss.JoinHorizontal(lipgloss.Top,
-			lbl.Render(dnsLabel),
+		domain := lipgloss.JoinHorizontal(lipgloss.Top,
+			lbl.Render(domainLabel),
 			fmt.Sprintf("%s   ~>   localhost   [A]", m.connected.dns))
 
 		dashboard := lipgloss.JoinVertical(lipgloss.Top,
@@ -244,9 +244,9 @@ func (m DashboardModel) View() string {
 			br,
 			ec2Meta,
 			br,
-			dns)
+			domain)
 
-		b.WriteString(lipgloss.NewStyle().MarginTop(3).Render(dashboard))
+		b.WriteString(lipgloss.NewStyle().MarginTop(2).Render(dashboard))
 	} else {
 		// If phzs have been retrieved, no longer render the spinner
 		if len(m.phz.Items()) == 0 {
@@ -296,7 +296,7 @@ func (m DashboardModel) initAssociation() tea.Msg {
 
 	var name string
 	if m.opts.DomainName != "" {
-		name = appendDNSSuffix(m.opts.DomainName, m.connected.phz.Name)
+		name = appendDomainSuffix(m.opts.DomainName, m.connected.phz.Name)
 
 		// Check if the provided name contains a template
 		if strings.Contains(name, "{{") {
@@ -330,14 +330,14 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	return connection{dns: name, phz: m.connected.phz}
 }
 
-func appendDNSSuffix(dns, domain string) string {
-	if strings.HasSuffix(dns, "dns53."+domain) {
-		return dns
+func appendDomainSuffix(domain, root string) string {
+	if strings.HasSuffix(domain, "dns53."+domain) {
+		return domain
 	}
 
 	// If suffix has only been partially set, trim it
-	dns = strings.TrimSuffix(dns, ".dns53")
-	dns = strings.TrimSuffix(dns, "."+domain)
+	domain = strings.TrimSuffix(domain, ".dns53")
+	domain = strings.TrimSuffix(domain, "."+root)
 
-	return fmt.Sprintf("%s.dns53.%s", dns, domain)
+	return fmt.Sprintf("%s.dns53.%s", domain, root)
 }

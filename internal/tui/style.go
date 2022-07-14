@@ -78,5 +78,6 @@ var (
 			Background(secondary).
 			Foreground(text).
 			Bold(true).
-			MarginLeft(1)
+			MarginLeft(1).
+			Width(11)
 )
