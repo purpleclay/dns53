@@ -34,6 +34,8 @@ If you want more control over the generated domain name for your exposed EC2, yo
     dns53 --dns-name "{{.IPv4}}.{{.Region}}"
     ```
 
+`dns53` will automatically suffix any domain with `.dns53.<R53_ROOT_DOMAIN>`
+
 !!!tip "Why not try templating?"
 
     A full list of fields supported by `dns53` templating can be found [here](./template.md)
