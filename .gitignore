@@ -21,3 +21,6 @@ dns53
 
 # GoReleaser build output
 dist/
+
+# Mkdocs
+.cache/
