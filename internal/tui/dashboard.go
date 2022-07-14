@@ -61,7 +61,7 @@ type DashboardOptions struct {
 	R53Client  *r53.Client
 	Version    string
 	PhzID      string
-	DNSName    string
+	DomainName string
 }
 
 type associationRequest struct {
@@ -295,8 +295,8 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	m.ec2.IPv4 = strings.ReplaceAll(m.ec2.IPv4, ".", "-")
 
 	var name string
-	if m.opts.DNSName != "" {
-		name = appendDNSSuffix(m.opts.DNSName, m.connected.phz.Name)
+	if m.opts.DomainName != "" {
+		name = appendDNSSuffix(m.opts.DomainName, m.connected.phz.Name)
 
 		// Check if the provided name contains a template
 		if strings.Contains(name, "{{") {
