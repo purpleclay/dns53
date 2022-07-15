@@ -25,7 +25,7 @@ nav:
   - Usage:
       - IAM: iam.md
       - Command Line: cli.md
-      - Named Templates: template.md
+      - Go Templates: template.md
 
 extra:
   social:

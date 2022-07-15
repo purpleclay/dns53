@@ -1,6 +1,6 @@
-# Named Templates
+# Go Templates
 
-`dns53` supports templating through a series of named templates
+`dns53` supports Go [templating](https://pkg.go.dev/text/template) through a series of named fields. Using a templated field is as easy as writing `{{.IPv4}}`.
 
 ## EC2 Metadata Fields
 
