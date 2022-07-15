@@ -20,16 +20,18 @@
 
 name: docs
 on:
+  pull_request:
   push:
     tags:
       - "v*.*.*"
     paths:
+      - ".github/workflows/docs.yml"
       - "docs/**"
       - "mkdocs.yml"
   # Allow the workflow to be triggered manually
   workflow_dispatch:
 jobs:
-  docs:
+  build-docs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -59,6 +61,21 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_MKDOCS }}
         run: |
           pip install git+https://${GH_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
+      - name: Build
+        run: mkdocs build
+        env:
+          GH_TOKEN: ${{ secrets.GH_MKDOCS }}
+      - name: Html Test
+        uses: wjdp/htmltest-action@master
+        with:
+          path: site
+          config: htmltest.yml
+
+  deploy-docs:
+    needs: build-docs
+    if: github.ref == 'refs/heads/main' && always() && (needs.build-docs.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy documentation
         env:
           GH_TOKEN: ${{ secrets.GH_MKDOCS }}

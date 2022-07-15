@@ -1,0 +1,8 @@
+IgnoreURLs:
+  - fonts.gstatic.com
+IgnoreDirectoryMissingTrailingSlash: true
+IgnoreAltMissing: true
+ExternalTimeout: 60
+HTTPHeaders:
+  "Range": "bytes=0-10"
+  "Accept": "*/*"
