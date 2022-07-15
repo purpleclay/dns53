@@ -25,9 +25,9 @@ on:
     tags:
       - "v*.*.*"
     paths:
+      - ".github/workflows/docs.yml"
       - "docs/**"
       - "mkdocs.yml"
-      - ".github/workflows/docs.yml"
   # Allow the workflow to be triggered manually
   workflow_dispatch:
 jobs:
