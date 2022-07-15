@@ -1,3 +1,5 @@
+IgnoreURLs:
+  - fonts.gstatic.com
 IgnoreDirectoryMissingTrailingSlash: true
 IgnoreAltMissing: true
 ExternalTimeout: 60
