@@ -72,7 +72,7 @@ jobs:
 
   deploy-docs:
     needs: build-docs
-    if: github.ref == 'refs/heads/main' && always() && (deploy-docs.ci.result == 'success')
+    if: github.ref == 'refs/heads/main' && always() && (build-docs.ci.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Deploy documentation
