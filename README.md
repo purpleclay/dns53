@@ -8,6 +8,8 @@ Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately
 [![Go Version](https://img.shields.io/github/go-mod/go-version/purpleclay/dns53.svg?style=flat-square)](go.mod)
 [![codecov](https://codecov.io/gh/purpleclay/dns53/branch/main/graph/badge.svg)](https://codecov.io/gh/purpleclay/dns53)
 
+[![asciicast](https://asciinema.org/a/509096.svg)](https://asciinema.org/a/509096)
+
 ## Documentation
 
 Check out the latest [documentation](https://purpleclay.github.io/dns53/)
