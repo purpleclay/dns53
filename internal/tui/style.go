@@ -31,7 +31,7 @@ var (
 
 	primary   = lipgloss.Color("#3A0CA3")
 	secondary = lipgloss.Color("#8333B7")
-	feint     = lipgloss.Color("#888888")
+	feint     = lipgloss.Color("#A2A0A0")
 	red       = lipgloss.Color("#d00000")
 	text      = lipgloss.Color("#FFFFFF")
 
@@ -39,29 +39,21 @@ var (
 
 	br = "\n"
 
-	// Title Bar
+	// Header
 
-	titleBarStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#BFBDC0")).
-			Background(lipgloss.Color("#36313B")).Margin(1)
-
-	titleItemStyle = lipgloss.NewStyle().
-			Inherit(titleBarStyle).
+	appNameStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(primary)
+			Background(primary).
+			MarginLeft(1)
 
-	titleMenuStyle = lipgloss.NewStyle().Inherit(titleBarStyle)
+	helpStyle = lipgloss.NewStyle().Foreground(feint).MarginLeft(1)
 
-	// Spinner
+	// Bubbles
 
 	spinnerStyle = lipgloss.NewStyle().
 			Foreground(secondary).
 			Bold(true).
 			MarginLeft(1)
-
-	// List
-
-	listHelpStyle = lipgloss.NewStyle().Foreground(feint).MarginLeft(2)
 
 	// Error
 
