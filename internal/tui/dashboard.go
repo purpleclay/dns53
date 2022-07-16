@@ -98,7 +98,7 @@ func Dashboard(opts DashboardOptions) (*DashboardModel, error) {
 	m := &DashboardModel{opts: opts}
 
 	m.phz = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
-	m.phz.Styles.HelpStyle = listHelpStyle
+	m.phz.Styles.HelpStyle = helpStyle
 	m.phz.SetShowFilter(false)
 	m.phz.SetShowTitle(false)
 	m.phz.DisableQuitKeybindings()
@@ -199,25 +199,16 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View will attempt to render the current dashboard based on the model
 func (m DashboardModel) View() string {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
-	rw := width - 5
+	rw := width - 10
 
 	var b strings.Builder
 
-	// Render the title bar
-	name := titleItemStyle.Padding(0, 3).Render("dns53")
-	version := titleItemStyle.Padding(0, 2).Render(m.opts.Version)
-	menu := titleMenuStyle.Copy().
-		Width(rw - lipgloss.Width(name) - lipgloss.Width(version)).
-		PaddingLeft(2).
-		Render("quit (ctrl+c)")
-
-	bar := lipgloss.JoinHorizontal(lipgloss.Top,
-		name,
-		menu,
-		version,
+	banner := lipgloss.JoinVertical(
+		lipgloss.Top,
+		appNameStyle.Padding(0, 2).Render("dns53"),
+		helpStyle.MarginTop(1).Render("(ctrl+c) quit"),
 	)
-
-	b.WriteString(titleBarStyle.Width(rw).Render(bar))
+	b.WriteString(lipgloss.NewStyle().Margin(1, 0, 2, 0).Render(banner))
 	b.WriteString(br)
 
 	if m.connected != nil {
@@ -261,7 +252,7 @@ func (m DashboardModel) View() string {
 		errorPanelStyle := lipgloss.NewStyle().MarginLeft(1).Width(rw)
 
 		errorPanel := lipgloss.JoinVertical(lipgloss.Top,
-			fmt.Sprintf("\n\n%s", errorLabelStyle),
+			fmt.Sprintf("\n%s", errorLabelStyle),
 			fmt.Sprintf("\n%s\n", m.err.Error()),
 		)
 
