@@ -25,9 +25,11 @@ on:
     branches:
       - main
     paths:
+      - "**/*.go"
       - "*.go"
   pull_request:
     paths:
+      - "**/*.go"
       - "*.go"
   schedule:
     - cron: "36 4 * * 6"
