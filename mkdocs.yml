@@ -34,7 +34,7 @@ extra:
       name: Purple Clay on GitHub
   analytics:
     provider: google
-    property: !ENV GOOGLE_ANALYTICS_KEY
+    property: !ENV GH_GOOGLE_ANALYTICS_KEY
     feedback:
       title: Was this page helpful?
       ratings:
