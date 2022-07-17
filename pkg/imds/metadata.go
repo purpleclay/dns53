@@ -34,6 +34,9 @@ const (
 	pathIPv4            = "local-ipv4"
 	pathMacAddress      = "mac"
 	pathPlacementRegion = "placement/region"
+	pathPlacementAZ     = "placement/availability-zone"
+	pathInstanceID      = "instance-id"
+	pathHostname        = "hostname"
 )
 
 // MetadataClientAPI defines the API for interacting with the Amazon
@@ -60,6 +63,15 @@ type Metadata struct {
 
 	// VPC ID of where the EC2 instance was launched
 	VPC string
+
+	// AZ is the availability zone where the instance was launched
+	AZ string
+
+	// InstanceID is the unique ID of this instance
+	InstanceID string
+
+	// Hostname is the private IPv4 hostname of the launched instance
+	Hostname string
 }
 
 // NewFromAPI returns a new client from the provided IMDS API implementation
@@ -70,44 +82,39 @@ func NewFromAPI(api MetadataClientAPI) *Client {
 // InstanceMetadata attempts to retrieve useful metadata associated with
 // the current EC2 instance by querying IMDS
 func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
-	region, err := region(ctx, c.api)
-	if err != nil {
+	md := Metadata{}
+
+	var err error
+	if md.Region, err = get(ctx, c.api, pathPlacementRegion); err != nil {
 		return Metadata{}, err
 	}
 
-	ipv4, err := ipv4(ctx, c.api)
-	if err != nil {
+	if md.IPv4, err = get(ctx, c.api, pathIPv4); err != nil {
 		return Metadata{}, err
 	}
 
-	vpcID, err := vpc(ctx, c.api)
-	if err != nil {
+	if md.VPC, err = vpc(ctx, c.api); err != nil {
 		return Metadata{}, err
 	}
 
-	return Metadata{
-		Region: region,
-		IPv4:   ipv4,
-		VPC:    vpcID,
-	}, nil
+	if md.AZ, err = get(ctx, c.api, pathPlacementAZ); err != nil {
+		return Metadata{}, err
+	}
+
+	if md.InstanceID, err = get(ctx, c.api, pathInstanceID); err != nil {
+		return Metadata{}, err
+	}
+
+	if md.Hostname, err = get(ctx, c.api, pathHostname); err != nil {
+		return Metadata{}, err
+	}
+
+	return md, nil
 }
 
-func region(ctx context.Context, api MetadataClientAPI) (string, error) {
+func get(ctx context.Context, api MetadataClientAPI, path string) (string, error) {
 	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
-		Path: pathPlacementRegion,
-	})
-	if err != nil {
-		return "", err
-	}
-	defer out.Content.Close()
-
-	data, _ := ioutil.ReadAll(out.Content)
-	return string(data), nil
-}
-
-func ipv4(ctx context.Context, api MetadataClientAPI) (string, error) {
-	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
-		Path: pathIPv4,
+		Path: path,
 	})
 	if err != nil {
 		return "", err
@@ -119,24 +126,15 @@ func ipv4(ctx context.Context, api MetadataClientAPI) (string, error) {
 }
 
 func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
-	mac, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
-		Path: pathMacAddress,
-	})
+	mac, err := get(ctx, api, pathMacAddress)
 	if err != nil {
 		return "", err
 	}
-	defer mac.Content.Close()
-	md, _ := ioutil.ReadAll(mac.Content)
 
-	// Use the MAC address to retrieve the VPC associated with the EC2 instance
-	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
-		Path: fmt.Sprintf("network/interfaces/macs/%s/vpc-id", string(md)),
-	})
+	vpc, err := get(ctx, api, fmt.Sprintf("network/interfaces/macs/%s/vpc-id", mac))
 	if err != nil {
 		return "", err
 	}
-	defer mac.Content.Close()
-	data, _ := ioutil.ReadAll(out.Content)
 
-	return string(data), nil
+	return vpc, nil
 }
