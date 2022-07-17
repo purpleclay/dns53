@@ -23,7 +23,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "*.go"
+      - "go.mod"
+      - "go.sum"
   pull_request:
+    paths:
+      - "*.go"
+      - "go.mod"
+      - "go.sum"
 jobs:
   ci:
     strategy:
@@ -36,12 +44,15 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
         if: matrix.os == 'windows-latest'
+
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.18
+
       - name: Cache Go
         uses: actions/cache@v3
         with:
@@ -51,24 +62,29 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
       - name: Install Task
         uses: arduino/setup-task@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test
         run: task test
+
       - name: Build
         run: task build
+
       # All static checks from this point should run on linux as it is the
       # fastest platform
       - name: Integration Test
         if: matrix.os == 'ubuntu-latest'
         run: task integration-test
+
       - name: Lint Code
         if: matrix.os == 'ubuntu-latest'
         uses: golangci/golangci-lint-action@v3.2.0
         with:
           skip-go-installation: true
+
       - name: misspell
         if: matrix.os == 'ubuntu-latest'
         uses: reviewdog/action-misspell@v1
@@ -82,6 +98,7 @@ jobs:
             ./Taskfile.yaml
             ./.github/workflows/**
             ./CODE_OF_CONDUCT.md
+
       - name: Code Coverage
         if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v3

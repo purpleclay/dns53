@@ -22,10 +22,13 @@ name: code-quality
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - "*.go"
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [main]
+    paths:
+      - "*.go"
   schedule:
     - cron: "36 4 * * 6"
 
@@ -47,7 +50,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:

@@ -28,8 +28,6 @@ on:
       - ".github/workflows/docs.yml"
       - "docs/**"
       - "mkdocs.yml"
-  # Allow the workflow to be triggered manually
-  workflow_dispatch:
 jobs:
   build-docs:
     runs-on: ubuntu-latest
