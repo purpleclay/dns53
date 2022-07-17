@@ -21,6 +21,10 @@
 name: docs
 on:
   pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "docs/**"
+      - "mkdocs.yml"
   push:
     tags:
       - "v*.*.*"
