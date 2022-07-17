@@ -53,5 +53,4 @@ func TestIntegration_InstanceMetadata(t *testing.T) {
 	assert.Equal(t, aemm.ValueNetworkInterfaces0VPCID, metadata.VPC)
 	assert.Equal(t, aemm.ValuePlacementAvailabilityZone, metadata.AZ)
 	assert.Equal(t, aemm.ValueInstanceID, metadata.InstanceID)
-	assert.Equal(t, aemm.ValueHostname, metadata.Hostname)
 }

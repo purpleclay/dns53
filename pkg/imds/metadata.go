@@ -36,7 +36,6 @@ const (
 	pathPlacementRegion = "placement/region"
 	pathPlacementAZ     = "placement/availability-zone"
 	pathInstanceID      = "instance-id"
-	pathHostname        = "hostname"
 )
 
 // MetadataClientAPI defines the API for interacting with the Amazon
@@ -69,9 +68,6 @@ type Metadata struct {
 
 	// InstanceID is the unique ID of this instance
 	InstanceID string
-
-	// Hostname is the private IPv4 hostname of the launched instance
-	Hostname string
 }
 
 // NewFromAPI returns a new client from the provided IMDS API implementation
@@ -102,10 +98,6 @@ func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
 	}
 
 	if md.InstanceID, err = get(ctx, c.api, pathInstanceID); err != nil {
-		return Metadata{}, err
-	}
-
-	if md.Hostname, err = get(ctx, c.api, pathHostname); err != nil {
 		return Metadata{}, err
 	}
 
