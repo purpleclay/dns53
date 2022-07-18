@@ -30,12 +30,13 @@ import (
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
+// TODO: comment paths
 const (
-	pathIPv4            = "local-ipv4"
-	pathMacAddress      = "mac"
-	pathPlacementRegion = "placement/region"
-	pathPlacementAZ     = "placement/availability-zone"
-	pathInstanceID      = "instance-id"
+	PathIPv4            = "local-ipv4"
+	PathMacAddress      = "mac"
+	PathPlacementRegion = "placement/region"
+	PathPlacementAZ     = "placement/availability-zone"
+	PathInstanceID      = "instance-id"
 )
 
 // MetadataClientAPI defines the API for interacting with the Amazon
@@ -81,11 +82,11 @@ func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
 	md := Metadata{}
 
 	var err error
-	if md.Region, err = get(ctx, c.api, pathPlacementRegion); err != nil {
+	if md.Region, err = get(ctx, c.api, PathPlacementRegion); err != nil {
 		return Metadata{}, err
 	}
 
-	if md.IPv4, err = get(ctx, c.api, pathIPv4); err != nil {
+	if md.IPv4, err = get(ctx, c.api, PathIPv4); err != nil {
 		return Metadata{}, err
 	}
 
@@ -93,11 +94,11 @@ func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
 		return Metadata{}, err
 	}
 
-	if md.AZ, err = get(ctx, c.api, pathPlacementAZ); err != nil {
+	if md.AZ, err = get(ctx, c.api, PathPlacementAZ); err != nil {
 		return Metadata{}, err
 	}
 
-	if md.InstanceID, err = get(ctx, c.api, pathInstanceID); err != nil {
+	if md.InstanceID, err = get(ctx, c.api, PathInstanceID); err != nil {
 		return Metadata{}, err
 	}
 
@@ -118,7 +119,7 @@ func get(ctx context.Context, api MetadataClientAPI, path string) (string, error
 }
 
 func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
-	mac, err := get(ctx, api, pathMacAddress)
+	mac, err := get(ctx, api, PathMacAddress)
 	if err != nil {
 		return "", err
 	}

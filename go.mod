@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.8
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.21.3
 	github.com/charmbracelet/bubbles v0.13.0
-	github.com/charmbracelet/bubbletea v0.22.0
+	github.com/charmbracelet/bubbletea v0.21.1-0.20220621133951-26d32cd5beb0
 	github.com/charmbracelet/lipgloss v0.5.0
 	github.com/muesli/mango-cobra v1.2.0
 	github.com/muesli/roff v0.1.0
