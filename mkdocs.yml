@@ -52,13 +52,11 @@ extra:
 
 plugins:
   - search
-  - minify:
-      minify_html: true
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
   - git-committers:
-      repository: squidfunk/mkdocs-material
+      repository: purpleclay/dns53
       token: !ENV GH_TOKEN
 
 markdown_extensions:

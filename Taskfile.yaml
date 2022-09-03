@@ -34,12 +34,12 @@ tasks:
   test:
     desc: Run the tests
     cmds:
-      - go test -tags=!integration -race -vet=off -p 1 -covermode=atomic -coverprofile=unittest.out ./...
+      - go test -short -race -vet=off -p 1 -covermode=atomic -coverprofile=unittest.out ./...
 
   integration-test:
     desc: Run the integration tests
     cmds:
-      - go test -run=TestIntegration -tags=integration -race -vet=off -p 1 -covermode=atomic -coverprofile=integrationtest.out ./...
+      - go test -run=Integration -race -vet=off -p 1 -covermode=atomic -coverprofile=integrationtest.out ./...
 
   lint:
     desc: Lint the code using golangci

@@ -25,7 +25,8 @@ package imds
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"strings"
 
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
@@ -36,6 +37,7 @@ const (
 	pathPlacementRegion = "placement/region"
 	pathPlacementAZ     = "placement/availability-zone"
 	pathInstanceID      = "instance-id"
+	pathTagsInstance    = "tags/instance"
 )
 
 // MetadataClientAPI defines the API for interacting with the Amazon
@@ -68,6 +70,13 @@ type Metadata struct {
 
 	// InstanceID is the unique ID of this instance
 	InstanceID string
+
+	// Name associated with the EC2 instance. This will be blank unless
+	// tags have been enabled within IMDS for this EC2 instance
+	Name string
+
+	// Tags contains ...
+	Tags map[string]string
 }
 
 // NewFromAPI returns a new client from the provided IMDS API implementation
@@ -101,6 +110,12 @@ func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
 		return Metadata{}, err
 	}
 
+	md.Tags, err = tags(ctx, c.api)
+	if err != nil {
+		return Metadata{}, err
+	}
+	md.Name = md.Tags["Name"]
+
 	return md, nil
 }
 
@@ -113,7 +128,7 @@ func get(ctx context.Context, api MetadataClientAPI, path string) (string, error
 	}
 	defer out.Content.Close()
 
-	data, _ := ioutil.ReadAll(out.Content)
+	data, _ := io.ReadAll(out.Content)
 	return string(data), nil
 }
 
@@ -129,4 +144,37 @@ func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
 	}
 
 	return vpc, nil
+}
+
+// InstanceMetadataWithTags ...
+func (c *Client) InstanceMetadataWithTags(ctx context.Context) (Metadata, error) {
+	md, err := c.InstanceMetadata(ctx)
+	if err != nil {
+		return md, err
+	}
+
+	//
+	md.Tags, err = tags(ctx, c.api)
+	if err != nil {
+		// TODO: return a bespoke error
+		return Metadata{}, err
+	}
+	md.Name = md.Tags["Name"]
+
+	return md, nil
+}
+
+func tags(ctx context.Context, api MetadataClientAPI) (map[string]string, error) {
+	tagPaths, err := get(ctx, api, pathTagsInstance)
+	if err != nil {
+		return map[string]string{}, err
+	}
+
+	tags := map[string]string{}
+	for _, tagName := range strings.Split(tagPaths, "\n") {
+		tag, _ := get(ctx, api, pathTagsInstance+"/"+tagName)
+		tags[tagName] = tag
+	}
+
+	return tags, nil
 }

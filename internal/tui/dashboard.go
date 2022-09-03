@@ -34,8 +34,8 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/pkg/imds"
-	"github.com/purpleclay/dns53/pkg/r53"
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
 	"golang.org/x/term"
 )
 

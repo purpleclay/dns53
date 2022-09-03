@@ -20,18 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package imdstest
 
 import (
-	"fmt"
-	"os"
+	"context"
 
-	"github.com/purpleclay/dns53/cmd"
+	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
-func main() {
-	if err := cmd.Execute(os.Stdout); err != nil {
-		fmt.Println(err)
-		// TODO: exit code
-	}
+type Client struct{}
+
+func New() *Client {
+	return &Client{}
+}
+
+func (c *Client) GetMetadata(ctx context.Context, params *awsimds.GetMetadataInput, optFns ...func(*awsimds.Options)) (*awsimds.GetMetadataOutput, error) {
+	return &awsimds.GetMetadataOutput{}, nil
 }

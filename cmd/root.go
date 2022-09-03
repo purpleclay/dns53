@@ -30,9 +30,9 @@ import (
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui"
-	"github.com/purpleclay/dns53/pkg/imds"
-	"github.com/purpleclay/dns53/pkg/r53"
 	"github.com/spf13/cobra"
 )
 
@@ -57,9 +57,15 @@ Built using Bubbletea 🧋`
   dns53 --domain-name "{{.IPv4}}.{{.Region}}"`
 )
 
+// Global options set through persistent flags
+type globalOptions struct {
+	AWSRegion  string
+	AWSProfile string
+}
+
+var globalOpt = globalOptions{}
+
 type options struct {
-	region     string
-	profile    string
 	phzID      string
 	domainName string
 }
@@ -73,20 +79,28 @@ func Execute(out io.Writer) error {
 53 Private Hosted Zone (PHZ)`,
 		Long:    longDesc,
 		Example: examples,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// TODO:
+			// 1. retrieve the metadata of the EC2
+			// 2. if no name is included, then
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			optsFn := []func(*config.LoadOptions) error{}
-			if opts.profile != "" {
-				optsFn = append(optsFn, config.WithSharedConfigProfile(opts.profile))
+			if globalOpt.AWSProfile != "" {
+				optsFn = append(optsFn, config.WithSharedConfigProfile(globalOpt.AWSProfile))
 			}
 
-			if opts.region != "" {
-				optsFn = append(optsFn, config.WithRegion(opts.region))
+			if globalOpt.AWSRegion != "" {
+				optsFn = append(optsFn, config.WithRegion(globalOpt.AWSRegion))
 			}
 
 			cfg, err := config.LoadDefaultConfig(context.TODO(), optsFn...)
 			if err != nil {
 				return err
 			}
+
+			// TODO: retrieve and pass in metadata? Or handle error
 
 			model, err := tui.Dashboard(tui.DashboardOptions{
 				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
@@ -103,15 +117,18 @@ func Execute(out io.Writer) error {
 		},
 	}
 
+	pf := rootCmd.PersistentFlags()
+	pf.StringVar(&globalOpt.AWSRegion, "region", "", "the AWS region to use when querying AWS")
+	pf.StringVar(&globalOpt.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
+
 	f := rootCmd.Flags()
-	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
-	f.StringVar(&opts.profile, "profile", "", "the AWS named profile to use when loading credentials")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))
 	rootCmd.AddCommand(newCompletionCmd(out))
+	rootCmd.AddCommand(newIMDSCommand(out))
 
 	return rootCmd.ExecuteContext(context.Background())
 }

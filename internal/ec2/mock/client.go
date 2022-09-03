@@ -1,5 +1,3 @@
-//go:build integration
-
 /*
 Copyright (c) 2022 Purple Clay
 
@@ -22,35 +20,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package imds_test
+package mock
 
 import (
 	"context"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
-	"github.com/purpleclay/dns53/pkg/imds"
-	aemm "github.com/purpleclay/testcontainers-aemm"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestIntegration_InstanceMetadata(t *testing.T) {
-	ctx := context.Background()
-	container := aemm.MustStart(ctx)
-	defer container.Terminate(ctx)
+type ClientAPI struct {
+	mock.Mock
+}
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(container.URL))
-	require.NoError(t, err)
+func (m *ClientAPI) ModifyInstanceMetadataOptions(ctx context.Context, params *ec2.ModifyInstanceMetadataOptionsInput, optFns ...func(*ec2.Options)) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
+	args := m.Called(ctx, params, optFns)
+	return args.Get(0).(*ec2.ModifyInstanceMetadataOptionsOutput), args.Error(1)
+}
 
-	client := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
-	metadata, err := client.InstanceMetadata(ctx)
-	require.NoError(t, err)
+func New(t testing.TB) *ClientAPI {
+	t.Helper()
 
-	assert.Equal(t, aemm.ValueLocalIPv4, metadata.IPv4)
-	assert.Equal(t, aemm.ValuePlacementRegion, metadata.Region)
-	assert.Equal(t, aemm.ValueNetworkInterfaces0VPCID, metadata.VPC)
-	assert.Equal(t, aemm.ValuePlacementAvailabilityZone, metadata.AZ)
-	assert.Equal(t, aemm.ValueInstanceID, metadata.InstanceID)
+	mock := &ClientAPI{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() {
+		mock.AssertExpectations(t)
+	})
+
+	return mock
 }
