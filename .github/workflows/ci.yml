@@ -69,6 +69,7 @@ jobs:
         uses: arduino/setup-task@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Test
         run: task test
 

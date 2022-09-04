@@ -107,9 +107,6 @@ func newIMDSCommand(out io.Writer) *cobra.Command {
 	return imdsCmd
 }
 
-// TODO: it uses the instance ID from the metadata service
-// TODO: it translates the "on" | "off" into the required values for the API
-
 func toggleMetadataTags(ec2API ec2.ClientAPI, imdsAPI imds.ClientAPI, setting toggleSetting) error {
 	ec2Client := ec2.NewFromAPI(ec2API)
 	imdsClient := imds.NewFromAPI(imdsAPI)

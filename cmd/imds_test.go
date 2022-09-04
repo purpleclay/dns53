@@ -22,84 +22,95 @@ SOFTWARE.
 
 package cmd
 
-// func TestToggleSettingString(t *testing.T) {
-// 	toggle := toggleSetting("on")
-// 	assert.Equal(t, "on", toggle.String())
-// }
+import (
+	"testing"
 
-// func TestToggleSettingSet(t *testing.T) {
-// 	tests := []struct {
-// 		name     string
-// 		input    string
-// 		expected string
-// 	}{
-// 		{
-// 			name:     "LowercaseOn",
-// 			input:    "on",
-// 			expected: "on",
-// 		},
-// 		{
-// 			name:     "LowercaseOff",
-// 			input:    "off",
-// 			expected: "off",
-// 		},
-// 		{
-// 			name:     "MixedCaseOn",
-// 			input:    "oN",
-// 			expected: "on",
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			var setting toggleSetting
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/purpleclay/dns53/internal/ec2/ec2mock"
+	"github.com/purpleclay/dns53/internal/imds/imdsstub"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+)
 
-// 			err := setting.Set(tt.input)
-// 			require.NoError(t, err)
+func TestToggleSettingString(t *testing.T) {
+	toggle := toggleSetting("on")
+	assert.Equal(t, "on", toggle.String())
+}
 
-// 			require.Equal(t, tt.expected, string(setting))
-// 		})
-// 	}
-// }
+func TestToggleSettingSet(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "LowercaseOn",
+			input:    "on",
+			expected: "on",
+		},
+		{
+			name:     "LowercaseOff",
+			input:    "off",
+			expected: "off",
+		},
+		{
+			name:     "MixedCaseOn",
+			input:    "oN",
+			expected: "on",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var setting toggleSetting
 
-// func TestToggleSettingSetError(t *testing.T) {
-// 	var setting toggleSetting
+			err := setting.Set(tt.input)
+			require.NoError(t, err)
 
-// 	err := setting.Set("not-supported")
-// 	assert.EqualError(t, err, `supported values are "on" or "off" (case-insensitive)`)
-// }
+			require.Equal(t, tt.expected, string(setting))
+		})
+	}
+}
 
-// func TestToggleSettingType(t *testing.T) {
-// 	toggle := toggleSetting("on")
-// 	assert.Equal(t, "string", toggle.Type())
-// }
+func TestToggleSettingSetError(t *testing.T) {
+	var setting toggleSetting
 
-// // TODO: replace this with a mock/stub in a testing package (ec2/ec2test) ~> captures input
-// type imdsAPI struct {
-// 	mock.Mock
-// }
+	err := setting.Set("not-supported")
+	assert.EqualError(t, err, `supported values are "on" or "off" (case-insensitive)`)
+}
 
-// func (m *imdsAPI) GetMetadata(ctx context.Context, params *awsimds.GetMetadataInput, optFns ...func(*awsimds.Options)) (*awsimds.GetMetadataOutput, error) {
-// 	args := m.Called(ctx, params, optFns)
-// 	return args.Get(0).(*awsimds.GetMetadataOutput), args.Error(1)
-// }
+func TestToggleSettingType(t *testing.T) {
+	toggle := toggleSetting("on")
+	assert.Equal(t, "string", toggle.Type())
+}
 
-// func TestToggleMetadataTags(t *testing.T) {
-// 	imds := &imdsAPI{}
-// 	imds.On("GetMetadata", mock.Anything, mock.Anything, mock.Anything).Return(&awsec2.ModifyInstanceMetadataOptionsOutput{
-// 		InstanceId: aws.String("12345"),
-// 	}, nil)
+func TestToggleMetadataTags(t *testing.T) {
+	tests := []struct {
+		name     string
+		toggle   toggleSetting
+		expected string
+	}{
+		{
+			name:     "On",
+			toggle:   toggleSettingOn,
+			expected: "enabled",
+		},
+		{
+			name:     "Off",
+			toggle:   toggleSettingOff,
+			expected: "disabled",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockEC2 := ec2mock.New(t)
+			mockEC2.On("ModifyInstanceMetadataOptions", mock.Anything, mock.MatchedBy(func(req *ec2.ModifyInstanceMetadataOptionsInput) bool {
+				return req.InstanceMetadataTags == types.InstanceMetadataTagsState(tt.expected)
+			}), mock.Anything).Return(&ec2.ModifyInstanceMetadataOptionsOutput{}, nil)
 
-// 	tests := []struct {
-// 		name     string
-// 		toggle   toggleSetting
-// 		expected bool
-// 	}{}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			ec2 := &ec2test.Client{}
-
-// 			err := toggleMetadataTags(ec2, nil, tt.toggle)
-// 			assert.NoError(t, err)
-// 		})
-// 	}
-// }
+			err := toggleMetadataTags(mockEC2, imdsstub.New(t), tt.toggle)
+			assert.NoError(t, err)
+		})
+	}
+}

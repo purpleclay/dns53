@@ -30,10 +30,9 @@ import (
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/purpleclay/dns53/internal/ec2"
+	"github.com/purpleclay/dns53/internal/ec2/ec2mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	ec2mock "github.com/purpleclay/dns53/internal/ec2/mock"
 )
 
 func TestToggleInstanceMetadataTags(t *testing.T) {
