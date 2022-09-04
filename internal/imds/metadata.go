@@ -40,9 +40,9 @@ const (
 	pathTagsInstance    = "tags/instance"
 )
 
-// MetadataClientAPI defines the API for interacting with the Amazon
+// ClientAPI defines the API for interacting with the Amazon
 // EC2 Instance Metadata Service (IMDS)
-type MetadataClientAPI interface {
+type ClientAPI interface {
 	// GetMetadata uses the path provided to request information from the Amazon
 	// EC2 Instance Metadata Service
 	GetMetadata(ctx context.Context, params *awsimds.GetMetadataInput, optFns ...func(*awsimds.Options)) (*awsimds.GetMetadataOutput, error)
@@ -51,7 +51,7 @@ type MetadataClientAPI interface {
 // Client defines the client for interacting with the Amazon EC2 Instance
 // Metadata Service (IMDS)
 type Client struct {
-	api MetadataClientAPI
+	api ClientAPI
 }
 
 // Metadata contains metadata associated with an EC2 instance
@@ -80,46 +80,37 @@ type Metadata struct {
 }
 
 // NewFromAPI returns a new client from the provided IMDS API implementation
-func NewFromAPI(api MetadataClientAPI) *Client {
+func NewFromAPI(api ClientAPI) *Client {
 	return &Client{api: api}
 }
 
 // InstanceMetadata attempts to retrieve useful metadata associated with
 // the current EC2 instance by querying IMDS
 func (c *Client) InstanceMetadata(ctx context.Context) (Metadata, error) {
+	if err := checkRoot(ctx, c.api); err != nil {
+		return Metadata{}, err
+	}
+
 	md := Metadata{}
+	md.AZ, _ = get(ctx, c.api, pathPlacementAZ)
+	md.InstanceID, _ = get(ctx, c.api, pathInstanceID)
+	md.IPv4, _ = get(ctx, c.api, pathIPv4)
+	md.Tags = tags(ctx, c.api)
+	md.Region, _ = get(ctx, c.api, pathPlacementRegion)
+	md.VPC = vpc(ctx, c.api)
 
-	var err error
-	if md.Region, err = get(ctx, c.api, pathPlacementRegion); err != nil {
-		return Metadata{}, err
-	}
-
-	if md.IPv4, err = get(ctx, c.api, pathIPv4); err != nil {
-		return Metadata{}, err
-	}
-
-	if md.VPC, err = vpc(ctx, c.api); err != nil {
-		return Metadata{}, err
-	}
-
-	if md.AZ, err = get(ctx, c.api, pathPlacementAZ); err != nil {
-		return Metadata{}, err
-	}
-
-	if md.InstanceID, err = get(ctx, c.api, pathInstanceID); err != nil {
-		return Metadata{}, err
-	}
-
-	md.Tags, err = tags(ctx, c.api)
-	if err != nil {
-		return Metadata{}, err
-	}
+	// Extract the name from the map if it exists
 	md.Name = md.Tags["Name"]
 
 	return md, nil
 }
 
-func get(ctx context.Context, api MetadataClientAPI, path string) (string, error) {
+func checkRoot(ctx context.Context, api ClientAPI) error {
+	_, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{})
+	return err
+}
+
+func get(ctx context.Context, api ClientAPI, path string) (string, error) {
 	out, err := api.GetMetadata(ctx, &awsimds.GetMetadataInput{
 		Path: path,
 	})
@@ -132,42 +123,16 @@ func get(ctx context.Context, api MetadataClientAPI, path string) (string, error
 	return string(data), nil
 }
 
-func vpc(ctx context.Context, api MetadataClientAPI) (string, error) {
-	mac, err := get(ctx, api, pathMacAddress)
-	if err != nil {
-		return "", err
-	}
-
-	vpc, err := get(ctx, api, fmt.Sprintf("network/interfaces/macs/%s/vpc-id", mac))
-	if err != nil {
-		return "", err
-	}
-
-	return vpc, nil
+func vpc(ctx context.Context, api ClientAPI) string {
+	mac, _ := get(ctx, api, pathMacAddress)
+	vpcID, _ := get(ctx, api, fmt.Sprintf("network/interfaces/macs/%s/vpc-id", mac))
+	return vpcID
 }
 
-// InstanceMetadataWithTags ...
-func (c *Client) InstanceMetadataWithTags(ctx context.Context) (Metadata, error) {
-	md, err := c.InstanceMetadata(ctx)
-	if err != nil {
-		return md, err
-	}
-
-	//
-	md.Tags, err = tags(ctx, c.api)
-	if err != nil {
-		// TODO: return a bespoke error
-		return Metadata{}, err
-	}
-	md.Name = md.Tags["Name"]
-
-	return md, nil
-}
-
-func tags(ctx context.Context, api MetadataClientAPI) (map[string]string, error) {
+func tags(ctx context.Context, api ClientAPI) map[string]string {
 	tagPaths, err := get(ctx, api, pathTagsInstance)
 	if err != nil {
-		return map[string]string{}, err
+		return map[string]string{}
 	}
 
 	tags := map[string]string{}
@@ -176,5 +141,5 @@ func tags(ctx context.Context, api MetadataClientAPI) (map[string]string, error)
 		tags[tagName] = tag
 	}
 
-	return tags, nil
+	return tags
 }

@@ -34,11 +34,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIntegrationInstanceMetadata(t *testing.T) {
+func TestIntegrationInstanceMetadataExcludeTags(t *testing.T) {
 	CheckIntegration(t)
 
 	ctx := context.Background()
-	container := imdsmock.MustStart(ctx)
+	container := imdsmock.MustStartWith(ctx, imdsmock.Options{
+		ExcludeInstanceTags: true,
+	})
 	defer container.Terminate(ctx)
 
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
@@ -53,6 +55,8 @@ func TestIntegrationInstanceMetadata(t *testing.T) {
 	assert.Equal(t, imdsmock.ValueNetworkInterfaces0VPCID, metadata.VPC)
 	assert.Equal(t, imdsmock.ValuePlacementAvailabilityZone, metadata.AZ)
 	assert.Equal(t, imdsmock.ValueInstanceID, metadata.InstanceID)
+	assert.Empty(t, metadata.Name)
+	assert.Empty(t, metadata.Tags)
 }
 
 func TestIntegrationInstanceMetadataWithTags(t *testing.T) {
@@ -83,4 +87,17 @@ func CheckIntegration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skip running of integration test")
 	}
+}
+
+func TestIntegrationInstanceMetadataNoEndpoint(t *testing.T) {
+	CheckIntegration(t)
+
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
+	require.NoError(t, err)
+
+	client := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
+	_, err = client.InstanceMetadata(ctx)
+
+	require.Error(t, err)
 }

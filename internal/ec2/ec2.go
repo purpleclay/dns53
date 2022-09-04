@@ -30,6 +30,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
+// InstanceMetadataToggle allows the enabling and disabling of EC2 instance tags within IMDS
 type InstanceMetadataToggle string
 
 const (
@@ -37,13 +38,15 @@ const (
 	InstanceMetadataToggleDisabled InstanceMetadataToggle = "disabled"
 )
 
-// ClientAPI
+// ClientAPI defines the API for interacting with the Amazon EC2 service
 type ClientAPI interface {
-	// ModifyInstanceMetadataOptions ...
+	// ModifyInstanceMetadataOptions modifies the parameters of a running EC2 instance,
+	// by toggling the availability of EC2 instances tags within the Instance Metadata
+	// Service (IMDS)
 	ModifyInstanceMetadataOptions(ctx context.Context, params *awsec2.ModifyInstanceMetadataOptionsInput, optFns ...func(*awsec2.Options)) (*awsec2.ModifyInstanceMetadataOptionsOutput, error)
 }
 
-// Client ..
+// Client defines the client for interacting with the Amazon EC2 service
 type Client struct {
 	api ClientAPI
 }
@@ -53,7 +56,13 @@ func NewFromAPI(api ClientAPI) *Client {
 	return &Client{api: api}
 }
 
-// ToggleInstanceMetadataTags ...
+// ToggleInstanceMetadataTags will modify the parameters of a running EC2 instance,
+// by toggling the availability of EC2 instance tags within the Instance Metadata
+// Service.
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws ec2 modify-instance-metadata-options --instance-id i-123456789 --instance-metadata-tags enabled
 func (c *Client) ToggleInstanceMetadataTags(ctx context.Context, id string, toggle InstanceMetadataToggle) error {
 	_, err := c.api.ModifyInstanceMetadataOptions(ctx, &awsec2.ModifyInstanceMetadataOptionsInput{
 		InstanceId:           aws.String(id),
@@ -62,5 +71,3 @@ func (c *Client) ToggleInstanceMetadataTags(ctx context.Context, id string, togg
 
 	return err
 }
-
-// ToggleInstanceMetadataTags(ctx, func, params)
