@@ -28,7 +28,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/config"
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/purpleclay/dns53/internal/ec2"
@@ -77,17 +76,7 @@ func newIMDSCommand(out io.Writer) *cobra.Command {
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: this is a common function move it out
-			optsFn := []func(*config.LoadOptions) error{}
-			if globalOpt.AWSProfile != "" {
-				optsFn = append(optsFn, config.WithSharedConfigProfile(globalOpt.AWSProfile))
-			}
-
-			if globalOpt.AWSRegion != "" {
-				optsFn = append(optsFn, config.WithRegion(globalOpt.AWSRegion))
-			}
-
-			cfg, err := config.LoadDefaultConfig(context.Background(), optsFn...)
+			cfg, err := awsConfig(globalOpts)
 			if err != nil {
 				return err
 			}

@@ -26,6 +26,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
@@ -63,7 +64,7 @@ type globalOptions struct {
 	AWSProfile string
 }
 
-var globalOpt = globalOptions{}
+var globalOpts = &globalOptions{}
 
 type options struct {
 	phzID      string
@@ -80,27 +81,14 @@ func Execute(out io.Writer) error {
 		Long:    longDesc,
 		Example: examples,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// TODO:
-			// 1. retrieve the metadata of the EC2
-			// 2. if no name is included, then
+			// TODO: if custom template has {{ .Name }} in it, check that metadata tags are enabled, else throw error
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			optsFn := []func(*config.LoadOptions) error{}
-			if globalOpt.AWSProfile != "" {
-				optsFn = append(optsFn, config.WithSharedConfigProfile(globalOpt.AWSProfile))
-			}
-
-			if globalOpt.AWSRegion != "" {
-				optsFn = append(optsFn, config.WithRegion(globalOpt.AWSRegion))
-			}
-
-			cfg, err := config.LoadDefaultConfig(context.TODO(), optsFn...)
+			cfg, err := awsConfig(globalOpts)
 			if err != nil {
 				return err
 			}
-
-			// TODO: retrieve and pass in metadata? Or handle error
 
 			model, err := tui.Dashboard(tui.DashboardOptions{
 				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
@@ -118,8 +106,8 @@ func Execute(out io.Writer) error {
 	}
 
 	pf := rootCmd.PersistentFlags()
-	pf.StringVar(&globalOpt.AWSRegion, "region", "", "the AWS region to use when querying AWS")
-	pf.StringVar(&globalOpt.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
+	pf.StringVar(&globalOpts.AWSRegion, "region", "", "the AWS region to use when querying AWS")
+	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
 
 	f := rootCmd.Flags()
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
@@ -131,4 +119,17 @@ func Execute(out io.Writer) error {
 	rootCmd.AddCommand(newIMDSCommand(out))
 
 	return rootCmd.ExecuteContext(context.Background())
+}
+
+func awsConfig(opts *globalOptions) (aws.Config, error) {
+	optsFn := []func(*config.LoadOptions) error{}
+	if opts.AWSProfile != "" {
+		optsFn = append(optsFn, config.WithSharedConfigProfile(opts.AWSProfile))
+	}
+
+	if opts.AWSRegion != "" {
+		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
+	}
+
+	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
