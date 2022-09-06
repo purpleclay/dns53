@@ -75,7 +75,7 @@ type Metadata struct {
 	// tags have been enabled within IMDS for this EC2 instance
 	Name string
 
-	// Tags contains ...
+	// Tags contains a map of all tags associated with the EC2 instance
 	Tags map[string]string
 }
 
