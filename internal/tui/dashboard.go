@@ -115,7 +115,7 @@ func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.loading.Tick,
 		func() tea.Msg {
-			meta, err := m.opts.IMDSClient.InstanceMetadata(context.TODO())
+			meta, err := m.opts.IMDSClient.InstanceMetadata(context.Background())
 			if err != nil {
 				return errMsg{err}
 			}
@@ -164,7 +164,7 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					Resource: m.ec2.IPv4,
 				}
 
-				m.opts.R53Client.DisassociateRecord(context.TODO(), record)
+				m.opts.R53Client.DisassociateRecord(context.Background(), record)
 			}
 
 			return m, tea.Quit
@@ -263,7 +263,7 @@ func (m DashboardModel) View() string {
 }
 
 func (m DashboardModel) queryHostedZones() tea.Msg {
-	phzs, err := m.opts.R53Client.ByVPC(context.TODO(), m.ec2.VPC, m.ec2.Region)
+	phzs, err := m.opts.R53Client.ByVPC(context.Background(), m.ec2.VPC, m.ec2.Region)
 	if err != nil {
 		return errMsg{err}
 	}
@@ -272,7 +272,7 @@ func (m DashboardModel) queryHostedZones() tea.Msg {
 }
 
 func (m DashboardModel) queryHostedZone() tea.Msg {
-	phz, err := m.opts.R53Client.ByID(context.TODO(), m.opts.PhzID)
+	phz, err := m.opts.R53Client.ByID(context.Background(), m.opts.PhzID)
 	if err != nil {
 		return errMsg{err}
 	}
@@ -314,7 +314,7 @@ func (m DashboardModel) initAssociation() tea.Msg {
 		Resource: ipv4,
 	}
 
-	if err := m.opts.R53Client.AssociateRecord(context.TODO(), record); err != nil {
+	if err := m.opts.R53Client.AssociateRecord(context.Background(), record); err != nil {
 		return errMsg{err}
 	}
 

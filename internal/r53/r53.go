@@ -106,15 +106,15 @@ func (r *Client) ByVPC(ctx context.Context, vpc, region string) ([]PrivateHosted
 		return []PrivateHostedZone{}, err
 	}
 
-	phz := make([]PrivateHostedZone, 0, len(resp.HostedZoneSummaries))
+	phzs := make([]PrivateHostedZone, 0, len(resp.HostedZoneSummaries))
 	for _, hzs := range resp.HostedZoneSummaries {
-		phz = append(phz, PrivateHostedZone{
+		phzs = append(phzs, PrivateHostedZone{
 			ID:   *hzs.HostedZoneId,
 			Name: strings.TrimSuffix(*hzs.Name, "."),
 		})
 	}
 
-	return phz, nil
+	return phzs, nil
 }
 
 // AssociateRecord creates a new A-Record entry within a given Route53 Private Hosted Zone
