@@ -24,15 +24,18 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"io"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui"
-	"github.com/purpleclay/dns53/pkg/imds"
-	"github.com/purpleclay/dns53/pkg/r53"
 	"github.com/spf13/cobra"
 )
 
@@ -57,9 +60,15 @@ Built using Bubbletea 🧋`
   dns53 --domain-name "{{.IPv4}}.{{.Region}}"`
 )
 
+// Global options set through persistent flags
+type globalOptions struct {
+	AWSRegion  string
+	AWSProfile string
+}
+
+var globalOpts = &globalOptions{}
+
 type options struct {
-	region     string
-	profile    string
 	phzID      string
 	domainName string
 }
@@ -71,26 +80,28 @@ func Execute(out io.Writer) error {
 		Use: "dns53",
 		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
 53 Private Hosted Zone (PHZ)`,
-		Long:    longDesc,
-		Example: examples,
+		Long:          longDesc,
+		Example:       examples,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			optsFn := []func(*config.LoadOptions) error{}
-			if opts.profile != "" {
-				optsFn = append(optsFn, config.WithSharedConfigProfile(opts.profile))
-			}
-
-			if opts.region != "" {
-				optsFn = append(optsFn, config.WithRegion(opts.region))
-			}
-
-			cfg, err := config.LoadDefaultConfig(context.TODO(), optsFn...)
+			cfg, err := awsConfig(globalOpts)
 			if err != nil {
 				return err
 			}
 
+			// If a custom domain name has been provided, check that it can be resolved from IMDS
+			imdsClient := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
+
+			if opts.domainName != "" {
+				if err := domainNameSupported(opts.domainName, imdsClient); err != nil {
+					return err
+				}
+			}
+
 			model, err := tui.Dashboard(tui.DashboardOptions{
 				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
-				IMDSClient: imds.NewFromAPI(awsimds.NewFromConfig(cfg)),
+				IMDSClient: imdsClient,
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
@@ -103,15 +114,52 @@ func Execute(out io.Writer) error {
 		},
 	}
 
+	pf := rootCmd.PersistentFlags()
+	pf.StringVar(&globalOpts.AWSRegion, "region", "", "the AWS region to use when querying AWS")
+	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
+
 	f := rootCmd.Flags()
-	f.StringVar(&opts.region, "region", "", "the AWS region to use when querying AWS")
-	f.StringVar(&opts.profile, "profile", "", "the AWS named profile to use when loading credentials")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))
 	rootCmd.AddCommand(newCompletionCmd(out))
+	rootCmd.AddCommand(newIMDSCommand(out))
 
 	return rootCmd.ExecuteContext(context.Background())
+}
+
+func awsConfig(opts *globalOptions) (aws.Config, error) {
+	optsFn := []func(*config.LoadOptions) error{}
+	if opts.AWSProfile != "" {
+		optsFn = append(optsFn, config.WithSharedConfigProfile(opts.AWSProfile))
+	}
+
+	if opts.AWSRegion != "" {
+		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
+	}
+
+	return config.LoadDefaultConfig(context.Background(), optsFn...)
+}
+
+func domainNameSupported(domain string, imdsClient *imds.Client) error {
+	dmn := strings.ReplaceAll(domain, " ", "")
+	if strings.Contains(dmn, "{{.Name}}") {
+		metadata, err := imdsClient.InstanceMetadata(context.Background())
+		if err != nil {
+			return err
+		}
+
+		if metadata.Name == "" {
+			return errors.New(`to use metadata within a custom domain name, please enable IMDS instance tags support 
+for your EC2 instance:
+
+  $ dns53 imds --instance-metadata-tags on
+
+Or read the official AWS documentation at: 
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access-to-tags-in-IMDS`)
+		}
+	}
+	return nil
 }

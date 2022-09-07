@@ -1,5 +1,3 @@
-//go:build integration
-
 /*
 Copyright (c) 2022 Purple Clay
 
@@ -22,35 +20,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package imds_test
+package cmd
 
 import (
-	"context"
+	"bytes"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
-	"github.com/purpleclay/dns53/pkg/imds"
-	aemm "github.com/purpleclay/testcontainers-aemm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestIntegration_InstanceMetadata(t *testing.T) {
-	ctx := context.Background()
-	container := aemm.MustStart(ctx)
-	defer container.Terminate(ctx)
+func TestManPages(t *testing.T) {
+	var buf bytes.Buffer
+	cmd := newManPagesCmd(&buf)
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(container.URL))
+	err := cmd.Execute()
 	require.NoError(t, err)
 
-	client := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
-	metadata, err := client.InstanceMetadata(ctx)
-	require.NoError(t, err)
-
-	assert.Equal(t, aemm.ValueLocalIPv4, metadata.IPv4)
-	assert.Equal(t, aemm.ValuePlacementRegion, metadata.Region)
-	assert.Equal(t, aemm.ValueNetworkInterfaces0VPCID, metadata.VPC)
-	assert.Equal(t, aemm.ValuePlacementAvailabilityZone, metadata.AZ)
-	assert.Equal(t, aemm.ValueInstanceID, metadata.InstanceID)
+	assert.NotEmpty(t, buf.String())
+	assert.Contains(t, buf.String(), ".TH MAN 1")
 }

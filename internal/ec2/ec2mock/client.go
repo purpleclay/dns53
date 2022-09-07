@@ -20,36 +20,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package cmd
+package ec2mock
 
 import (
-	"fmt"
-	"io"
+	"context"
+	"testing"
 
-	mcobra "github.com/muesli/mango-cobra"
-	"github.com/muesli/roff"
-	"github.com/spf13/cobra"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/stretchr/testify/mock"
 )
 
-func newManPagesCmd(out io.Writer) *cobra.Command {
-	manCmd := &cobra.Command{
-		Use:                   "man",
-		Short:                 "Generate man pages for dns53",
-		DisableFlagsInUseLine: true,
-		Hidden:                true,
-		SilenceUsage:          true,
-		SilenceErrors:         true,
-		Args:                  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			mp, err := mcobra.NewManPage(1, cmd.Root())
-			if err != nil {
-				return err
-			}
+type ClientAPI struct {
+	mock.Mock
+}
 
-			_, err = fmt.Fprint(out, mp.Build(roff.NewDocument()))
-			return err
-		},
-	}
+func (m *ClientAPI) ModifyInstanceMetadataOptions(ctx context.Context, params *ec2.ModifyInstanceMetadataOptionsInput, optFns ...func(*ec2.Options)) (*ec2.ModifyInstanceMetadataOptionsOutput, error) {
+	args := m.Called(ctx, params, optFns)
+	return args.Get(0).(*ec2.ModifyInstanceMetadataOptionsOutput), args.Error(1)
+}
 
-	return manCmd
+func New(t testing.TB) *ClientAPI {
+	t.Helper()
+
+	mock := &ClientAPI{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() {
+		mock.AssertExpectations(t)
+	})
+
+	return mock
 }

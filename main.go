@@ -23,7 +23,7 @@ SOFTWARE.
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/purpleclay/dns53/cmd"
@@ -31,6 +31,7 @@ import (
 
 func main() {
 	if err := cmd.Execute(os.Stdout); err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

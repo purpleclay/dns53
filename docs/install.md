@@ -137,23 +137,23 @@ All binaries can be verified using the checksum file, which has been signed usin
 
 1. Download the checksum files that need to be verified:
 
-    ```sh
-    curl -sL https://github.com/purpleclay/dns53/releases/download/v0.1.0/checksums.txt -O
-    curl -sL https://github.com/purpleclay/dns53/releases/download/v0.1.0/checksums.txt.sig -O
-    curl -sL https://github.com/purpleclay/dns53/releases/download/v0.1.0/checksums.txt.pem -O
-    ```
+   ```sh
+   curl -sL https://github.com/purpleclay/dns53/releases/download/v0.1.0/checksums.txt -O
+   curl -sL https://github.com/purpleclay/dns53/releases/download/v0.1.0/checksums.txt.sig -O
+   curl -sL https://github.com/purpleclay/dns53/releases/download/v0.1.0/checksums.txt.pem -O
+   ```
 
 1. Verify the signature of the checksum file:
 
-    ```sh
-    cosign verify-blob --cert checksums.txt.pem --signature checksums.txt.sig checksums.txt
-    ```
+   ```sh
+   cosign verify-blob --cert checksums.txt.pem --signature checksums.txt.sig checksums.txt
+   ```
 
 1. Download any release artefact and verify its SHA256 signature matches the entry within the checksum file:
 
-    ```sh
-    sha256sum --ignore-missing -c checksums.txt
-    ```
+   ```sh
+   sha256sum --ignore-missing -c checksums.txt
+   ```
 
 !!!warning "Don't mix versions"
 
