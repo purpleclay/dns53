@@ -75,9 +75,10 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 	opts := completionOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "completion",
-		Short: "Generate completion script for your target shell",
-		Long:  "Generate a dns53 completion script for either the bash, zsh or fish shells",
+		Use:          "completion",
+		Short:        "Generate completion script for your target shell",
+		Long:         "Generate a dns53 completion script for either the bash, zsh or fish shells",
+		SilenceUsage: true,
 	}
 
 	bash := &cobra.Command{

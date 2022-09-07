@@ -80,8 +80,10 @@ func Execute(out io.Writer) error {
 		Use: "dns53",
 		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
 53 Private Hosted Zone (PHZ)`,
-		Long:    longDesc,
-		Example: examples,
+		Long:          longDesc,
+		Example:       examples,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := awsConfig(globalOpts)
 			if err != nil {

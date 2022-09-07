@@ -86,8 +86,10 @@ func newVersionCmd(out io.Writer) *cobra.Command {
 	opts := versionOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "version",
-		Short: "Prints the build time version information",
+		Use:           "version",
+		Short:         "Prints the build time version information",
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return opts.run(out)
 		},

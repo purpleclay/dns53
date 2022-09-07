@@ -32,6 +32,6 @@ import (
 func main() {
 	if err := cmd.Execute(os.Stdout); err != nil {
 		fmt.Println(err)
-		// TODO: exit code
+		os.Exit(1)
 	}
 }

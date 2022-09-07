@@ -71,10 +71,11 @@ func newIMDSCommand(out io.Writer) *cobra.Command {
 	opt := imdsOptions{}
 
 	imdsCmd := &cobra.Command{
-		Use:          "imds",
-		Short:        "Toggle EC2 IMDS features",
-		Args:         cobra.NoArgs,
-		SilenceUsage: true,
+		Use:           "imds",
+		Short:         "Toggle EC2 IMDS features",
+		Args:          cobra.NoArgs,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := awsConfig(globalOpts)
 			if err != nil {
