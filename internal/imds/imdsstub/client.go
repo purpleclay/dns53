@@ -32,38 +32,44 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 )
 
+var defaultMetadata = map[string]string{
+	"":           "local-ipv4\nmac\nplacement-region\nplacement/availability-zone\ninstance-id\ntags/instance",
+	"local-ipv4": "10.0.1.100",
+	"mac":        "06:e5:43:29:8f:08",
+	"network/interfaces/macs/06:e5:43:29:8f:08/vpc-id": "vpc-016d173db537793d1",
+	"placement/region":            "us-east-1",
+	"placement/availability-zone": "us-east-1a",
+	"instance-id":                 "i-0decb1524582da041",
+	"tags/instance":               "Name\nEnvironment",
+	"tags/instance/Name":          "stub-ec2",
+	"tags/instance/Environment":   "dev",
+}
+
 type Client struct {
-	t testing.TB
+	t        testing.TB
+	metadata map[string]string
 }
 
 func New(t testing.TB) *Client {
-	return &Client{t: t}
+	return &Client{t: t, metadata: defaultMetadata}
+}
+
+func NewWithoutTags(t testing.TB) *Client {
+	// Remove all traces of tags from the default metadata
+	noTags := defaultMetadata
+	noTags[""] = "local-ipv4\nmac\nplacement-region\nplacement/availability-zone\ninstance-id"
+	delete(noTags, "tags/instance")
+	delete(noTags, "tags/instance/Name")
+	delete(noTags, "tags/instance/Environment")
+
+	return &Client{t: t, metadata: noTags}
 }
 
 func (c *Client) GetMetadata(ctx context.Context, params *imds.GetMetadataInput, optFns ...func(*imds.Options)) (*imds.GetMetadataOutput, error) {
 	c.t.Helper()
 
-	switch params.Path {
-	case "":
-		return wrapOutput("local-ipv4\nmac\nplacement-region\nplacement/availability-zone\ninstance-id\ntags/instance"), nil
-	case "local-ipv4":
-		return wrapOutput("10.0.1.100"), nil
-	case "mac":
-		return wrapOutput("06:e5:43:29:8f:08"), nil
-	case "network/interfaces/macs/06:e5:43:29:8f:08/vpc-id":
-		return wrapOutput("vpc-016d173db537793d1"), nil
-	case "placement/region":
-		return wrapOutput("us-east-1"), nil
-	case "placement/availability-zone":
-		return wrapOutput("us-east-1a"), nil
-	case "instance-id":
-		return wrapOutput("i-0decb1524582da041"), nil
-	case "tags/instance":
-		return wrapOutput("Name\nEnvironment"), nil
-	case "tags/instance/Name":
-		return wrapOutput("stub-ec2"), nil
-	case "tags/instance/Environment":
-		return wrapOutput("dev"), nil
+	if category, ok := c.metadata[params.Path]; ok {
+		return wrapOutput(category), nil
 	}
 
 	return &imds.GetMetadataOutput{}, fmt.Errorf("unexpected instance category %s", params.Path)

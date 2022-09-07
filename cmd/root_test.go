@@ -25,6 +25,8 @@ package cmd
 import (
 	"testing"
 
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/imds/imdsstub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -37,4 +39,43 @@ func TestAWSConfig(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, "eu-west-2", cfg.Region)
+}
+
+func TestDomainNameSupported(t *testing.T) {
+	tests := []struct {
+		name   string
+		domain string
+	}{
+		{
+			name:   "NoTemplating",
+			domain: "custom.domain",
+		},
+		{
+			name:   "WithNameField",
+			domain: "custom.{{.Name}}",
+		},
+		{
+			name:   "WithNameFieldSpaces",
+			domain: "custom.{{ .Name }}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := domainNameSupported(tt.domain, imds.NewFromAPI(imdsstub.New(t)))
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestDomainNameSupported_NoInstanceTags(t *testing.T) {
+	err := domainNameSupported("custom.{{.Name}}", imds.NewFromAPI(imdsstub.NewWithoutTags(t)))
+
+	assert.EqualError(t, err, `to use metadata within a custom domain name, please enable IMDS instance tags support 
+for your EC2 instance:
+
+  $ dns53 imds --instance-metadata-tags on
+
+Or read the official AWS documentation at: 
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access-to-tags-in-IMDS`)
 }

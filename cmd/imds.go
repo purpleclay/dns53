@@ -72,7 +72,7 @@ func newIMDSCommand(out io.Writer) *cobra.Command {
 
 	imdsCmd := &cobra.Command{
 		Use:          "imds",
-		Short:        "Toggle IMDS features",
+		Short:        "Toggle EC2 IMDS features",
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -24,7 +24,9 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"io"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -80,19 +82,24 @@ func Execute(out io.Writer) error {
 53 Private Hosted Zone (PHZ)`,
 		Long:    longDesc,
 		Example: examples,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: if custom template has {{ .Name }} in it, check that metadata tags are enabled, else throw error
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := awsConfig(globalOpts)
 			if err != nil {
 				return err
 			}
 
+			// If a custom domain name has been provided, check that it can be resolved from IMDS
+			imdsClient := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
+
+			if opts.domainName != "" {
+				if err := domainNameSupported(opts.domainName, imdsClient); err != nil {
+					return err
+				}
+			}
+
 			model, err := tui.Dashboard(tui.DashboardOptions{
 				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
-				IMDSClient: imds.NewFromAPI(awsimds.NewFromConfig(cfg)),
+				IMDSClient: imdsClient,
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
@@ -132,4 +139,25 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 	}
 
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
+}
+
+func domainNameSupported(domain string, imdsClient *imds.Client) error {
+	dmn := strings.ReplaceAll(domain, " ", "")
+	if strings.Contains(dmn, "{{.Name}}") {
+		metadata, err := imdsClient.InstanceMetadata(context.Background())
+		if err != nil {
+			return err
+		}
+
+		if metadata.Name == "" {
+			return errors.New(`to use metadata within a custom domain name, please enable IMDS instance tags support 
+for your EC2 instance:
+
+  $ dns53 imds --instance-metadata-tags on
+
+Or read the official AWS documentation at: 
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access-to-tags-in-IMDS`)
+		}
+	}
+	return nil
 }
