@@ -39,7 +39,7 @@ import (
 
 var errAPI = errors.New("api error")
 
-func TestByID_StripsPrefix(t *testing.T) {
+func TestByIDStripsPrefix(t *testing.T) {
 	id := "Z0011223344HHGHGH"
 
 	out := &awsr53.GetHostedZoneOutput{
@@ -61,7 +61,7 @@ func TestByID_StripsPrefix(t *testing.T) {
 	assert.Equal(t, id, phz.ID)
 }
 
-func TestByID_Error(t *testing.T) {
+func TestByIDError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("GetHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.GetHostedZoneOutput{}, errAPI)
 
@@ -71,7 +71,7 @@ func TestByID_Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestByVPC_TrimsDotSuffix(t *testing.T) {
+func TestByVPCTrimsDotSuffix(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ListHostedZonesByVPC", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByVPCInput) bool {
 		return *req.VPCId == "vpc-12345" &&
@@ -107,7 +107,7 @@ func TestByVPC_TrimsDotSuffix(t *testing.T) {
 	assert.ElementsMatch(t, expected, phzs)
 }
 
-func TestByVPC_Error(t *testing.T) {
+func TestByVPCError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ListHostedZonesByVPC", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{}, errAPI)
 
@@ -142,7 +142,7 @@ func TestAssociateRecord(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestAssociateRecord_Error(t *testing.T) {
+func TestAssociateRecordError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ChangeResourceRecordSets", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ChangeResourceRecordSetsOutput{}, errAPI)
 
@@ -177,7 +177,7 @@ func TestDisassociateRecord(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDisassociateRecord_Error(t *testing.T) {
+func TestDisassociateRecordError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ChangeResourceRecordSets", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ChangeResourceRecordSetsOutput{}, errAPI)
 

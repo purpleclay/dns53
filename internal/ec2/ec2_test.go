@@ -72,7 +72,7 @@ func TestToggleInstanceMetadataTags(t *testing.T) {
 	}
 }
 
-func TestToggleInstanceMetadataTags_Error(t *testing.T) {
+func TestToggleInstanceMetadataTagsError(t *testing.T) {
 	api := ec2mock.New(t)
 	api.On("ModifyInstanceMetadataOptions", mock.Anything, mock.Anything, mock.Anything).
 		Return(&awsec2.ModifyInstanceMetadataOptionsOutput{}, errors.New("error"))
