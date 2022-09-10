@@ -62,7 +62,7 @@ func NewFromAPI(api ClientAPI) *Client {
 //
 // The equivalent operation can be achieved through the CLI using:
 //
-//	aws ec2 modify-instance-metadata-options --instance-id i-123456789 --instance-metadata-tags enabled
+//	aws ec2 modify-instance-metadata-options --instance-id <INSTANCE_ID> --instance-metadata-tags enabled
 func (c *Client) ToggleInstanceMetadataTags(ctx context.Context, id string, toggle InstanceMetadataToggle) error {
 	_, err := c.api.ModifyInstanceMetadataOptions(ctx, &awsec2.ModifyInstanceMetadataOptionsInput{
 		InstanceId:           aws.String(id),

@@ -1,6 +1,8 @@
-site_name: dns53
+site_name: DNS 53
 site_description: Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately
 copyright: Always thinking. Forever learning. 💡
+# Only set during a release to ensure htmltest doesn't break due to non existent directories
+site_url: ""
 repo_name: purpleclay/dns53
 repo_url: https://github.com/purpleclay/dns53
 edit_uri: edit/main/docs
@@ -12,26 +14,46 @@ theme:
     accent: purple
   features:
     - content.code.annotate
-    - search.suggest
+    - content.tooltips
+    - navigation.indexes
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - navigation.tracking
     - search.highlight
     - search.share
+    - search.suggest
   icon:
     repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: Roboto Mono
 
 nav:
   - Home: index.md
-  - install.md
-  - Quick Start: quickstart.md
-  - Usage:
-      - IAM: iam.md
-      - Command Line: cli.md
-      - Go Templates: template.md
+  - Getting Started:
+      - Installation: install.md
+      - Broadcast your EC2: configure/broadcast-ec2.md
+      - Custom Domain: configure/custom-domain.md
+      - Expose EC2 Tags: configure/exposing-tags.md
+      - IAM: configure/iam.md
+  - Reference:
+      - Templating: reference/templating.md
+      - CLI:
+          - dns53: reference/cli/dns53.md
+          - dns53 imds: reference/cli/dns53-imds.md
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/purpleclay
       name: Purple Clay on GitHub
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/purpleclaydev
+      name: Purple Clay on Twitter
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/u/purpleclay
+      name: Purple Clay on Docker Hub
   analytics:
     provider: google
     property: !ENV GH_GOOGLE_ANALYTICS_KEY
@@ -49,9 +71,14 @@ extra:
           note: >-
             Thanks for your feedback! Help us improve this page by
             using our <a href="https://forms.gle/LfBReL2MUPnwUve6A" target=_blank>feedback form</a>.
+  status:
+    new: New Feature
+    deprecated: No Longer Supported
 
 plugins:
   - search
+  - minify:
+      minify_html: true
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
@@ -63,6 +90,9 @@ markdown_extensions:
   - admonition
   - attr_list
   - footnotes
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
