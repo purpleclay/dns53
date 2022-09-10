@@ -22,14 +22,14 @@ name: docs
 on:
   pull_request:
     paths:
-      - ".github/workflows/docs.yml"
       - "docs/**"
       - "mkdocs.yml"
   push:
+    branches:
+      - main
     tags:
       - "v*.*.*"
     paths:
-      - ".github/workflows/docs.yml"
       - "docs/**"
       - "mkdocs.yml"
 jobs:
