@@ -37,6 +37,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	vpcID  = "vpc-12345"
+	region = "eu-west-2"
+)
+
 var errAPI = errors.New("api error")
 
 func TestByIDStripsPrefix(t *testing.T) {
@@ -74,8 +79,8 @@ func TestByIDError(t *testing.T) {
 func TestByVPCTrimsDotSuffix(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ListHostedZonesByVPC", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByVPCInput) bool {
-		return *req.VPCId == "vpc-12345" &&
-			req.VPCRegion == types.VPCRegion("eu-west-2")
+		return *req.VPCId == vpcID &&
+			req.VPCRegion == types.VPCRegion(region)
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{
 		HostedZoneSummaries: []types.HostedZoneSummary{
 			{
@@ -90,7 +95,7 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 	}, nil)
 
 	c := r53.NewFromAPI(m)
-	phzs, err := c.ByVPC(context.Background(), "vpc-12345", "eu-west-2")
+	phzs, err := c.ByVPC(context.Background(), vpcID, region)
 
 	require.NoError(t, err)
 
@@ -112,7 +117,7 @@ func TestByVPCError(t *testing.T) {
 	m.On("ListHostedZonesByVPC", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{}, errAPI)
 
 	c := r53.NewFromAPI(m)
-	_, err := c.ByVPC(context.Background(), "vpc-12345", "eu-west-2")
+	_, err := c.ByVPC(context.Background(), vpcID, region)
 
 	assert.Error(t, err)
 }
