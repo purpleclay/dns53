@@ -80,6 +80,15 @@ jobs:
           path: site
           config: htmltest.yml
 
+      - name: Patch mkdocs.yml
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: 'site_url: ""'
+          replace: 'site_url: "https://docs.purpleclay.dev/${{ github.event.repository.name }}/"'
+          regex: false
+          include: mkdocs.yml
+
       - name: Deploy documentation
         if: startsWith(github.ref, 'refs/tags/v')
         env:
@@ -88,15 +97,3 @@ jobs:
         run: |
           mkdocs gh-deploy --force
           mkdocs --version
-
-      - name: Set Custom Domain
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: octokit/request-action@v2.x
-        id: pages_domain
-        with:
-          route: PUT /repos/{owner}/{repo}/pages
-          owner: purpleclay
-          repo: dns53
-          cname: dns53.purpleclay.dev
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -24,3 +24,7 @@ dist/
 
 # Mkdocs
 .cache/
+site/
+
+# VSCode
+.vscode/

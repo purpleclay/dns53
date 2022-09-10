@@ -1,3 +1,7 @@
+---
+icon: material/package-variant-closed
+---
+
 # Install
 
 There are many different ways to install dns53. You can install the binary using either a supported package manager, manually, or by compiling the source yourself.

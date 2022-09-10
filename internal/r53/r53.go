@@ -81,6 +81,10 @@ func NewFromAPI(api DNSClientAPI) *Client {
 }
 
 // ByID attempts to retrieve a Route53 Private Hosted Zone by its given ID
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws route53 get-hosted-zone --id <HOSTED_ZONE_ID>
 func (r *Client) ByID(ctx context.Context, id string) (PrivateHostedZone, error) {
 	resp, err := r.api.GetHostedZone(ctx, &awsr53.GetHostedZoneInput{
 		Id: aws.String(id),
@@ -97,6 +101,10 @@ func (r *Client) ByID(ctx context.Context, id string) (PrivateHostedZone, error)
 }
 
 // ByVPC finds all Route53 Private Hosted Zones associated with a given VPC ID
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws route53 list-hosted-zones-by-vpc --vpc-id <VPC_ID> --vpc-region <REGION>
 func (r *Client) ByVPC(ctx context.Context, vpc, region string) ([]PrivateHostedZone, error) {
 	resp, err := r.api.ListHostedZonesByVPC(ctx, &awsr53.ListHostedZonesByVPCInput{
 		VPCId:     aws.String(vpc),
