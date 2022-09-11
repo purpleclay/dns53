@@ -7,6 +7,7 @@ Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately
 [![Go Report Card](https://goreportcard.com/badge/github.com/purpleclay/dns53?style=flat-square)](https://goreportcard.com/report/github.com/purpleclay/dns53)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/purpleclay/dns53.svg?style=flat-square)](go.mod)
 [![codecov](https://codecov.io/gh/purpleclay/dns53/branch/main/graph/badge.svg)](https://codecov.io/gh/purpleclay/dns53)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=purpleclay_dns53&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=purpleclay_dns53)
 
 [![asciicast](https://asciinema.org/a/509096.svg)](https://asciinema.org/a/509096)
 
