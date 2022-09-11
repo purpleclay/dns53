@@ -68,7 +68,7 @@ func TestDomainNameSupported(t *testing.T) {
 	}
 }
 
-func TestDomainNameSupported_NoInstanceTags(t *testing.T) {
+func TestDomainNameSupportedNoInstanceTags(t *testing.T) {
 	err := domainNameSupported("custom.{{.Name}}", imds.NewFromAPI(imdsstub.NewWithoutTags(t)))
 
 	assert.EqualError(t, err, `to use metadata within a custom domain name, please enable IMDS instance tags support 

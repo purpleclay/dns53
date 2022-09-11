@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestVersion_Long(t *testing.T) {
+func TestVersionLong(t *testing.T) {
 	version = "v0.1.0"
 	gitBranch = "main"
 	gitCommit = "d4b3bd00406444561e646607d7f941097dbd1b40"
@@ -57,7 +57,7 @@ func TestVersion_Long(t *testing.T) {
 	assert.Equal(t, runtime.GOARCH, bi.Go.Arch)
 }
 
-func TestVersion_Short(t *testing.T) {
+func TestVersionShort(t *testing.T) {
 	version = "v0.1.0"
 
 	var buf bytes.Buffer

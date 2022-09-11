@@ -37,9 +37,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	vpcID  = "vpc-12345"
+	region = "eu-west-2"
+)
+
 var errAPI = errors.New("api error")
 
-func TestByID_StripsPrefix(t *testing.T) {
+func TestByIDStripsPrefix(t *testing.T) {
 	id := "Z0011223344HHGHGH"
 
 	out := &awsr53.GetHostedZoneOutput{
@@ -61,7 +66,7 @@ func TestByID_StripsPrefix(t *testing.T) {
 	assert.Equal(t, id, phz.ID)
 }
 
-func TestByID_Error(t *testing.T) {
+func TestByIDError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("GetHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.GetHostedZoneOutput{}, errAPI)
 
@@ -71,11 +76,11 @@ func TestByID_Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestByVPC_TrimsDotSuffix(t *testing.T) {
+func TestByVPCTrimsDotSuffix(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ListHostedZonesByVPC", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByVPCInput) bool {
-		return *req.VPCId == "vpc-12345" &&
-			req.VPCRegion == types.VPCRegion("eu-west-2")
+		return *req.VPCId == vpcID &&
+			req.VPCRegion == types.VPCRegion(region)
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{
 		HostedZoneSummaries: []types.HostedZoneSummary{
 			{
@@ -90,7 +95,7 @@ func TestByVPC_TrimsDotSuffix(t *testing.T) {
 	}, nil)
 
 	c := r53.NewFromAPI(m)
-	phzs, err := c.ByVPC(context.Background(), "vpc-12345", "eu-west-2")
+	phzs, err := c.ByVPC(context.Background(), vpcID, region)
 
 	require.NoError(t, err)
 
@@ -107,12 +112,12 @@ func TestByVPC_TrimsDotSuffix(t *testing.T) {
 	assert.ElementsMatch(t, expected, phzs)
 }
 
-func TestByVPC_Error(t *testing.T) {
+func TestByVPCError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ListHostedZonesByVPC", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{}, errAPI)
 
 	c := r53.NewFromAPI(m)
-	_, err := c.ByVPC(context.Background(), "vpc-12345", "eu-west-2")
+	_, err := c.ByVPC(context.Background(), vpcID, region)
 
 	assert.Error(t, err)
 }
@@ -142,7 +147,7 @@ func TestAssociateRecord(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestAssociateRecord_Error(t *testing.T) {
+func TestAssociateRecordError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ChangeResourceRecordSets", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ChangeResourceRecordSetsOutput{}, errAPI)
 
@@ -177,7 +182,7 @@ func TestDisassociateRecord(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDisassociateRecord_Error(t *testing.T) {
+func TestDisassociateRecordError(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ChangeResourceRecordSets", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ChangeResourceRecordSetsOutput{}, errAPI)
 
