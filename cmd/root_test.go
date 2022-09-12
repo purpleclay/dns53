@@ -26,7 +26,6 @@ import (
 	"testing"
 
 	"github.com/purpleclay/dns53/internal/imds"
-	"github.com/purpleclay/dns53/internal/imds/imdsstub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -41,41 +40,96 @@ func TestAWSConfig(t *testing.T) {
 	assert.Equal(t, "eu-west-2", cfg.Region)
 }
 
-func TestDomainNameSupported(t *testing.T) {
+func TestResolveDomainName(t *testing.T) {
+	metadata := imds.Metadata{
+		Name: "my-ec2",
+	}
+
 	tests := []struct {
-		name   string
-		domain string
+		name     string
+		domain   string
+		expected string
 	}{
 		{
-			name:   "NoTemplating",
-			domain: "custom.domain",
+			name:     "NoTemplating",
+			domain:   "custom.domain",
+			expected: "custom.domain",
 		},
 		{
-			name:   "WithNameField",
-			domain: "custom.{{.Name}}",
+			name:     "WithNameField",
+			domain:   "custom.{{.Name}}",
+			expected: "custom.my-ec2",
 		},
 		{
-			name:   "WithNameFieldSpaces",
-			domain: "custom.{{ .Name }}",
+			name:     "WithNameFieldSpaces",
+			domain:   "custom.{{ .Name }}",
+			expected: "custom.my-ec2",
+		},
+		{
+			name:     "ReplacesDoubleHyphens",
+			domain:   "my--custom.domain",
+			expected: "my-custom.domain",
+		},
+		{
+			name:     "ReplacesDoubleDots",
+			domain:   "my-custom..domain",
+			expected: "my-custom.domain",
+		},
+		{
+			name:     "RemoveLeadingTrailingHyphen",
+			domain:   "-my-custom.domain-",
+			expected: "my-custom.domain",
+		},
+		{
+			name:     "TrimUnsupportedCharacters",
+			domain:   "custom@#.doma**in-123",
+			expected: "custom.domain-123",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := domainNameSupported(tt.domain, imds.NewFromAPI(imdsstub.New(t)))
+			domain, err := resolveDomainName(tt.domain, metadata)
 
 			require.NoError(t, err)
+			require.Equal(t, tt.expected, domain)
 		})
 	}
 }
 
-func TestDomainNameSupportedNoInstanceTags(t *testing.T) {
-	err := domainNameSupported("custom.{{.Name}}", imds.NewFromAPI(imdsstub.NewWithoutTags(t)))
+func TestResolveDomainNameNoInstanceTags(t *testing.T) {
+	_, err := resolveDomainName("custom.{{.Name}}", imds.Metadata{})
 
-	assert.EqualError(t, err, `to use metadata within a custom domain name, please enable IMDS instance tags support 
+	assert.EqualError(t, err, `to use metadata within a custom domain name, please enable IMDS instance tags support
 for your EC2 instance:
 
   $ dns53 imds --instance-metadata-tags on
 
-Or read the official AWS documentation at: 
+Or read the official AWS documentation at:
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access-to-tags-in-IMDS`)
+}
+
+func TestResolveDomainNameTransformsNameTagToKebabCase(t *testing.T) {
+	domain, err := resolveDomainName("custom.{{.Name}}", imds.Metadata{Name: "MyEc2 123"})
+
+	require.NoError(t, err)
+	assert.Equal(t, "custom.my-ec2-123", domain)
+}
+
+func TestResolveDomainNameStripsLeadingTrailingHyphenFromNameTag(t *testing.T) {
+	domain, err := resolveDomainName("custom.{{.Name}}", imds.Metadata{Name: "-MyEc2 123-"})
+
+	require.NoError(t, err)
+	assert.Equal(t, "custom.my-ec2-123", domain)
+}
+
+func TestResolveDomainNameInvalidGoTemplate(t *testing.T) {
+	_, err := resolveDomainName("custom.{{.Name}", imds.Metadata{Name: "MyEc2 123"})
+
+	assert.Error(t, err)
+}
+
+func TestResolveDomainNameUnrecognisedTemplateFields(t *testing.T) {
+	_, err := resolveDomainName("custom.{{.Unknown}}", imds.Metadata{})
+
+	assert.Error(t, err)
 }

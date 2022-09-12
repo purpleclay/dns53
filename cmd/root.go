@@ -23,16 +23,20 @@ SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/gobeam/stringy"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui"
@@ -76,6 +80,10 @@ type options struct {
 func Execute(out io.Writer) error {
 	opts := options{}
 
+	// Capture in PreRun lifecycle
+	var cfg aws.Config
+	var metadata imds.Metadata
+
 	rootCmd := &cobra.Command{
 		Use: "dns53",
 		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
@@ -84,31 +92,34 @@ func Execute(out io.Writer) error {
 		Example:       examples,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := awsConfig(globalOpts)
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+
+			cfg, err = awsConfig(globalOpts)
 			if err != nil {
 				return err
 			}
 
-			// If a custom domain name has been provided, check that it can be resolved from IMDS
 			imdsClient := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
-
-			if opts.domainName != "" {
-				if err := domainNameSupported(opts.domainName, imdsClient); err != nil {
-					return err
-				}
+			if metadata, err = imdsClient.InstanceMetadata(context.Background()); err != nil {
+				return err
 			}
 
-			model, err := tui.Dashboard(tui.DashboardOptions{
+			if opts.domainName == "" {
+				return nil
+			}
+
+			opts.domainName, err = resolveDomainName(opts.domainName, metadata)
+			return err
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			model := tui.Dashboard(tui.DashboardOptions{
 				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
-				IMDSClient: imdsClient,
+				Metadata:   metadata,
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
 			})
-			if err != nil {
-				return err
-			}
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()
 		},
@@ -140,26 +151,51 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
 	}
 
+	// TODO: remove
+	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data"))
+
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
 
-func domainNameSupported(domain string, imdsClient *imds.Client) error {
+func resolveDomainName(domain string, metadata imds.Metadata) (string, error) {
 	dmn := strings.ReplaceAll(domain, " ", "")
-	if strings.Contains(dmn, "{{.Name}}") {
-		metadata, err := imdsClient.InstanceMetadata(context.Background())
-		if err != nil {
-			return err
-		}
 
+	if strings.Contains(dmn, "{{.Name}}") {
 		if metadata.Name == "" {
-			return errors.New(`to use metadata within a custom domain name, please enable IMDS instance tags support 
+			return "", errors.New(`to use metadata within a custom domain name, please enable IMDS instance tags support
 for your EC2 instance:
 
   $ dns53 imds --instance-metadata-tags on
 
-Or read the official AWS documentation at: 
+Or read the official AWS documentation at:
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access-to-tags-in-IMDS`)
 		}
+
+		name := stringy.New(metadata.Name)
+		metadata.Name = name.KebabCase().ToLower()
 	}
-	return nil
+
+	// Sanitise the copy of the metadata before resolving the template
+	metadata.IPv4 = strings.ReplaceAll(metadata.IPv4, ".", "-")
+
+	// Execute the domain template
+	tmpl, err := template.New("domain").Parse(domain)
+	if err != nil {
+		return "", err
+	}
+
+	var out bytes.Buffer
+	if err := tmpl.Execute(&out, metadata); err != nil {
+		return "", err
+	}
+	dmn = out.String()
+
+	// Final tidy up of the domain
+	dmn = strings.ReplaceAll(dmn, "--", "-")
+	dmn = strings.ReplaceAll(dmn, "..", ".")
+	dmn = strings.Trim(dmn, "-")
+	domainRegex, _ := regexp.Compile("[^a-zA-Z0-9-.]+")
+	dmn = domainRegex.ReplaceAllString(dmn, "")
+
+	return dmn, nil
 }

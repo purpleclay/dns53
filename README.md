@@ -1,6 +1,6 @@
 # dns53
 
-Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately.
+Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily, and privately.
 
 [![Build status](https://img.shields.io/github/workflow/status/purpleclay/dns53/ci?style=flat-square&logo=go)](https://github.com/purpleclay/dns53/actions?workflow=ci)
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](/LICENSE)
