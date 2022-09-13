@@ -70,7 +70,11 @@ type globalOptions struct {
 	AWSProfile string
 }
 
-var globalOpts = &globalOptions{}
+var (
+	globalOpts = &globalOptions{}
+
+	domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
+)
 
 type options struct {
 	phzID      string
@@ -151,9 +155,6 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
 	}
 
-	// TODO: remove
-	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data"))
-
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
 
@@ -194,7 +195,7 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 	dmn = strings.ReplaceAll(dmn, "--", "-")
 	dmn = strings.ReplaceAll(dmn, "..", ".")
 	dmn = strings.Trim(dmn, "-")
-	domainRegex, _ := regexp.Compile("[^a-zA-Z0-9-.]+")
+	dmn = strings.Trim(dmn, ".")
 	dmn = domainRegex.ReplaceAllString(dmn, "")
 
 	return dmn, nil

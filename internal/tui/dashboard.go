@@ -55,6 +55,7 @@ type DashboardModel struct {
 // DashboardOptions defines all of the supported options when initialising
 // the Dashboard model
 type DashboardOptions struct {
+	// IMDSClient *imds.Client
 	Metadata   imds.Metadata
 	R53Client  *r53.Client
 	Version    string
@@ -113,19 +114,11 @@ func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.loading.Tick,
 		func() tea.Msg {
-			// // TODO: don't retrieve metadata here, skip straight to PHZ association
-			// meta, err := m.opts.IMDSClient.InstanceMetadata(context.Background())
-			// if err != nil {
-			// 	return errMsg{err}
-			// }
-
-			// return meta
-
 			if m.opts.PhzID != "" {
-				return m.queryHostedZone
+				return m.queryHostedZone()
 			}
 
-			return m.queryHostedZones
+			return m.queryHostedZones()
 		},
 	)
 }
@@ -141,15 +134,6 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	switch msg := msg.(type) {
-	// case imds.Metadata:
-	// 	m.ec2 = msg
-
-	// 	// If the PHZ is already known by this point, attempt an association
-	// 	if m.opts.PhzID != "" {
-	// 		cmds = append(cmds, m.queryHostedZone)
-	// 	} else {
-	// 		cmds = append(cmds, m.queryHostedZones)
-	// 	}
 	case []r53.PrivateHostedZone:
 		// PHZ have been successfully retrieved. Load them into the list
 		items := make([]list.Item, 0, len(msg))
@@ -282,24 +266,19 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 		return errMsg{err}
 	}
 
-	return associationRequest{phz: phz}
+	return phz
 }
 
 func (m DashboardModel) initAssociation() tea.Msg {
-	// Sanitise the IPv4 within the EC2 Metadata Object
-	ipv4 := m.ec2.IPv4
-	m.ec2.IPv4 = strings.ReplaceAll(m.ec2.IPv4, ".", "-")
-
 	name := m.opts.DomainName
 	if name == "" {
-		// Generate a default domain name
-		name = fmt.Sprintf("%s.dns53.%s", m.ec2.IPv4, m.connected.phz.Name)
+		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
 	}
 
 	record := r53.ResourceRecord{
 		PhzID:    m.connected.phz.ID,
 		Name:     name,
-		Resource: ipv4,
+		Resource: m.ec2.IPv4,
 	}
 
 	if err := m.opts.R53Client.AssociateRecord(context.Background(), record); err != nil {

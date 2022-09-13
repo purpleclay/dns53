@@ -81,6 +81,11 @@ func TestResolveDomainName(t *testing.T) {
 			expected: "my-custom.domain",
 		},
 		{
+			name:     "RemoveLeadingTrailingDot",
+			domain:   ".my-custom.domain.",
+			expected: "my-custom.domain",
+		},
+		{
 			name:     "TrimUnsupportedCharacters",
 			domain:   "custom@#.doma**in-123",
 			expected: "custom.domain-123",
