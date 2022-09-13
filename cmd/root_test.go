@@ -67,23 +67,23 @@ func TestResolveDomainName(t *testing.T) {
 		},
 		{
 			name:     "ReplacesDoubleHyphens",
-			domain:   "my--custom.domain",
-			expected: "my-custom.domain",
+			domain:   "another--custom.domain",
+			expected: "another-custom.domain",
 		},
 		{
 			name:     "ReplacesDoubleDots",
-			domain:   "my-custom..domain",
-			expected: "my-custom.domain",
+			domain:   "my-custom123..domain",
+			expected: "my-custom123.domain",
 		},
 		{
 			name:     "RemoveLeadingTrailingHyphen",
-			domain:   "-my-custom.domain-",
-			expected: "my-custom.domain",
+			domain:   "-this-is-a-custom.domain-",
+			expected: "this-is-a-custom.domain",
 		},
 		{
 			name:     "RemoveLeadingTrailingDot",
-			domain:   ".my-custom.domain.",
-			expected: "my-custom.domain",
+			domain:   ".a-custom.domain.",
+			expected: "a-custom.domain",
 		},
 		{
 			name:     "TrimUnsupportedCharacters",
