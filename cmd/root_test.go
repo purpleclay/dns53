@@ -113,28 +113,28 @@ Or read the official AWS documentation at:
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access-to-tags-in-IMDS`)
 }
 
-// func TestResolveDomainNameTransformsNameTagToKebabCase(t *testing.T) {
-// 	domain, err := resolveDomainName("custom.{{.Name}}", imds.Metadata{Name: "MyEc2 123"})
+func TestResolveDomainNameTransformsNameTagToKebabCase(t *testing.T) {
+	domain, err := resolveDomainName("first.custom.{{.Name}}", imds.Metadata{Name: "MyEc2 123"})
 
-// 	require.NoError(t, err)
-// 	assert.Equal(t, "custom.my-ec2-123", domain)
-// }
+	require.NoError(t, err)
+	assert.Equal(t, "first.custom.my-ec2-123", domain)
+}
 
-// func TestResolveDomainNameStripsLeadingTrailingHyphenFromNameTag(t *testing.T) {
-// 	domain, err := resolveDomainName("custom.{{.Name}}", imds.Metadata{Name: "-MyEc2 123-"})
+func TestResolveDomainNameStripsLeadingTrailingHyphenFromNameTag(t *testing.T) {
+	domain, err := resolveDomainName("second.custom.{{.Name}}", imds.Metadata{Name: "-MyEc2 123-"})
 
-// 	require.NoError(t, err)
-// 	assert.Equal(t, "custom.my-ec2-123", domain)
-// }
+	require.NoError(t, err)
+	assert.Equal(t, "second.custom.my-ec2-123", domain)
+}
 
-// func TestResolveDomainNameInvalidGoTemplate(t *testing.T) {
-// 	_, err := resolveDomainName("custom.{{.Name}", imds.Metadata{Name: "MyEc2 123"})
+func TestResolveDomainNameInvalidGoTemplate(t *testing.T) {
+	_, err := resolveDomainName("custom.{{.Name}", imds.Metadata{Name: "MyEc2 123"})
 
-// 	assert.Error(t, err)
-// }
+	assert.Error(t, err)
+}
 
-// func TestResolveDomainNameUnrecognisedTemplateFields(t *testing.T) {
-// 	_, err := resolveDomainName("custom.{{.Unknown}}", imds.Metadata{})
+func TestResolveDomainNameUnrecognisedTemplateFields(t *testing.T) {
+	_, err := resolveDomainName("custom.{{.Unknown}}", imds.Metadata{})
 
-// 	assert.Error(t, err)
-// }
+	assert.Error(t, err)
+}
