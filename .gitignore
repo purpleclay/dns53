@@ -18,6 +18,7 @@
 completions/
 manpages/
 dns53
+reports/
 
 # GoReleaser build output
 dist/

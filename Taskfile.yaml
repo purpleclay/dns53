@@ -5,6 +5,7 @@ version: "3"
 vars:
   BINDIR: bin
   BINNAME: dns53
+  REPORTDIR: reports
   GIT_COMMIT:
     sh: git rev-parse HEAD
   GIT_SHA:
@@ -31,15 +32,24 @@ tasks:
     cmds:
       - go build -ldflags '-s -w {{.LDFLAGS}}' .
 
+  reports-dir:
+    desc: Creates the report directory if it doesn't exist
+    cmds:
+      - mkdir -p {{.REPORTDIR}}
+    status:
+      - test -d {{.REPORTDIR}}
+
   test:
     desc: Run the tests
+    deps: [reports-dir]
     cmds:
-      - go test -short -race -vet=off -p 1 -covermode=atomic -coverprofile=unittest.out ./...
+      - go test -short -race -vet=off -p 1 -covermode=atomic -coverprofile={{.REPORTDIR}}/unittest.out -json ./... | tee {{.REPORTDIR}}/unittest.json
 
   integration-test:
     desc: Run the integration tests
+    deps: [reports-dir]
     cmds:
-      - go test -run=Integration -race -vet=off -p 1 -covermode=atomic -coverprofile=integrationtest.out ./...
+      - go test -run=Integration -race -vet=off -p 1 -covermode=atomic -coverprofile={{.REPORTDIR}}/integrationtest.out -json ./... | tee {{.REPORTDIR}}/integrationtest.json
 
   lint:
     desc: Lint the code using golangci
