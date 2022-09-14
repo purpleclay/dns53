@@ -54,7 +54,7 @@ tasks:
   lint:
     desc: Lint the code using golangci
     cmds:
-      - golangci-lint run --timeout 5m0s
+      - golangci-lint run --timeout 5m0s --out-format checkstyle | tee {{.REPORTDIR}}/golangci-lint.xml
 
   fmt:
     desc: gofumpt all code
