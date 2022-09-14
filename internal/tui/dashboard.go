@@ -23,12 +23,10 @@ SOFTWARE.
 package tui
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"strings"
-	"text/template"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -57,7 +55,8 @@ type DashboardModel struct {
 // DashboardOptions defines all of the supported options when initialising
 // the Dashboard model
 type DashboardOptions struct {
-	IMDSClient *imds.Client
+	// IMDSClient *imds.Client
+	Metadata   imds.Metadata
 	R53Client  *r53.Client
 	Version    string
 	PhzID      string
@@ -92,10 +91,10 @@ func (e errMsg) Error() string {
 }
 
 // Dashboard creates the initial model for the TUI
-func Dashboard(opts DashboardOptions) (*DashboardModel, error) {
+func Dashboard(opts DashboardOptions) *DashboardModel {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
-	m := &DashboardModel{opts: opts}
+	m := &DashboardModel{opts: opts, ec2: opts.Metadata}
 
 	m.phz = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
 	m.phz.Styles.HelpStyle = helpStyle
@@ -107,7 +106,7 @@ func Dashboard(opts DashboardOptions) (*DashboardModel, error) {
 	m.loading.Spinner = spinner.Dot
 	m.loading.Style = spinnerStyle
 
-	return m, nil
+	return m
 }
 
 // Init initialises the model ready for its first update and render
@@ -115,12 +114,11 @@ func (m DashboardModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.loading.Tick,
 		func() tea.Msg {
-			meta, err := m.opts.IMDSClient.InstanceMetadata(context.Background())
-			if err != nil {
-				return errMsg{err}
+			if m.opts.PhzID != "" {
+				return m.queryHostedZone()
 			}
 
-			return meta
+			return m.queryHostedZones()
 		},
 	)
 }
@@ -136,15 +134,6 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	switch msg := msg.(type) {
-	case imds.Metadata:
-		m.ec2 = msg
-
-		// If the PHZ is already known by this point, attempt an association
-		if m.opts.PhzID != "" {
-			cmds = append(cmds, m.queryHostedZone)
-		} else {
-			cmds = append(cmds, m.queryHostedZones)
-		}
 	case []r53.PrivateHostedZone:
 		// PHZ have been successfully retrieved. Load them into the list
 		items := make([]list.Item, 0, len(msg))
@@ -277,41 +266,24 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 		return errMsg{err}
 	}
 
-	return associationRequest{phz: phz}
+	return phz
 }
 
 func (m DashboardModel) initAssociation() tea.Msg {
-	// Sanitise the IPv4 within the EC2 Metadata Object
-	ipv4 := m.ec2.IPv4
-	m.ec2.IPv4 = strings.ReplaceAll(m.ec2.IPv4, ".", "-")
-
-	var name string
-	if m.opts.DomainName != "" {
-		name = appendDomainSuffix(m.opts.DomainName, m.connected.phz.Name)
-
-		// Check if the provided name contains a template
-		if strings.Contains(name, "{{") {
-			tmpl, err := template.New("dns").Parse(name)
-			if err != nil {
-				return errMsg{err}
-			}
-
-			var out bytes.Buffer
-			if err := tmpl.Execute(&out, m.ec2); err != nil {
-				return errMsg{err}
-			}
-
-			name = out.String()
-		}
+	name := m.opts.DomainName
+	if name == "" {
+		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
 	} else {
-		// By default include the dns53 suffix
-		name = fmt.Sprintf("%s.dns53.%s", m.ec2.IPv4, m.connected.phz.Name)
+		// Ensure root domain is appended as a suffix
+		if !strings.HasSuffix(name, "."+m.connected.phz.Name) {
+			name = fmt.Sprintf("%s.%s", name, m.connected.phz.Name)
+		}
 	}
 
 	record := r53.ResourceRecord{
 		PhzID:    m.connected.phz.ID,
 		Name:     name,
-		Resource: ipv4,
+		Resource: m.ec2.IPv4,
 	}
 
 	if err := m.opts.R53Client.AssociateRecord(context.Background(), record); err != nil {
@@ -319,16 +291,4 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	}
 
 	return connection{dns: name, phz: m.connected.phz}
-}
-
-func appendDomainSuffix(domain, root string) string {
-	if strings.HasSuffix(domain, "dns53."+domain) {
-		return domain
-	}
-
-	// If suffix has only been partially set, trim it
-	domain = strings.TrimSuffix(domain, ".dns53")
-	domain = strings.TrimSuffix(domain, "."+root)
-
-	return fmt.Sprintf("%s.dns53.%s", domain, root)
 }

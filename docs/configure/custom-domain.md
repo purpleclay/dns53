@@ -23,3 +23,16 @@ A templated domain leverages the text templating capabilities of the Go language
 ```sh
 dns53 --domain-name "{{.IPv4}}.{{.Region}}"
 ```
+
+## Domain Validation
+
+A custom domain must be valid before assigning it to your EC2 instance. A series of checks must pass.
+
+A domain must:
+
+- not contain leading or trailing hyphens (`-`) and dots (`.`)
+- not contain consecutive hyphens (`--`) or dots (`..`)
+- not contain whitespace (` `)
+- only contain valid characters from the sequence `[A-Za-z0-9-.]`
+
+`dns53` will automatically clean any domain name in an attempt to enforce these validation checks.

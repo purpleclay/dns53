@@ -41,38 +41,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python runtime
-        uses: actions/setup-python@v4
+      - name: GHCR Login
+        uses: docker/login-action@v2
         with:
-          python-version: 3.x
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_GHCR }}
 
-      - name: Set up build cache
-        uses: actions/cache@v3
-        id: cache
-        with:
-          key: ${{ runner.os }}-${{ hashFiles('.cache/**') }}
-          path: .cache
-
-      - name: Install Python dependencies
-        run: |
-          pip install \
-            "mkdocs-git-committers-plugin-2>=0.4.3" \
-            "mkdocs-git-revision-date-localized-plugin>=1.0" \
-            "mkdocs-minify-plugin>=0.3" \
-            "mkdocs-redirects>=1.0"
-
-      - name: Install MkDocs Insiders
-        if: github.event.repository.fork == false
-        env:
-          GH_TOKEN: ${{ secrets.GH_MKDOCS }}
-        run: |
-          pip install git+https://${GH_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
+      - run: docker pull ghcr.io/purpleclay/mkdocs-material-insiders
 
       - name: Build
-        run: mkdocs build
         env:
           GH_TOKEN: ${{ secrets.GH_MKDOCS }}
           GH_GOOGLE_ANALYTICS_KEY: ${{ secrets.GH_GOOGLE_ANALYTICS_KEY }}
+        run: docker run --rm -i -e GH_TOKEN=${GH_TOKEN} -e GH_GOOGLE_ANALYTICS_KEY=${GH_GOOGLE_ANALYTICS_KEY} -v ${PWD}:/docs ghcr.io/purpleclay/mkdocs-material-insiders build
 
       - name: HTML Test
         uses: wjdp/htmltest-action@master
@@ -94,6 +76,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_MKDOCS }}
           GH_GOOGLE_ANALYTICS_KEY: ${{ secrets.GH_GOOGLE_ANALYTICS_KEY }}
-        run: |
-          mkdocs gh-deploy --force
-          mkdocs --version
+        run: docker run --rm -i -e GH_TOKEN=${GH_TOKEN} -e GH_GOOGLE_ANALYTICS_KEY=${GH_GOOGLE_ANALYTICS_KEY} -v ${PWD}:/docs ghcr.io/purpleclay/mkdocs-material-insiders gh-deploy --force
