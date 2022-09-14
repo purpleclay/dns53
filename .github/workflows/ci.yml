@@ -91,7 +91,7 @@ jobs:
 
       - name: Lint Code
         if: matrix.os == 'ubuntu-latest'
-        run: golangci-lint run --version --verbose --out-format=github-actions
+        run: task lint
 
       - name: misspell
         if: matrix.os == 'ubuntu-latest'
