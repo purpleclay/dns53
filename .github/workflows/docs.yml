@@ -60,6 +60,8 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - run: docker pull ghcr.io/purpleclay/mkdocs-material-insiders
+
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GH_MKDOCS }}
