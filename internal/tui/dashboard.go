@@ -273,6 +273,11 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	name := m.opts.DomainName
 	if name == "" {
 		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
+	} else {
+		// Ensure root domain is appended as a suffix
+		if !strings.HasSuffix(name, "."+m.connected.phz.Name) {
+			name = fmt.Sprintf("%s.%s", name, m.connected.phz.Name)
+		}
 	}
 
 	record := r53.ResourceRecord{
