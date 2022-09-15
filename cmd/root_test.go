@@ -138,3 +138,19 @@ func TestResolveDomainNameUnrecognisedTemplateFields(t *testing.T) {
 
 	assert.Error(t, err)
 }
+
+func TestCleanTagsAppendsToMap(t *testing.T) {
+	tags := map[string]string{
+		"My+@-key_=,.:1": "A value",
+	}
+	cleanTags(tags)
+
+	expected := map[string]string{
+		"My+@-key_=,.:1": "a-value",
+		"MyKey1":         "a-value",
+	}
+	for k, v := range expected {
+		assert.Contains(t, tags, k)
+		assert.Equal(t, v, tags[k])
+	}
+}
