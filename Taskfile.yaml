@@ -53,6 +53,7 @@ tasks:
 
   lint:
     desc: Lint the code using golangci
+    deps: [reports-dir]
     cmds:
       - golangci-lint run --timeout 5m0s --out-format checkstyle | tee {{.REPORTDIR}}/golangci-lint.xml
 
