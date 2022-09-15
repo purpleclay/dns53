@@ -49,6 +49,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -85,11 +87,11 @@ jobs:
       # Temporary workaround until the golangci-lint GitHub action supports 1.19
       - name: Install golangci-lint
         if: matrix.os == 'ubuntu-latest'
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.47.3
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
       - name: Lint Code
         if: matrix.os == 'ubuntu-latest'
-        run: golangci-lint run --version --verbose --out-format=github-actions
+        run: task lint
 
       - name: misspell
         if: matrix.os == 'ubuntu-latest'
@@ -105,9 +107,9 @@ jobs:
             ./.github/workflows/**
             ./CODE_OF_CONDUCT.md
 
-      - name: Code Coverage
+      - name: SonarCloud Scan
         if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./unittest.out,./integrationtest.out
-          path_to_write_report: ./coverage.out
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
