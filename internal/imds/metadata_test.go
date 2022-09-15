@@ -34,10 +34,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	imdsEndpoint = "http://localhost:1338/latest/meta-data/"
-)
-
 func TestIntegrationInstanceMetadataExcludeTags(t *testing.T) {
 	CheckIntegration(t)
 
@@ -47,7 +43,7 @@ func TestIntegrationInstanceMetadataExcludeTags(t *testing.T) {
 	})
 	defer container.Terminate(ctx)
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(imdsEndpoint))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(container.URL()))
 	require.NoError(t, err)
 
 	client := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
@@ -74,7 +70,7 @@ func TestIntegrationInstanceMetadataWithTags(t *testing.T) {
 	})
 	defer container.Terminate(ctx)
 
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(imdsEndpoint))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(container.URL()))
 	require.NoError(t, err)
 
 	client := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
@@ -93,11 +89,9 @@ func CheckIntegration(t *testing.T) {
 	}
 }
 
-func TestIntegrationInstanceMetadataNoEndpoint(t *testing.T) {
-	CheckIntegration(t)
-
+func TestInstanceMetadataNoEndpoint(t *testing.T) {
 	ctx := context.Background()
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint(imdsEndpoint))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithEC2IMDSEndpoint("http://localhost/no-metadata-endpoint"))
 	require.NoError(t, err)
 
 	client := imds.NewFromAPI(awsimds.NewFromConfig(cfg))

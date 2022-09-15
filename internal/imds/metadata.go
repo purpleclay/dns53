@@ -135,8 +135,6 @@ func tags(ctx context.Context, api ClientAPI) map[string]string {
 		return map[string]string{}
 	}
 
-	// TODO: url encode the tag name (test how IMDS returns tags with colons etc)
-
 	tags := map[string]string{}
 	for _, tagName := range strings.Split(tagPaths, "\n") {
 		tag, _ := get(ctx, api, pathTagsInstance+"/"+tagName)
