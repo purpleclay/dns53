@@ -56,14 +56,23 @@ tasks:
     cmds:
       - golangci-lint run --timeout 5m0s --out-format checkstyle | tee {{.REPORTDIR}}/golangci-lint.xml
 
-  fmt:
-    desc: gofumpt all code
+  format:
+    desc: Format the code using Gofumpt
     cmds:
       - gofumpt -w -l .
 
   clean:
     desc: Delete all artefacts from recent build
     cmds:
-      - rm ./{{.BINNAME}}
-    status:
-      - test -f ./{{.BINNAME}}
+      - task: remove-binary
+      - task: remove-reports
+
+  remove-binary:
+    desc: Delete an existing built binary
+    cmds:
+      - rm -f ./{{.BINNAME}}
+
+  remove-reports:
+    desc: Delete an existing reports directory
+    cmds:
+      - rm -rf {{.REPORTDIR}}

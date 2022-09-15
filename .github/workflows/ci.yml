@@ -113,10 +113,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # - name: Code Coverage
-      #   if: matrix.os == 'ubuntu-latest'
-      #   uses: codecov/codecov-action@v3
-      #   with:
-      #     files: ./unittest.out,./integrationtest.out
-      #     path_to_write_report: ./coverage.out
