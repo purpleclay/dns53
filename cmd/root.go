@@ -136,13 +136,14 @@ func Execute(out io.Writer) error {
 	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
 
 	f := rootCmd.Flags()
-	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
+	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
 	rootCmd.AddCommand(newVersionCmd(out))
 	rootCmd.AddCommand(newManPagesCmd(out))
 	rootCmd.AddCommand(newCompletionCmd(out))
 	rootCmd.AddCommand(newIMDSCommand(out))
+	rootCmd.AddCommand(newTagsCommand(out))
 
 	return rootCmd.ExecuteContext(context.Background())
 }
@@ -156,6 +157,8 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 	if opts.AWSRegion != "" {
 		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
 	}
+
+	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
 
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }

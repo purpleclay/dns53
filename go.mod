@@ -14,6 +14,7 @@ require (
 	github.com/gobeam/stringy v0.0.5
 	github.com/muesli/mango-cobra v1.2.0
 	github.com/muesli/roff v0.1.0
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/purpleclay/testcontainers-imds v0.8.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
