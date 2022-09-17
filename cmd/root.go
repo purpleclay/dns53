@@ -73,8 +73,7 @@ type globalOptions struct {
 var (
 	globalOpts = &globalOptions{}
 
-	domainRegex   = regexp.MustCompile("[^a-zA-Z0-9-.]+")
-	tagStripRegex = regexp.MustCompile("[^a-zA-Z0-9-]+")
+	domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
 )
 
 type options struct {
@@ -161,23 +160,6 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
 
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
-}
-
-func cleanTags(tags map[string]string) {
-	for k, v := range tags {
-		origKey := k
-
-		// CamelCase in this instance behaves in the same way as Pascal Case
-		key := stringy.New(tagStripRegex.ReplaceAllString(k, "-"))
-		cleanedKey := key.CamelCase()
-
-		value := stringy.New(v)
-		cleanedValue := value.KebabCase().ToLower()
-
-		// Write values back into the map
-		tags[origKey] = cleanedValue
-		tags[cleanedKey] = cleanedValue
-	}
 }
 
 func resolveDomainName(domain string, metadata imds.Metadata) (string, error) {

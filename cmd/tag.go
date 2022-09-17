@@ -36,7 +36,7 @@ import (
 func newTagsCommand(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "tags",
-		Short:         "TODO",
+		Short:         "Lists all available EC2 instance tags and how they can be used with Go templating",
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -55,13 +55,15 @@ func newTagsCommand(out io.Writer) *cobra.Command {
 			table := tablewriter.NewWriter(out)
 			table.SetHeader([]string{"Tag", "Value", "Property Chaining", "Indexed"})
 
-			// TODO: clean each tag in turn and output the values
 			for k, v := range metadata.Tags {
+				cleanedTag, cleanedValue := cleanTag(k, v)
+
 				table.Append([]string{
 					k,
-					v,
-					fmt.Sprintf("{{.Tags.%s}}", k),
-					fmt.Sprintf("{{index .Tags \"%s\"}}", k)})
+					cleanedValue,
+					fmt.Sprintf("{{.Tags.%s}}", cleanedTag),
+					fmt.Sprintf("{{index .Tags \"%s\"}}", k),
+				})
 			}
 
 			table.Render()
