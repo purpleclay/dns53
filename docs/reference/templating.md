@@ -1,4 +1,5 @@
 ---
+description: "Use the awesome power of Go templating to customise the domain name associated with your EC2 instance"
 icon: material/application-cog-outline
 ---
 

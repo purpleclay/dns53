@@ -62,12 +62,21 @@ jobs:
           path: site
           config: htmltest.yml
 
-      - name: Patch mkdocs.yml
+      - name: Patch mkdocs.yml Site URL
         if: startsWith(github.ref, 'refs/tags/v')
         uses: jacobtomlinson/gha-find-replace@v2
         with:
           find: 'site_url: ""'
           replace: 'site_url: "https://docs.purpleclay.dev/${{ github.event.repository.name }}/"'
+          regex: false
+          include: mkdocs.yml
+
+      - name: Patch mkdocs.yml Edit URI
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: 'edit_uri: ""'
+          replace: 'edit_uri: "edit/main/docs"'
           regex: false
           include: mkdocs.yml
 

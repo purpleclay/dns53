@@ -1,4 +1,5 @@
 ---
+description: "Learn how to customise your EC2 domain name when privately broadcasting your instance"
 icon: material/web
 ---
 

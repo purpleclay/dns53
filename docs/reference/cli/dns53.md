@@ -1,10 +1,11 @@
 ---
+description: "Learn how to use the DNS 53 command line for privately broadcasting your EC2 instance"
 icon: material/console
 ---
 
 # Command Line
 
-Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 53 Private Hosted Zone (PHZ).
+Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately within a Route 53 Private Hosted Zone (PHZ).
 
 Your EC2 will be exposed through a dynamically generated resource record that will automatically be deleted when dns53 exits. Let dns53 name your resource record for you, or customise it to your needs.
 

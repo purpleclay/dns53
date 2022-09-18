@@ -44,7 +44,7 @@ import (
 )
 
 const (
-	longDesc = `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
+	longDesc = `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately within a Route 
 53 Private Hosted Zone (PHZ).
 
 Your EC2 will be exposed through a dynamically generated resource record that will automatically 
