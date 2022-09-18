@@ -1,11 +1,11 @@
 site_name: DNS 53
 site_description: Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately
 copyright: Always thinking. Forever learning. 💡
-# Only set during a release to ensure htmltest doesn't break due to non existent directories
-site_url: ""
 repo_name: purpleclay/dns53
 repo_url: https://github.com/purpleclay/dns53
-edit_uri: edit/main/docs
+# Only set during a release to ensure htmltest doesn't break due to non existent directories
+site_url: ""
+edit_uri: ""
 
 theme:
   name: material
