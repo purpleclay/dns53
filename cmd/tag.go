@@ -36,7 +36,7 @@ import (
 func newTagsCommand(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "tags",
-		Short:         "Lists all available EC2 instance tags and how they can be used with Go templating",
+		Short:         "Lists all available EC2 instance tags and how to use them with Go templating",
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,

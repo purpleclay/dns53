@@ -36,12 +36,14 @@ nav:
       - Broadcast your EC2: configure/broadcast-ec2.md
       - Custom Domain: configure/custom-domain.md
       - Expose EC2 Tags: configure/exposing-tags.md
+      - List EC2 Tags: configure/list-tags.md
       - IAM: configure/iam.md
   - Reference:
       - Templating: reference/templating.md
       - CLI:
           - dns53: reference/cli/dns53.md
           - dns53 imds: reference/cli/dns53-imds.md
+          - dns53 tags: reference/cli/dns53-tags.md
 
 extra:
   social:
@@ -76,15 +78,16 @@ extra:
     deprecated: No Longer Supported
 
 plugins:
-  - search
-  - minify:
-      minify_html: true
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
   - git-committers:
       repository: purpleclay/dns53
       token: !ENV GH_TOKEN
+  - minify:
+      minify_html: true
+  - search
+  - social
 
 markdown_extensions:
   - admonition
