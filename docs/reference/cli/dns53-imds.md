@@ -1,4 +1,5 @@
 ---
+description: "Learn how to use the DNS 53 command line to toggle IMDS features"
 icon: material/console
 ---
 

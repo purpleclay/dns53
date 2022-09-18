@@ -1,4 +1,5 @@
 ---
+description: "Generate a cheat sheet on how to include EC2 instance tags within your custom domain name"
 icon: material/tag-search-outline
 status: new
 ---

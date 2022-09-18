@@ -1,4 +1,5 @@
 ---
+description: "Broadcasting your EC2 privately within your VPC couldn't be easier"
 icon: material/bullhorn-variant-outline
 ---
 
