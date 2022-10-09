@@ -9,6 +9,7 @@ edit_uri: ""
 
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     primary: deep purple
     accent: purple
@@ -57,8 +58,6 @@ extra:
       link: https://hub.docker.com/u/purpleclay
       name: Purple Clay on Docker Hub
   analytics:
-    provider: google
-    property: !ENV GH_GOOGLE_ANALYTICS_KEY
     feedback:
       title: Was this page helpful?
       ratings:
