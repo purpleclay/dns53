@@ -2,57 +2,57 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://docs.purpleclay.dev/dns53/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/install/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/configure/broadcast-ec2/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/configure/custom-domain/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/configure/exposing-tags/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/configure/iam/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/configure/list-tags/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/reference/templating/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/reference/cli/dns53-imds/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/reference/cli/dns53-tags/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.purpleclay.dev/dns53/reference/cli/dns53/</loc>
-         <lastmod>2022-10-09</lastmod>
+         <lastmod>2022-10-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
