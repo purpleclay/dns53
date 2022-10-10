@@ -34,6 +34,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
+	"github.com/purpleclay/dns53/internal/tui/component/header"
+	"github.com/purpleclay/dns53/internal/tui/styles"
 	"golang.org/x/term"
 )
 
@@ -45,6 +47,7 @@ type DashboardModel struct {
 	// bubbles used for capturing input from the user
 	phz     list.Model
 	loading spinner.Model
+	banner  header.Model
 
 	// data used to render final dashboard
 	ec2       imds.Metadata
@@ -97,14 +100,16 @@ func Dashboard(opts DashboardOptions) *DashboardModel {
 	m := &DashboardModel{opts: opts, ec2: opts.Metadata}
 
 	m.phz = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
-	m.phz.Styles.HelpStyle = helpStyle
+	m.phz.Styles.HelpStyle = styles.HelpStyle
 	m.phz.SetShowFilter(false)
 	m.phz.SetShowTitle(false)
 	m.phz.DisableQuitKeybindings()
 
 	m.loading = spinner.New()
 	m.loading.Spinner = spinner.Dot
-	m.loading.Style = spinnerStyle
+	m.loading.Style = styles.SpinnerStyle
+
+	m.banner = header.New("dns53", "blah blah", width, 20)
 
 	return m
 }
@@ -192,18 +197,20 @@ func (m DashboardModel) View() string {
 
 	var b strings.Builder
 
-	banner := lipgloss.JoinVertical(
-		lipgloss.Top,
-		appNameStyle.Padding(0, 2).Render("dns53"),
-		helpStyle.MarginTop(1).Render("(ctrl+c) quit"),
-	)
-	b.WriteString(lipgloss.NewStyle().Margin(1, 0, 2, 0).Render(banner))
-	b.WriteString(br)
+	// banner := lipgloss.JoinVertical(
+	// 	lipgloss.Top,
+	// 	appNameStyle.Padding(0, 2).Render("dns53"),
+	// 	helpStyle.MarginTop(1).Render("(ctrl+c) quit"),
+	// )
+	// b.WriteString(lipgloss.NewStyle().Margin(1, 0, 2, 0).Render(banner))
+	// b.WriteString(br)
+
+	b.WriteString(m.banner.View())
 
 	if m.connected != nil {
-		phzLabel := dashboardLabel.Padding(0, 2).Render("PHZ:")
-		ec2MetaLabel := dashboardLabel.Padding(0, 2).Render("EC2:")
-		domainLabel := dashboardLabel.Padding(0, 2).Render("Domain:")
+		phzLabel := styles.DashboardLabel.Padding(0, 2).Render("PHZ:")
+		ec2MetaLabel := styles.DashboardLabel.Padding(0, 2).Render("EC2:")
+		domainLabel := styles.DashboardLabel.Padding(0, 2).Render("Domain:")
 
 		lbl := lipgloss.NewStyle().Width(20)
 
@@ -221,9 +228,9 @@ func (m DashboardModel) View() string {
 
 		dashboard := lipgloss.JoinVertical(lipgloss.Top,
 			phz,
-			br,
+			"\n",
 			ec2Meta,
-			br,
+			"\n",
 			domain)
 
 		b.WriteString(lipgloss.NewStyle().MarginTop(2).Render(dashboard))
@@ -241,7 +248,7 @@ func (m DashboardModel) View() string {
 		errorPanelStyle := lipgloss.NewStyle().MarginLeft(1).Width(rw)
 
 		errorPanel := lipgloss.JoinVertical(lipgloss.Top,
-			fmt.Sprintf("\n%s", errorLabelStyle),
+			fmt.Sprintf("\n%s", styles.ErrorLabelStyle),
 			fmt.Sprintf("\n%s\n", m.err.Error()),
 		)
 

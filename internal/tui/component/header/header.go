@@ -20,56 +20,55 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package tui
+package header
 
 import (
+	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	// Colours
+// Model ...
+type Model struct {
+	name        string
+	description string
+	width       int
+	height      int
+	Styles      *Styles
+}
 
-	primary   = lipgloss.Color("#3A0CA3")
-	secondary = lipgloss.Color("#8333B7")
-	feint     = lipgloss.Color("#A2A0A0")
-	red       = lipgloss.Color("#d00000")
-	text      = lipgloss.Color("#FFFFFF")
+// New ...
+func New(name, description string, width, height int) Model {
+	return Model{
+		name:        name,
+		description: description,
+		width:       width,
+		height:      height,
+		Styles:      DefaultStyles(),
+	}
+}
 
-	// Common
+func (m Model) Init() tea.Cmd {
+	return nil
+}
 
-	br = "\n"
+func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+	// TODO: window resize
+	return m, nil
+}
 
-	// Header
+func (m Model) View() string {
+	var b strings.Builder
 
-	appNameStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(primary).
-			MarginLeft(1)
+	banner := lipgloss.JoinVertical(
+		lipgloss.Top,
+		m.Styles.Name.Padding(0, 2).Render(m.name),
+		m.Styles.Description.Width(m.width).Render(m.description),
+		// Add a border here
+	)
 
-	helpStyle = lipgloss.NewStyle().Foreground(feint).MarginLeft(1)
+	b.WriteString(lipgloss.NewStyle().Height(m.height).Render(banner))
 
-	// Bubbles
-
-	spinnerStyle = lipgloss.NewStyle().
-			Foreground(secondary).
-			Bold(true).
-			MarginLeft(1)
-
-	// Error
-
-	errorLabelStyle = lipgloss.NewStyle().
-			Background(red).
-			Foreground(text).
-			Bold(true).
-			Padding(0, 1).
-			Render("Error:")
-
-	// Dashboard
-
-	dashboardLabel = lipgloss.NewStyle().
-			Background(secondary).
-			Foreground(text).
-			Bold(true).
-			MarginLeft(1).
-			Width(11)
-)
+	return b.String()
+}
