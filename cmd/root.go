@@ -157,8 +157,6 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
 	}
 
-	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
-
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
 
