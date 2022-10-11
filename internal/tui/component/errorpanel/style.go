@@ -20,36 +20,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package styles
+package errorpanel
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/styles"
 )
 
-var (
-	PrimaryColour   = lipgloss.Color("#3a1577")
-	SecondaryColour = lipgloss.Color("#5b1689")
-	BorderColour    = lipgloss.Color("#2b0940")
-	FeintColour     = lipgloss.Color("#807d8a")
-	TextColour      = lipgloss.Color("#f6f5fc")
-	HighlightColour = lipgloss.Color("#8b1cb7")
+var LabelColour = lipgloss.Color("#d00000")
 
-	HelpStyle = lipgloss.NewStyle().Foreground(FeintColour).MarginLeft(1)
+// Styles ...
+type Styles struct {
+	Label  lipgloss.Style
+	Reason lipgloss.Style
+	Cause  lipgloss.Style
+	Border lipgloss.Style
+}
 
-	// Bubbles
+// DefaultStyles ...
+func DefaultStyles() *Styles {
+	s := &Styles{}
 
-	SpinnerStyle = lipgloss.NewStyle().
-			Foreground(HighlightColour).
-			Bold(true)
+	s.Label = lipgloss.NewStyle().
+		Background(LabelColour).
+		Foreground(styles.TextColour).
+		Bold(true)
 
-	// Dashboard
+	s.Reason = lipgloss.NewStyle().
+		Foreground(styles.TextColour).
+		Bold(true)
 
-	DashboardLabel = lipgloss.NewStyle().
-			Background(SecondaryColour).
-			Foreground(TextColour).
-			Bold(true).
-			MarginLeft(1).
-			Width(11)
+	s.Cause = lipgloss.NewStyle().
+		Foreground(styles.TextColour)
 
-	TextStyle = lipgloss.NewStyle().Foreground(TextColour)
-)
+	s.Border = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, false, true).
+		BorderForeground(styles.BorderColour)
+
+	return s
+}

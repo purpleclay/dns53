@@ -29,23 +29,30 @@ import (
 
 // Styles ...
 type Styles struct {
-	Name         lipgloss.Style
-	Description  lipgloss.Style
-	Border       lipgloss.Border
-	BorderColour lipgloss.Color
+	Name        lipgloss.Style
+	Description lipgloss.Style
+	Version     lipgloss.Style
+	Border      lipgloss.Style
 }
 
 // DefaultStyles ...
 func DefaultStyles() *Styles {
 	s := &Styles{}
 	s.Name = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFDF5")).
-		Background(styles.PrimaryColour)
+		Foreground(styles.TextColour).
+		Background(styles.PrimaryColour).
+		Bold(true)
 
-	s.Description = lipgloss.NewStyle().Foreground(styles.FeintColour)
+	s.Description = lipgloss.NewStyle().
+		Foreground(styles.FeintColour)
 
-	s.Border = lipgloss.NormalBorder()
-	s.BorderColour = lipgloss.Color(styles.FeintColour)
+	s.Version = lipgloss.NewStyle().
+		Foreground(styles.TextColour).
+		Background(styles.SecondaryColour)
+
+	s.Border = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, true, false).
+		BorderForeground(styles.BorderColour)
 
 	return s
 }

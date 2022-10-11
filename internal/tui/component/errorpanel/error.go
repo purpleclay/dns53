@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package header
+package errorpanel
 
 import (
 	"strings"
@@ -31,21 +31,18 @@ import (
 
 // Model ...
 type Model struct {
-	name        string
-	version     string
-	description string
-	width       int
-	Styles      *Styles
+	reason string
+	cause  string
+	raised bool
+	width  int
+	Styles *Styles
 }
 
 // New ...
-func New(name, version, description string, width int) Model {
+func New() Model {
 	return Model{
-		name:        name,
-		description: description,
-		version:     version,
-		width:       width,
-		Styles:      DefaultStyles(),
+		raised: false,
+		Styles: DefaultStyles(),
 	}
 }
 
@@ -56,31 +53,44 @@ func (m Model) Init() tea.Cmd {
 
 // Update ...
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	// switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// }
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = int(float32(msg.Width) * 0.75)
+	}
 	return m, nil
 }
 
 // View ...
 func (m Model) View() string {
-	var b strings.Builder
+	if m.raised {
+		var b strings.Builder
 
-	nameVersion := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		m.Styles.Name.Padding(0, 2).Render(m.name),
-		m.Styles.Version.Padding(0, 2).Render(m.version),
-	)
+		reason := lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			m.Styles.Label.Padding(0, 2).Render("Error"),
+			m.Styles.Reason.Width(m.width).Render(": "+m.reason),
+		)
 
-	desc := m.Styles.Description.Width(m.width).Render(m.description)
+		desc := m.Styles.Cause.Width(m.width).MarginLeft(1).Render(m.cause)
 
-	banner := lipgloss.JoinVertical(
-		lipgloss.Top,
-		lipgloss.NewStyle().MarginBottom(1).Render(nameVersion),
-		m.Styles.Border.Width(m.width).Render(desc),
-	)
+		panel := lipgloss.JoinVertical(
+			lipgloss.Top,
+			lipgloss.NewStyle().Width(m.width).Margin(0, 0, 1, 1).Render(reason),
+			desc,
+		)
 
-	b.WriteString(lipgloss.NewStyle().MarginBottom(1).Render(banner))
-	return b.String()
+		b.WriteString(m.Styles.Border.Render(panel))
+		return b.String()
+	}
+
+	return ""
+}
+
+// RaiseError ...
+func (m *Model) RaiseError(reason string, cause error) {
+	m.raised = true
+	m.reason = reason
+	if cause != nil {
+		m.cause = cause.Error()
+	}
 }
