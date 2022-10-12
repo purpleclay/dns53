@@ -35,6 +35,7 @@ import (
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui/component/errorpanel"
+	"github.com/purpleclay/dns53/internal/tui/component/filteredlist"
 	"github.com/purpleclay/dns53/internal/tui/component/header"
 	"github.com/purpleclay/dns53/internal/tui/styles"
 	"golang.org/x/term"
@@ -54,13 +55,11 @@ type DashboardModel struct {
 	// data used to render final dashboard
 	ec2       imds.Metadata
 	connected *connection
-	err       error
 }
 
 // DashboardOptions defines all of the supported options when initialising
 // the Dashboard model
 type DashboardOptions struct {
-	// IMDSClient *imds.Client
 	Metadata   imds.Metadata
 	R53Client  *r53.Client
 	Version    string
@@ -78,13 +77,13 @@ type connection struct {
 }
 
 type hostedZoneItem struct {
-	name        string
-	description string
+	name string
+	id   string
 }
 
 func (i hostedZoneItem) Title() string       { return i.name }
-func (i hostedZoneItem) Description() string { return i.description }
-func (i hostedZoneItem) FilterValue() string { return i.description }
+func (i hostedZoneItem) Description() string { return i.id }
+func (i hostedZoneItem) FilterValue() string { return i.name }
 
 // Used to capture any error message that has been reported
 type errMsg struct {
@@ -101,12 +100,7 @@ func Dashboard(opts DashboardOptions) *DashboardModel {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
 
 	m := &DashboardModel{opts: opts, ec2: opts.Metadata}
-
-	m.phz = list.New([]list.Item{}, list.NewDefaultDelegate(), width, 20)
-	m.phz.Styles.HelpStyle = styles.HelpStyle
-	m.phz.SetShowFilter(false)
-	m.phz.SetShowTitle(false)
-	m.phz.DisableQuitKeybindings()
+	m.phz = filteredlist.New([]list.Item{}, width, 20)
 
 	m.loading = spinner.New()
 	m.loading.Spinner = spinner.Dot
@@ -139,6 +133,8 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 
+	// TODO: fix this by batching up commands
+
 	m.loading, cmd = m.loading.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -153,7 +149,7 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// PHZ have been successfully retrieved. Load them into the list
 		items := make([]list.Item, 0, len(msg))
 		for _, phz := range msg {
-			items = append(items, hostedZoneItem{name: phz.ID, description: phz.Name})
+			items = append(items, hostedZoneItem{name: phz.Name, id: phz.ID})
 		}
 		m.phz.SetItems(items)
 	case errMsg:
@@ -177,7 +173,7 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			cmds = append(cmds, func() tea.Msg {
 				return associationRequest{
-					phz: r53.PrivateHostedZone{ID: i.name, Name: i.description},
+					phz: r53.PrivateHostedZone{ID: i.id, Name: i.name},
 				}
 			})
 		}
@@ -205,16 +201,45 @@ func (m DashboardModel) View() string {
 	viewport := ""
 
 	if m.connected != nil {
-		// TODO: present the dashboard
+		// 	phzLabel := styles.DashboardLabel.Padding(0, 2).Render("PHZ:")
+		// 	ec2MetaLabel := styles.DashboardLabel.Padding(0, 2).Render("EC2:")
+		// 	domainLabel := styles.DashboardLabel.Padding(0, 2).Render("Domain:")
+
+		// 	lbl := lipgloss.NewStyle().Width(20)
+
+		// 	phz := lipgloss.JoinHorizontal(lipgloss.Top,
+		// 		lbl.Render(phzLabel),
+		// 		fmt.Sprintf("%s [%s]", m.connected.phz.ID, m.connected.phz.Name))
+
+		// 	ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
+		// 		lbl.Render(ec2MetaLabel),
+		// 		fmt.Sprintf("%s   :>   %s   :>   %s", m.ec2.IPv4, m.ec2.Region, m.ec2.VPC))
+
+		// 	domain := lipgloss.JoinHorizontal(lipgloss.Top,
+		// 		lbl.Render(domainLabel),
+		// 		fmt.Sprintf("%s   ~>   localhost   [A]", m.connected.dns))
+
+		// 	dashboard := lipgloss.JoinVertical(lipgloss.Top,
+		// 		phz,
+		// 		"\n",
+		// 		ec2Meta,
+		// 		"\n",
+		// 		domain)
+
+		// 	b.WriteString(lipgloss.NewStyle().MarginTop(2).Render(dashboard))
 	} else {
 		if len(m.phz.Items()) == 0 {
 			viewport = lipgloss.JoinHorizontal(
 				lipgloss.Left,
 				m.loading.View(),
-				styles.TextStyle.MarginBottom(1).Render(" Retrieving phzs from AWS..."),
+				styles.TextStyle.MarginBottom(1).Render(" Retrieving PHZs from AWS..."),
 			)
 		} else {
-			viewport = m.phz.View()
+			viewport = lipgloss.JoinVertical(
+				lipgloss.Top,
+				styles.TextStyle.Render("Please select a PHZ from the list:"),
+				m.phz.View(),
+			)
 		}
 	}
 
@@ -231,49 +256,46 @@ func (m DashboardModel) View() string {
 	)
 
 	b.WriteString(lipgloss.NewStyle().Margin(1).Render(dashboard))
-
-	// if m.connected != nil {
-	// 	phzLabel := styles.DashboardLabel.Padding(0, 2).Render("PHZ:")
-	// 	ec2MetaLabel := styles.DashboardLabel.Padding(0, 2).Render("EC2:")
-	// 	domainLabel := styles.DashboardLabel.Padding(0, 2).Render("Domain:")
-
-	// 	lbl := lipgloss.NewStyle().Width(20)
-
-	// 	phz := lipgloss.JoinHorizontal(lipgloss.Top,
-	// 		lbl.Render(phzLabel),
-	// 		fmt.Sprintf("%s [%s]", m.connected.phz.ID, m.connected.phz.Name))
-
-	// 	ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
-	// 		lbl.Render(ec2MetaLabel),
-	// 		fmt.Sprintf("%s   :>   %s   :>   %s", m.ec2.IPv4, m.ec2.Region, m.ec2.VPC))
-
-	// 	domain := lipgloss.JoinHorizontal(lipgloss.Top,
-	// 		lbl.Render(domainLabel),
-	// 		fmt.Sprintf("%s   ~>   localhost   [A]", m.connected.dns))
-
-	// 	dashboard := lipgloss.JoinVertical(lipgloss.Top,
-	// 		phz,
-	// 		"\n",
-	// 		ec2Meta,
-	// 		"\n",
-	// 		domain)
-
-	// 	b.WriteString(lipgloss.NewStyle().MarginTop(2).Render(dashboard))
-	// }
-
 	return b.String()
 }
 
 func (m DashboardModel) queryHostedZones() tea.Msg {
-	phzs, err := m.opts.R53Client.ByVPC(context.Background(), m.ec2.VPC, m.ec2.Region)
-	if err != nil {
-		return errMsg{
-			reason: fmt.Sprintf("querying private hosted zones for VPC %s in region %s", m.ec2.VPC, m.ec2.Region),
-			cause:  err,
-		}
+	return []r53.PrivateHostedZone{
+		{
+			ID:   "AAXXCCVDDD11234432",
+			Name: "test1",
+		},
+		{
+			ID:   "KJFHFHD8847575HFHF",
+			Name: "test2",
+		},
+		{
+			ID:   "LLOOWEE6645453HHDH",
+			Name: "test3",
+		},
+		{
+			ID:   "AAXXCCVDDD11234432",
+			Name: "test4",
+		},
+		{
+			ID:   "KJFHFHD8847575HFHF",
+			Name: "test5",
+		},
+		{
+			ID:   "LLOOWEE6645453HHDH",
+			Name: "test6",
+		},
 	}
 
-	return phzs
+	// phzs, err := m.opts.R53Client.ByVPC(context.Background(), m.ec2.VPC, m.ec2.Region)
+	// if err != nil {
+	// 	return errMsg{
+	// 		reason: fmt.Sprintf("querying private hosted zones for VPC %s in region %s", m.ec2.VPC, m.ec2.Region),
+	// 		cause:  err,
+	// 	}
+	// }
+
+	// return phzs
 }
 
 func (m DashboardModel) queryHostedZone() tea.Msg {

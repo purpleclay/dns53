@@ -27,12 +27,13 @@ import (
 )
 
 var (
-	PrimaryColour   = lipgloss.Color("#3a1577")
-	SecondaryColour = lipgloss.Color("#5b1689")
-	BorderColour    = lipgloss.Color("#2b0940")
-	FeintColour     = lipgloss.Color("#807d8a")
-	TextColour      = lipgloss.Color("#f6f5fc")
-	HighlightColour = lipgloss.Color("#8b1cb7")
+	PrimaryColour        = lipgloss.Color("#3a1577")
+	SecondaryColour      = lipgloss.Color("#5b1689")
+	BorderColour         = lipgloss.Color("#2b0940")
+	FeintColour          = lipgloss.Color("#807d8a")
+	TextColour           = lipgloss.Color("#f6f5fc")
+	HighlightColour      = lipgloss.Color("#bf31f7")
+	HighlightFeintColour = lipgloss.Color("#b769d6")
 
 	HelpStyle = lipgloss.NewStyle().Foreground(FeintColour).MarginLeft(1)
 
