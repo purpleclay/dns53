@@ -16,7 +16,7 @@ require (
 	github.com/muesli/roff v0.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/purpleclay/testcontainers-imds v0.8.0
-	github.com/spf13/cobra v1.5.0
+	github.com/spf13/cobra v1.6.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 )
@@ -56,7 +56,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
