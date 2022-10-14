@@ -50,6 +50,9 @@ func New(tems []list.Item, width, height int) list.Model {
 
 	filteredList := list.New([]list.Item{}, delegate, width, height)
 
+	// TODO: look into setting a spinner, removes the need for the first message ("Retrieving PHZs...")
+	// TODO: provide a custom key map, this will be used when displaying the footer
+
 	// Override the colours within the existing styles
 	filteredList.Styles.FilterPrompt = filteredList.Styles.FilterPrompt.
 		Foreground(styles.HighlightColour)

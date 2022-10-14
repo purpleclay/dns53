@@ -201,32 +201,52 @@ func (m DashboardModel) View() string {
 	viewport := ""
 
 	if m.connected != nil {
-		// 	phzLabel := styles.DashboardLabel.Padding(0, 2).Render("PHZ:")
-		// 	ec2MetaLabel := styles.DashboardLabel.Padding(0, 2).Render("EC2:")
-		// 	domainLabel := styles.DashboardLabel.Padding(0, 2).Render("Domain:")
+		// Build each section of the dashboard in turn
+		phzData := lipgloss.JoinVertical(
+			lipgloss.Top,
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("Name:"), styles.Spacing, m.connected.phz.Name),
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("ID:"), styles.Spacing, m.connected.phz.ID),
+		)
 
-		// 	lbl := lipgloss.NewStyle().Width(20)
+		phz := lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			styles.PrimaryLabel.Copy().Render("PHZ:"),
+			phzData,
+		)
 
-		// 	phz := lipgloss.JoinHorizontal(lipgloss.Top,
-		// 		lbl.Render(phzLabel),
-		// 		fmt.Sprintf("%s [%s]", m.connected.phz.ID, m.connected.phz.Name))
+		ec2Data := lipgloss.JoinVertical(
+			lipgloss.Top,
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("IPv4:"), styles.Spacing, m.ec2.IPv4),
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("Region:"), styles.Spacing, m.ec2.Region),
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("VPC:"), styles.Spacing, m.ec2.VPC),
+		)
 
-		// 	ec2Meta := lipgloss.JoinHorizontal(lipgloss.Top,
-		// 		lbl.Render(ec2MetaLabel),
-		// 		fmt.Sprintf("%s   :>   %s   :>   %s", m.ec2.IPv4, m.ec2.Region, m.ec2.VPC))
+		ec2 := lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			styles.PrimaryLabel.Copy().Render("EC2:"),
+			ec2Data,
+		)
 
-		// 	domain := lipgloss.JoinHorizontal(lipgloss.Top,
-		// 		lbl.Render(domainLabel),
-		// 		fmt.Sprintf("%s   ~>   localhost   [A]", m.connected.dns))
+		dnsData := lipgloss.JoinVertical(
+			lipgloss.Top,
+			fmt.Sprintf("%s %s %s [A]", styles.SecondaryLabel.Render("Record:"), styles.Spacing, styles.Highlight.Render(m.connected.dns)),
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("Status:"), styles.Spacing, styles.PendingStatus.Render("pending")),
+		)
 
-		// 	dashboard := lipgloss.JoinVertical(lipgloss.Top,
-		// 		phz,
-		// 		"\n",
-		// 		ec2Meta,
-		// 		"\n",
-		// 		domain)
+		dns := lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			styles.PrimaryLabel.Copy().Render("DNS:"),
+			dnsData,
+		)
 
-		// 	b.WriteString(lipgloss.NewStyle().MarginTop(2).Render(dashboard))
+		dashboard := lipgloss.JoinVertical(
+			lipgloss.Top,
+			lipgloss.NewStyle().MarginBottom(2).Render(phz),
+			lipgloss.NewStyle().MarginBottom(2).Render(ec2),
+			dns,
+		)
+
+		viewport = lipgloss.NewStyle().Render(dashboard)
 	} else {
 		if len(m.phz.Items()) == 0 {
 			viewport = lipgloss.JoinHorizontal(
@@ -321,18 +341,18 @@ func (m DashboardModel) initAssociation() tea.Msg {
 		}
 	}
 
-	record := r53.ResourceRecord{
-		PhzID:    m.connected.phz.ID,
-		Name:     name,
-		Resource: m.ec2.IPv4,
-	}
+	// record := r53.ResourceRecord{
+	// 	PhzID:    m.connected.phz.ID,
+	// 	Name:     name,
+	// 	Resource: m.ec2.IPv4,
+	// }
 
-	if err := m.opts.R53Client.AssociateRecord(context.Background(), record); err != nil {
-		return errMsg{
-			reason: "associating EC2 with private hosted zone",
-			cause:  err,
-		}
-	}
+	// if err := m.opts.R53Client.AssociateRecord(context.Background(), record); err != nil {
+	// 	return errMsg{
+	// 		reason: fmt.Sprintf("associating EC2 with PHZ %s", m.connected.phz.Name),
+	// 		cause:  err,
+	// 	}
+	// }
 
 	return connection{dns: name, phz: m.connected.phz}
 }

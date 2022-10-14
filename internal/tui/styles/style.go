@@ -23,6 +23,8 @@ SOFTWARE.
 package styles
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -31,11 +33,12 @@ var (
 	SecondaryColour      = lipgloss.Color("#5b1689")
 	BorderColour         = lipgloss.Color("#2b0940")
 	FeintColour          = lipgloss.Color("#807d8a")
+	VeryFeintColour      = lipgloss.Color("#5e5e5e")
 	TextColour           = lipgloss.Color("#f6f5fc")
 	HighlightColour      = lipgloss.Color("#bf31f7")
 	HighlightFeintColour = lipgloss.Color("#b769d6")
-
-	HelpStyle = lipgloss.NewStyle().Foreground(FeintColour).MarginLeft(1)
+	AmberColour          = lipgloss.Color("#e68a35")
+	GreenColour          = lipgloss.Color("#26a621")
 
 	// Bubbles
 
@@ -45,12 +48,36 @@ var (
 
 	// Dashboard
 
-	DashboardLabel = lipgloss.NewStyle().
-			Background(SecondaryColour).
+	PrimaryLabel = lipgloss.NewStyle().
+			Background(PrimaryColour).
 			Foreground(TextColour).
 			Bold(true).
-			MarginLeft(1).
-			Width(11)
+			Padding(0, 3).
+			MarginRight(8)
+
+	SecondaryLabel = lipgloss.NewStyle().
+			Background(SecondaryColour).
+			Foreground(TextColour).
+			PaddingLeft(2).
+			Width(11).
+			Bold(true)
+
+	Spacing = lipgloss.NewStyle().
+		Foreground(VeryFeintColour).
+		Render(strings.Repeat(".", 12))
+
+	PendingStatus = lipgloss.NewStyle().
+			Foreground(AmberColour).
+			Bold(true)
+
+	ActiveStatus = lipgloss.NewStyle().
+			Foreground(GreenColour).
+			Bold(true)
+
+	Highlight = lipgloss.NewStyle().Foreground(HighlightColour).Bold(true)
+
+	// Pending > amber
+	// Active > green
 
 	TextStyle = lipgloss.NewStyle().Foreground(TextColour)
 )
