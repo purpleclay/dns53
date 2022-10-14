@@ -30,6 +30,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/imds"
@@ -51,6 +52,7 @@ type DashboardModel struct {
 	loading    spinner.Model
 	banner     header.Model
 	errorPanel errorpanel.Model
+	elapsed    stopwatch.Model
 
 	// data used to render final dashboard
 	ec2       imds.Metadata
@@ -72,8 +74,9 @@ type associationRequest struct {
 }
 
 type connection struct {
-	phz r53.PrivateHostedZone
-	dns string
+	phz    r53.PrivateHostedZone
+	dns    string
+	active bool
 }
 
 type hostedZoneItem struct {
@@ -95,6 +98,8 @@ func (e errMsg) Error() string {
 	return e.cause.Error()
 }
 
+type connected struct{}
+
 // Dashboard creates the initial model for the TUI
 func Dashboard(opts DashboardOptions) *DashboardModel {
 	width, _, _ := term.GetSize(int(os.Stdout.Fd()))
@@ -109,6 +114,7 @@ func Dashboard(opts DashboardOptions) *DashboardModel {
 	m.banner = header.New("dns53", "v0.1.0", "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately.", width)
 	m.errorPanel = errorpanel.New()
 
+	m.elapsed = stopwatch.New()
 	return m
 }
 
@@ -172,24 +178,42 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			i := m.phz.SelectedItem().(hostedZoneItem)
 
 			cmds = append(cmds, func() tea.Msg {
+				// TODO: at this point we know the name, so check the domain is appended with a suffix
 				return associationRequest{
 					phz: r53.PrivateHostedZone{ID: i.id, Name: i.name},
 				}
 			})
 		}
 	case associationRequest:
+		name := m.opts.DomainName
+		if name == "" {
+			name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), msg.phz.Name)
+		} else {
+			// Ensure root domain is appended as a suffix
+			if !strings.HasSuffix(name, "."+msg.phz.Name) {
+				name = fmt.Sprintf("%s.%s", name, msg.phz.Name)
+			}
+		}
+
 		m.connected = &connection{
-			phz: msg.phz,
-			dns: "connecting...",
+			phz:    msg.phz,
+			dns:    name,
+			active: false,
 		}
 
 		cmds = append(cmds, m.initAssociation)
-	case connection:
-		m.connected.dns = msg.dns
+	case connected:
+		cmds = append(cmds, m.elapsed.Start())
+		m.connected.active = true
 	}
 
 	if len(m.phz.Items()) > 0 && m.connected == nil {
 		m.phz, cmd = m.phz.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	if m.connected != nil && m.connected.active {
+		m.elapsed, cmd = m.elapsed.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -227,10 +251,15 @@ func (m DashboardModel) View() string {
 			ec2Data,
 		)
 
+		status := styles.PendingStatus.Render("pending")
+		if m.connected.active {
+			status = lipgloss.JoinHorizontal(lipgloss.Left, styles.ActiveStatus.Render("active"), fmt.Sprintf(" (%s)", m.elapsed.View()))
+		}
+
 		dnsData := lipgloss.JoinVertical(
 			lipgloss.Top,
 			fmt.Sprintf("%s %s %s [A]", styles.SecondaryLabel.Render("Record:"), styles.Spacing, styles.Highlight.Render(m.connected.dns)),
-			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("Status:"), styles.Spacing, styles.PendingStatus.Render("pending")),
+			fmt.Sprintf("%s %s %s", styles.SecondaryLabel.Render("Status:"), styles.Spacing, status),
 		)
 
 		dns := lipgloss.JoinHorizontal(
@@ -331,15 +360,15 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 }
 
 func (m DashboardModel) initAssociation() tea.Msg {
-	name := m.opts.DomainName
-	if name == "" {
-		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
-	} else {
-		// Ensure root domain is appended as a suffix
-		if !strings.HasSuffix(name, "."+m.connected.phz.Name) {
-			name = fmt.Sprintf("%s.%s", name, m.connected.phz.Name)
-		}
-	}
+	// name := m.opts.DomainName
+	// if name == "" {
+	// 	name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
+	// } else {
+	// 	// Ensure root domain is appended as a suffix
+	// 	if !strings.HasSuffix(name, "."+m.connected.phz.Name) {
+	// 		name = fmt.Sprintf("%s.%s", name, m.connected.phz.Name)
+	// 	}
+	// }
 
 	// record := r53.ResourceRecord{
 	// 	PhzID:    m.connected.phz.ID,
@@ -354,5 +383,5 @@ func (m DashboardModel) initAssociation() tea.Msg {
 	// 	}
 	// }
 
-	return connection{dns: name, phz: m.connected.phz}
+	return connected{}
 }
