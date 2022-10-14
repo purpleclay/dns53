@@ -21,3 +21,11 @@ SOFTWARE.
 */
 
 package footer
+
+// -----------------
+//
+// keymap -> show help and change based on the current context
+
+// HEADER
+// VIEWPORT
+// FOOTER
