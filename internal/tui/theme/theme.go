@@ -20,35 +20,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package footer
+package theme
 
-import (
-	"github.com/charmbracelet/bubbles/help"
-	tea "github.com/charmbracelet/bubbletea"
+import "github.com/charmbracelet/lipgloss"
+
+var (
+	PrimaryColour        = lipgloss.Color("#3a1577")
+	SecondaryColour      = lipgloss.Color("#5b1689")
+	BorderColour         = lipgloss.Color("#2b0940")
+	FeintColour          = lipgloss.Color("#807d8a")
+	VeryFeintColour      = lipgloss.Color("#5e5e5e")
+	TextColour           = lipgloss.Color("#f6f5fc")
+	HighlightColour      = lipgloss.Color("#bf31f7")
+	HighlightFeintColour = lipgloss.Color("#b769d6")
+	AmberColour          = lipgloss.Color("#e68a35")
+	GreenColour          = lipgloss.Color("#26a621")
+
+	AppStyle = lipgloss.NewStyle().Margin(1)
 )
-
-// Model ...
-type Model struct {
-	help   help.Model
-	keymap help.KeyMap
-}
-
-// New ...
-func New() Model {
-	return Model{}
-}
-
-// Init ...
-func (m Model) Init() tea.Cmd {
-	return nil
-}
-
-// Update ...
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	return m, nil
-}
-
-// View ...
-func (m Model) View() string {
-	return ""
-}

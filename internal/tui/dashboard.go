@@ -111,7 +111,7 @@ func Dashboard(opts DashboardOptions) *DashboardModel {
 	m.loading.Spinner = spinner.Dot
 	m.loading.Style = styles.SpinnerStyle
 
-	m.banner = header.New("dns53", "v0.1.0", "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately.", width)
+	m.banner = header.New("dns53", "v0.1.0", "Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately.")
 	m.errorPanel = errorpanel.New()
 
 	m.elapsed = stopwatch.New()

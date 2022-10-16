@@ -27,24 +27,26 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/component"
+	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
 // Model ...
 type Model struct {
+	component.Model
+	Styles *Styles
+
 	name        string
 	version     string
 	description string
-	width       int
-	Styles      *Styles
 }
 
 // New ...
-func New(name, version, description string, width int) Model {
+func New(name, version, description string) Model {
 	return Model{
 		name:        name,
 		description: description,
 		version:     version,
-		width:       width,
 		Styles:      DefaultStyles(),
 	}
 }
@@ -56,10 +58,6 @@ func (m Model) Init() tea.Cmd {
 
 // Update ...
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	// switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// }
 	return m, nil
 }
 
@@ -67,20 +65,27 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 func (m Model) View() string {
 	var b strings.Builder
 
-	nameVersion := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		m.Styles.Name.Padding(0, 2).Render(m.name),
-		m.Styles.Version.Padding(0, 2).Render(m.version),
-	)
+	// nameVersion := lipgloss.JoinHorizontal(
+	// 	lipgloss.Left,
+	// 	m.Styles.Name.Padding(0, 2).Render(m.name),
+	// 	m.Styles.Version.Padding(0, 2).Render(m.version),
+	// )
 
-	desc := m.Styles.Description.Width(m.width).Render(m.description)
+	// desc := m.Styles.Description.Width(m.Width).Render(m.description)
 
-	banner := lipgloss.JoinVertical(
-		lipgloss.Top,
-		lipgloss.NewStyle().MarginBottom(1).Render(nameVersion),
-		m.Styles.Border.Width(m.width).Render(desc),
-	)
+	// banner := lipgloss.JoinVertical(
+	// 	lipgloss.Top,
+	// 	lipgloss.NewStyle().MarginBottom(1).Render(nameVersion),
+	// 	m.Styles.Border.Render(desc),
+	// )
 
-	b.WriteString(lipgloss.NewStyle().MarginBottom(1).Render(banner))
+	// b.WriteString(lipgloss.NewStyle().MarginBottom(1).Render(banner))
+
+	b.WriteString(lipgloss.NewStyle().Background(theme.SecondaryColour).Width(m.Width).Height(2).Render("hello"))
+
 	return b.String()
+}
+
+func (m *Model) Resize(width, height int) {
+	m.Model.Resize(width, height)
 }

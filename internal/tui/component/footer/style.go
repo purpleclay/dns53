@@ -21,3 +21,19 @@ SOFTWARE.
 */
 
 package footer
+
+import "github.com/charmbracelet/lipgloss"
+
+type Styles struct {
+	Label  lipgloss.Style
+	Reason lipgloss.Style
+	Cause  lipgloss.Style
+	Border lipgloss.Style
+}
+
+// DefaultStyles ...
+func DefaultStyles() *Styles {
+	s := &Styles{}
+
+	return s
+}

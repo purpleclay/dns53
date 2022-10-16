@@ -34,11 +34,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
-	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/gobeam/stringy"
 	"github.com/purpleclay/dns53/internal/imds"
-	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui"
 	"github.com/spf13/cobra"
 )
@@ -118,12 +116,20 @@ func Execute(out io.Writer) error {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			model := tui.Dashboard(tui.DashboardOptions{
-				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
-				Metadata:   metadata,
-				Version:    version,
-				PhzID:      opts.phzID,
-				DomainName: opts.domainName,
+			// model := tui.Dashboard(tui.DashboardOptions{
+			// 	R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
+			// 	Metadata:   metadata,
+			// 	Version:    version,
+			// 	PhzID:      opts.phzID,
+			// 	DomainName: opts.domainName,
+			// })
+
+			model := tui.New(tui.Options{
+				About: tui.About{
+					Name:             "dns53",
+					Version:          version,
+					ShortDescription: "Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately.",
+				},
 			})
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()

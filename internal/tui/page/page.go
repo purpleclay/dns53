@@ -20,35 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package footer
-
-import (
-	"github.com/charmbracelet/bubbles/help"
-	tea "github.com/charmbracelet/bubbletea"
-)
+package page
 
 // Model ...
 type Model struct {
-	help   help.Model
-	keymap help.KeyMap
+	Width  int
+	Height int
 }
 
-// New ...
-func New() Model {
-	return Model{}
-}
-
-// Init ...
-func (m Model) Init() tea.Cmd {
-	return nil
-}
-
-// Update ...
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	return m, nil
-}
-
-// View ...
-func (m Model) View() string {
-	return ""
+// Resize ...
+func (m *Model) Resize(width, height int) {
 }
