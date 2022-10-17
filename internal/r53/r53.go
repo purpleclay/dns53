@@ -41,6 +41,10 @@ type DNSClientAPI interface {
 	// is associated with
 	ListHostedZonesByVPC(ctx context.Context, params *awsr53.ListHostedZonesByVPCInput, optFns ...func(*awsr53.Options)) (*awsr53.ListHostedZonesByVPCOutput, error)
 
+	// ListHostedZonesByName lists all of the private hosted zones that contain a specific
+	// name in lexicographic order
+	ListHostedZonesByName(ctx context.Context, params *awsr53.ListHostedZonesByNameInput, optFns ...func(*awsr53.Options)) (*awsr53.ListHostedZonesByNameOutput, error)
+
 	// ChangeResourceRecordSets creates, changes, or deletes a resource record set,
 	// which contains authoritative DNS information for a specified domain name or subdomain name
 	ChangeResourceRecordSets(ctx context.Context, params *awsr53.ChangeResourceRecordSetsInput, optFns ...func(*awsr53.Options)) (*awsr53.ChangeResourceRecordSetsOutput, error)
@@ -123,6 +127,37 @@ func (r *Client) ByVPC(ctx context.Context, vpc, region string) ([]PrivateHosted
 	}
 
 	return phzs, nil
+}
+
+// ByName will attempt to find a Route53 Private Hosted Zone that exactly matches
+// the given domain name
+//
+// The equivalent operation can be achieved through thr CLI using:
+//
+//	aws route53 list-hosted-zones-by-name --dns-name <DOMAIN_NAME>
+func (r *Client) ByName(ctx context.Context, name string) (*PrivateHostedZone, error) {
+	resp, err := r.api.ListHostedZonesByName(ctx, &awsr53.ListHostedZonesByNameInput{
+		DNSName: aws.String(name),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, hzs := range resp.HostedZones {
+		// Stop on the first matching private hosted zone
+		if hzs.Config.PrivateZone {
+			hzName := strings.TrimSuffix(*hzs.Name, ".")
+
+			if hzName == name {
+				return &PrivateHostedZone{
+					ID:   strings.TrimPrefix(*hzs.Id, "/hostedzone/"),
+					Name: strings.TrimSuffix(*hzs.Name, "."),
+				}, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 // AssociateRecord creates a new A-Record entry within a given Route53 Private Hosted Zone

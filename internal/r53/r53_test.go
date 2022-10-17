@@ -84,11 +84,11 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{
 		HostedZoneSummaries: []types.HostedZoneSummary{
 			{
-				HostedZoneId: aws.String("Z0011223344HHGHGH"),
+				HostedZoneId: aws.String("Z00000000000001"),
 				Name:         aws.String("testing1."),
 			},
 			{
-				HostedZoneId: aws.String("Z0099887766JKJJKJ"),
+				HostedZoneId: aws.String("Z00000000000002"),
 				Name:         aws.String("testing2."),
 			},
 		},
@@ -101,11 +101,11 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 
 	expected := []r53.PrivateHostedZone{
 		{
-			ID:   "Z0011223344HHGHGH",
+			ID:   "Z00000000000001",
 			Name: "testing1",
 		},
 		{
-			ID:   "Z0099887766JKJJKJ",
+			ID:   "Z00000000000002",
 			Name: "testing2",
 		},
 	}
@@ -120,6 +120,96 @@ func TestByVPCError(t *testing.T) {
 	_, err := c.ByVPC(context.Background(), vpcID, region)
 
 	assert.Error(t, err)
+}
+
+func TestByNameExcludesPublicZones(t *testing.T) {
+	domain := "dns53"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
+		return *req.DNSName == domain
+	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
+		HostedZones: []types.HostedZone{
+			{
+				Id:   aws.String("/hostedzone/Z00000000000003"),
+				Name: aws.String("dns53."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: false,
+				},
+			},
+			{
+				Id:   aws.String("/hostedzone/Z00000000000004"),
+				Name: aws.String("dns53."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+		},
+	}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), domain)
+
+	require.NoError(t, err)
+	require.NotNil(t, hz)
+	assert.Equal(t, "Z00000000000004", hz.ID)
+	assert.Equal(t, domain, hz.Name)
+}
+
+func TestByNameExactMatchOnly(t *testing.T) {
+	domain := "dns53"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
+		return *req.DNSName == domain
+	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
+		HostedZones: []types.HostedZone{
+			{
+				Id:   aws.String("/hostedzone/Z00000000000005"),
+				Name: aws.String("dns53zone."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+			{
+				Id:   aws.String("/hostedzone/Z00000000000006"),
+				Name: aws.String("dns53."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+		},
+	}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), domain)
+
+	require.NoError(t, err)
+	require.NotNil(t, hz)
+	assert.Equal(t, "Z00000000000006", hz.ID)
+	assert.Equal(t, domain, hz.Name)
+}
+
+func TestByNameNoMatch(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), "notexists")
+
+	require.NoError(t, err)
+	assert.Nil(t, hz)
+}
+
+func TestByNameError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), "error")
+
+	require.Error(t, err)
+	assert.Nil(t, hz)
 }
 
 func TestAssociateRecord(t *testing.T) {

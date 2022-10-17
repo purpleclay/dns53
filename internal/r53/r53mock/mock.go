@@ -44,6 +44,11 @@ func (m *ClientAPI) ListHostedZonesByVPC(ctx context.Context, params *route53.Li
 	return args.Get(0).(*route53.ListHostedZonesByVPCOutput), args.Error(1)
 }
 
+func (m *ClientAPI) ListHostedZonesByName(ctx context.Context, params *route53.ListHostedZonesByNameInput, optFns ...func(*route53.Options)) (*route53.ListHostedZonesByNameOutput, error) {
+	args := m.Called(ctx, params, optFns)
+	return args.Get(0).(*route53.ListHostedZonesByNameOutput), args.Error(1)
+}
+
 func (m *ClientAPI) ChangeResourceRecordSets(ctx context.Context, params *route53.ChangeResourceRecordSetsInput, optFns ...func(*route53.Options)) (*route53.ChangeResourceRecordSetsOutput, error) {
 	args := m.Called(ctx, params, optFns)
 	return args.Get(0).(*route53.ChangeResourceRecordSetsOutput), args.Error(1)
