@@ -57,6 +57,9 @@ Built using Bubbletea 🧋`
   # Launch the TUI using a chosen PHZ, effectively skipping the wizard
   dns53 --phz-id Z000000000ABCDEFGHIJK
 
+  # TODO
+  dns53 --auto-attach
+
   # Launch the TUI with a given domain name
   dns53 --domain-name custom.domain
 
@@ -79,6 +82,7 @@ var (
 type options struct {
 	phzID      string
 	domainName string
+	autoAttach bool
 }
 
 func Execute(out io.Writer) error {
@@ -118,12 +122,36 @@ func Execute(out io.Writer) error {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			r53Client := r53.NewFromAPI(awsr53.NewFromConfig(cfg))
+
+			if opts.autoAttach {
+				zone, err := r53Client.ByName(context.Background(), "dns53")
+				if err != nil {
+					return err
+				}
+
+				if zone == nil {
+					*zone, err = r53Client.CreatePrivateHostedZone(context.Background(), "dns53", metadata.VPC, metadata.Region)
+					if err != nil {
+						return err
+					}
+				} else {
+					if err := r53Client.AssociateVPCWithZone(context.Background(), zone.ID, metadata.VPC, metadata.Region); err != nil {
+						return err
+					}
+				}
+
+				// Enforce explicit use of the "dns53" hosted zone. Ensure wizard is skipped
+				opts.phzID = zone.ID
+			}
+
 			model := tui.Dashboard(tui.DashboardOptions{
-				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
+				R53Client:  r53Client,
 				Metadata:   metadata,
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
+				// TODO: DeleteHostedZone: true
 			})
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()
@@ -135,6 +163,7 @@ func Execute(out io.Writer) error {
 	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
 
 	f := rootCmd.Flags()
+	f.BoolVar(&opts.autoAttach, "auto-attach", false, "automatically create and attach a record set to a default private hosted zone")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
