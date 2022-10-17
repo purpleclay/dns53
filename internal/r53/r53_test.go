@@ -75,6 +75,28 @@ func TestCreatePrivateHostedZoneError(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestDeletePrivateHostedZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DeleteHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.DeleteHostedZoneInput) bool {
+		return *req.Id == "Z00000000000001"
+	}), mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	err := c.DeletePrivateHostedZone(context.Background(), "Z00000000000001")
+
+	assert.NoError(t, err)
+}
+
+func TestDeletePrivateHostedZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DeleteHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	err := c.DeletePrivateHostedZone(context.Background(), "Z00000000000001")
+
+	assert.Error(t, err)
+}
+
 func TestByIDStripsPrefix(t *testing.T) {
 	id := "Z0011223344HHGHGH"
 

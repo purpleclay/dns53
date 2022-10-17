@@ -42,6 +42,9 @@ type DNSClientAPI interface {
 	// CreateHostedZone creates a new private hosted zone
 	CreateHostedZone(ctx context.Context, params *awsr53.CreateHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.CreateHostedZoneOutput, error)
 
+	// DeleteHostedZone deletes an existing private hosted zone
+	DeleteHostedZone(ctx context.Context, params *awsr53.DeleteHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.DeleteHostedZoneOutput, error)
+
 	// GetHostedZone retrieves information about a specified hosted zone including
 	// the four name servers assigned to the hosted zone
 	GetHostedZone(ctx context.Context, params *awsr53.GetHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.GetHostedZoneOutput, error)
@@ -120,6 +123,20 @@ func (r *Client) CreatePrivateHostedZone(ctx context.Context, name, vpc, region 
 		ID:   strings.TrimPrefix(*resp.HostedZone.Id, hostedZonePrefix),
 		Name: strings.TrimSuffix(*resp.HostedZone.Name, dotSuffix),
 	}, nil
+}
+
+// DeletePrivateHostedZone will attempt to delete an existing Route53 Private Hosted Zone
+// by its ID. If the hosted zone contains any record sets, the deletion will fail
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws route53 delete-hosted-zone --id <HOSTED_ZONE_ID>
+func (r *Client) DeletePrivateHostedZone(ctx context.Context, id string) error {
+	_, err := r.api.DeleteHostedZone(ctx, &awsr53.DeleteHostedZoneInput{
+		Id: aws.String(id),
+	})
+
+	return err
 }
 
 // ByID attempts to retrieve a Route53 Private Hosted Zone by its given ID
