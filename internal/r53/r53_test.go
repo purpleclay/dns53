@@ -44,6 +44,37 @@ const (
 
 var errAPI = errors.New("api error")
 
+func TestCreatePrivateHostedZone(t *testing.T) {
+	domain := "dns53"
+
+	m := r53mock.New(t)
+	m.On("CreateHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.CreateHostedZoneInput) bool {
+		return true
+	}), mock.Anything).Return(&awsr53.CreateHostedZoneOutput{
+		HostedZone: &types.HostedZone{
+			Id:   aws.String("/hostedzone/Z00000000000001"),
+			Name: aws.String(domain + "."),
+		},
+	}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.CreatePrivateHostedZone(context.Background(), "dns53", vpcID, region)
+
+	require.NoError(t, err)
+	assert.Equal(t, "Z00000000000001", hz.ID)
+	assert.Equal(t, domain, hz.Name)
+}
+
+func TestCreatePrivateHostedZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("CreateHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.CreateHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	_, err := c.CreatePrivateHostedZone(context.Background(), "dns53", vpcID, region)
+
+	assert.Error(t, err)
+}
+
 func TestByIDStripsPrefix(t *testing.T) {
 	id := "Z0011223344HHGHGH"
 
@@ -84,11 +115,11 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{
 		HostedZoneSummaries: []types.HostedZoneSummary{
 			{
-				HostedZoneId: aws.String("Z00000000000001"),
+				HostedZoneId: aws.String("Z00000000000002"),
 				Name:         aws.String("testing1."),
 			},
 			{
-				HostedZoneId: aws.String("Z00000000000002"),
+				HostedZoneId: aws.String("Z00000000000003"),
 				Name:         aws.String("testing2."),
 			},
 		},
@@ -101,11 +132,11 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 
 	expected := []r53.PrivateHostedZone{
 		{
-			ID:   "Z00000000000001",
+			ID:   "Z00000000000002",
 			Name: "testing1",
 		},
 		{
-			ID:   "Z00000000000002",
+			ID:   "Z00000000000003",
 			Name: "testing2",
 		},
 	}
@@ -131,14 +162,14 @@ func TestByNameExcludesPublicZones(t *testing.T) {
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
 		HostedZones: []types.HostedZone{
 			{
-				Id:   aws.String("/hostedzone/Z00000000000003"),
+				Id:   aws.String("/hostedzone/Z00000000000004"),
 				Name: aws.String("dns53."),
 				Config: &types.HostedZoneConfig{
 					PrivateZone: false,
 				},
 			},
 			{
-				Id:   aws.String("/hostedzone/Z00000000000004"),
+				Id:   aws.String("/hostedzone/Z00000000000005"),
 				Name: aws.String("dns53."),
 				Config: &types.HostedZoneConfig{
 					PrivateZone: true,
@@ -152,7 +183,7 @@ func TestByNameExcludesPublicZones(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, hz)
-	assert.Equal(t, "Z00000000000004", hz.ID)
+	assert.Equal(t, "Z00000000000005", hz.ID)
 	assert.Equal(t, domain, hz.Name)
 }
 
@@ -165,14 +196,14 @@ func TestByNameExactMatchOnly(t *testing.T) {
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
 		HostedZones: []types.HostedZone{
 			{
-				Id:   aws.String("/hostedzone/Z00000000000005"),
+				Id:   aws.String("/hostedzone/Z00000000000006"),
 				Name: aws.String("dns53zone."),
 				Config: &types.HostedZoneConfig{
 					PrivateZone: true,
 				},
 			},
 			{
-				Id:   aws.String("/hostedzone/Z00000000000006"),
+				Id:   aws.String("/hostedzone/Z00000000000007"),
 				Name: aws.String("dns53."),
 				Config: &types.HostedZoneConfig{
 					PrivateZone: true,
@@ -186,7 +217,7 @@ func TestByNameExactMatchOnly(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, hz)
-	assert.Equal(t, "Z00000000000006", hz.ID)
+	assert.Equal(t, "Z00000000000007", hz.ID)
 	assert.Equal(t, domain, hz.Name)
 }
 
@@ -214,7 +245,7 @@ func TestByNameError(t *testing.T) {
 
 func TestAssociateRecord(t *testing.T) {
 	res := r53.ResourceRecord{
-		PhzID:    "Z0011223344HHGHGH",
+		PhzID:    "Z00000000000008",
 		Name:     "testing",
 		Resource: "testing.zone",
 	}
@@ -249,7 +280,7 @@ func TestAssociateRecordError(t *testing.T) {
 
 func TestDisassociateRecord(t *testing.T) {
 	res := r53.ResourceRecord{
-		PhzID:    "Z0011223344HHGHGH",
+		PhzID:    "Z00000000000009",
 		Name:     "testing",
 		Resource: "testing.zone",
 	}

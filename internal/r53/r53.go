@@ -25,14 +25,23 @@ package r53
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 )
 
+const (
+	dotSuffix        = "."
+	hostedZonePrefix = "/hostedzone/"
+)
+
 // DNSClientAPI defines the API for interacting with Amazon Route 53
 type DNSClientAPI interface {
+	// CreateHostedZone creates a new private hosted zone
+	CreateHostedZone(ctx context.Context, params *awsr53.CreateHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.CreateHostedZoneOutput, error)
+
 	// GetHostedZone retrieves information about a specified hosted zone including
 	// the four name servers assigned to the hosted zone
 	GetHostedZone(ctx context.Context, params *awsr53.GetHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.GetHostedZoneOutput, error)
@@ -84,6 +93,35 @@ func NewFromAPI(api DNSClientAPI) *Client {
 	return &Client{api: api}
 }
 
+// CreatePrivateHostedZone will attempt to create a Route53 Private Hosted Zone
+// with the given domain name and associate it with the required VPC
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws route53 create-hosted-zone --name <DOMAIN_NAME> --vpc VPCId=<VPC_ID>,VPCRegion=<VPC_REGION> \
+//	 --hosted-zone-config PrivateZone=true --caller-reference <REFERENCE>
+func (r *Client) CreatePrivateHostedZone(ctx context.Context, name, vpc, region string) (PrivateHostedZone, error) {
+	resp, err := r.api.CreateHostedZone(ctx, &awsr53.CreateHostedZoneInput{
+		Name: aws.String(name),
+		VPC: &types.VPC{
+			VPCId:     aws.String(vpc),
+			VPCRegion: types.VPCRegion(region),
+		},
+		HostedZoneConfig: &types.HostedZoneConfig{
+			PrivateZone: true,
+		},
+		CallerReference: aws.String(time.Now().Format(time.RFC3339)),
+	})
+	if err != nil {
+		return PrivateHostedZone{}, err
+	}
+
+	return PrivateHostedZone{
+		ID:   strings.TrimPrefix(*resp.HostedZone.Id, hostedZonePrefix),
+		Name: strings.TrimSuffix(*resp.HostedZone.Name, dotSuffix),
+	}, nil
+}
+
 // ByID attempts to retrieve a Route53 Private Hosted Zone by its given ID
 //
 // The equivalent operation can be achieved through the CLI using:
@@ -99,8 +137,8 @@ func (r *Client) ByID(ctx context.Context, id string) (PrivateHostedZone, error)
 
 	// Trim off the static prefix from the Hosted Zone ID
 	return PrivateHostedZone{
-		ID:   strings.TrimPrefix(*resp.HostedZone.Id, "/hostedzone/"),
-		Name: strings.TrimSuffix(*resp.HostedZone.Name, "."),
+		ID:   strings.TrimPrefix(*resp.HostedZone.Id, hostedZonePrefix),
+		Name: strings.TrimSuffix(*resp.HostedZone.Name, dotSuffix),
 	}, nil
 }
 
@@ -122,7 +160,7 @@ func (r *Client) ByVPC(ctx context.Context, vpc, region string) ([]PrivateHosted
 	for _, hzs := range resp.HostedZoneSummaries {
 		phzs = append(phzs, PrivateHostedZone{
 			ID:   *hzs.HostedZoneId,
-			Name: strings.TrimSuffix(*hzs.Name, "."),
+			Name: strings.TrimSuffix(*hzs.Name, dotSuffix),
 		})
 	}
 
@@ -146,12 +184,12 @@ func (r *Client) ByName(ctx context.Context, name string) (*PrivateHostedZone, e
 	for _, hzs := range resp.HostedZones {
 		// Stop on the first matching private hosted zone
 		if hzs.Config.PrivateZone {
-			hzName := strings.TrimSuffix(*hzs.Name, ".")
+			hzName := strings.TrimSuffix(*hzs.Name, dotSuffix)
 
 			if hzName == name {
 				return &PrivateHostedZone{
-					ID:   strings.TrimPrefix(*hzs.Id, "/hostedzone/"),
-					Name: strings.TrimSuffix(*hzs.Name, "."),
+					ID:   strings.TrimPrefix(*hzs.Id, hostedZonePrefix),
+					Name: strings.TrimSuffix(*hzs.Name, dotSuffix),
 				}, nil
 			}
 		}

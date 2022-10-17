@@ -34,6 +34,11 @@ type ClientAPI struct {
 	mock.Mock
 }
 
+func (m *ClientAPI) CreateHostedZone(ctx context.Context, params *route53.CreateHostedZoneInput, optFns ...func(*route53.Options)) (*route53.CreateHostedZoneOutput, error) {
+	args := m.Called(ctx, params, optFns)
+	return args.Get(0).(*route53.CreateHostedZoneOutput), args.Error(1)
+}
+
 func (m *ClientAPI) GetHostedZone(ctx context.Context, params *route53.GetHostedZoneInput, optFns ...func(*route53.Options)) (*route53.GetHostedZoneOutput, error) {
 	args := m.Called(ctx, params, optFns)
 	return args.Get(0).(*route53.GetHostedZoneOutput), args.Error(1)
