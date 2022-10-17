@@ -60,6 +60,9 @@ type DNSClientAPI interface {
 	// ChangeResourceRecordSets creates, changes, or deletes a resource record set,
 	// which contains authoritative DNS information for a specified domain name or subdomain name
 	ChangeResourceRecordSets(ctx context.Context, params *awsr53.ChangeResourceRecordSetsInput, optFns ...func(*awsr53.Options)) (*awsr53.ChangeResourceRecordSetsOutput, error)
+
+	// AssociateVPCWithHostedZone will associate a VPC with a Route53 Private Hosted Zone
+	AssociateVPCWithHostedZone(ctx context.Context, params *awsr53.AssociateVPCWithHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.AssociateVPCWithHostedZoneOutput, error)
 }
 
 // Client defines the client for interacting with Amazon Route 53
@@ -263,6 +266,25 @@ func (r *Client) DisassociateRecord(ctx context.Context, res ResourceRecord) err
 					},
 				},
 			},
+		},
+	})
+
+	return err
+}
+
+// AssociateVPCWithZone attempts to associate a given VPC with a Route53 Private
+// Hosted Zone. This is required to support any future DNS resolution queries
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws route53 associate-vpc-with-hosted-zone --hosted-zone-id <HOSTED_ZONE_ID> \
+//	 --vpc VPCId=<VPC_ID>,VPCRegion=<VPC_REGION>
+func (r *Client) AssociateVPCWithZone(ctx context.Context, id, vpc, region string) error {
+	_, err := r.api.AssociateVPCWithHostedZone(ctx, &awsr53.AssociateVPCWithHostedZoneInput{
+		HostedZoneId: aws.String(id),
+		VPC: &types.VPC{
+			VPCId:     aws.String(vpc),
+			VPCRegion: types.VPCRegion(region),
 		},
 	})
 

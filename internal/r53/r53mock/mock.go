@@ -64,6 +64,11 @@ func (m *ClientAPI) ChangeResourceRecordSets(ctx context.Context, params *route5
 	return args.Get(0).(*route53.ChangeResourceRecordSetsOutput), args.Error(1)
 }
 
+func (m *ClientAPI) AssociateVPCWithHostedZone(ctx context.Context, params *route53.AssociateVPCWithHostedZoneInput, optFns ...func(*route53.Options)) (*route53.AssociateVPCWithHostedZoneOutput, error) {
+	args := m.Called(ctx, params, optFns)
+	return args.Get(0).(*route53.AssociateVPCWithHostedZoneOutput), args.Error(1)
+}
+
 func New(t testing.TB) *ClientAPI {
 	t.Helper()
 

@@ -334,3 +334,27 @@ func TestDisassociateRecordError(t *testing.T) {
 
 	assert.Error(t, err)
 }
+
+func TestAssociateVPCWithZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.AssociateVPCWithHostedZoneInput) bool {
+		return *req.HostedZoneId == "Z00000000000010" &&
+			*req.VPC.VPCId == vpcID &&
+			req.VPC.VPCRegion == types.VPCRegion(region)
+	}), mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	err := c.AssociateVPCWithZone(context.Background(), "Z00000000000010", vpcID, region)
+
+	require.NoError(t, err)
+}
+
+func TestAssociateVPCWithZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	err := c.AssociateVPCWithZone(context.Background(), "Z00000000000011", vpcID, region)
+
+	assert.Error(t, err)
+}
