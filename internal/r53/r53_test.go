@@ -358,3 +358,13 @@ func TestAssociateVPCWithZoneError(t *testing.T) {
 
 	assert.Error(t, err)
 }
+
+func TestAssociateVPCWithZoneDuplicateAssociationIgnored(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, &types.ConflictingDomainExists{})
+
+	c := r53.NewFromAPI(m)
+	err := c.AssociateVPCWithZone(context.Background(), "Z00000000000012", vpcID, region)
+
+	assert.NoError(t, err)
+}

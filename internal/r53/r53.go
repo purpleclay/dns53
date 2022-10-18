@@ -24,6 +24,7 @@ package r53
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -273,7 +274,9 @@ func (r *Client) DisassociateRecord(ctx context.Context, res ResourceRecord) err
 }
 
 // AssociateVPCWithZone attempts to associate a given VPC with a Route53 Private
-// Hosted Zone. This is required to support any future DNS resolution queries
+// Hosted Zone. This is required to support any future DNS resolution queries.
+// If an association already exists between the VPC and PHZ, a ConflictingDomainExists
+// error is thrown by the AWS SDK and handled accordingly
 //
 // The equivalent operation can be achieved through the CLI using:
 //
@@ -287,6 +290,14 @@ func (r *Client) AssociateVPCWithZone(ctx context.Context, id, vpc, region strin
 			VPCRegion: types.VPCRegion(region),
 		},
 	})
+
+	if err != nil {
+		// If an association already exists between the VPC and PHZ, swallow the error
+		var errAssocExists *types.ConflictingDomainExists
+		if errors.As(err, &errAssocExists) {
+			return nil
+		}
+	}
 
 	return err
 }
