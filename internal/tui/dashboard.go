@@ -61,6 +61,7 @@ type DashboardOptions struct {
 	Version    string
 	PhzID      string
 	DomainName string
+	DeletePhz  bool
 }
 
 type associationRequest struct {
@@ -266,7 +267,7 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 		return errMsg{err}
 	}
 
-	return phz
+	return associationRequest{phz: phz}
 }
 
 func (m DashboardModel) initAssociation() tea.Msg {

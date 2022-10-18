@@ -131,10 +131,12 @@ func Execute(out io.Writer) error {
 				}
 
 				if zone == nil {
-					*zone, err = r53Client.CreatePrivateHostedZone(context.Background(), "dns53", metadata.VPC, metadata.Region)
+					newZone, err := r53Client.CreatePrivateHostedZone(context.Background(), "dns53", metadata.VPC, metadata.Region)
 					if err != nil {
 						return err
 					}
+
+					zone = &newZone
 				} else {
 					if err := r53Client.AssociateVPCWithZone(context.Background(), zone.ID, metadata.VPC, metadata.Region); err != nil {
 						return err
@@ -151,7 +153,7 @@ func Execute(out io.Writer) error {
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
-				// TODO: DeleteHostedZone: true
+				DeletePhz:  opts.autoAttach,
 			})
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()
