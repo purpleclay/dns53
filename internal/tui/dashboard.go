@@ -266,7 +266,7 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 		return errMsg{err}
 	}
 
-	return phz
+	return associationRequest{phz: phz}
 }
 
 func (m DashboardModel) initAssociation() tea.Msg {
