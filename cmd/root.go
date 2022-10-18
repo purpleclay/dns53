@@ -138,6 +138,7 @@ func Execute(out io.Writer) error {
 
 					zone = &newZone
 				} else {
+					// TODO: associate with an already existing VPC (don't return an error)
 					if err := r53Client.AssociateVPCWithZone(context.Background(), zone.ID, metadata.VPC, metadata.Region); err != nil {
 						return err
 					}

@@ -55,7 +55,6 @@ type DashboardModel struct {
 // DashboardOptions defines all of the supported options when initialising
 // the Dashboard model
 type DashboardOptions struct {
-	// IMDSClient *imds.Client
 	Metadata   imds.Metadata
 	R53Client  *r53.Client
 	Version    string
@@ -273,6 +272,7 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 func (m DashboardModel) initAssociation() tea.Msg {
 	name := m.opts.DomainName
 	if name == "" {
+		// TODO: Don't create a domain with duplicate dns53 within it
 		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
 	} else {
 		// Ensure root domain is appended as a suffix
