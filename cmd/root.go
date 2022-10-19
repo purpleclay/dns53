@@ -57,7 +57,8 @@ Built using Bubbletea 🧋`
   # Launch the TUI using a chosen PHZ, effectively skipping the wizard
   dns53 --phz-id Z000000000ABCDEFGHIJK
 
-  # TODO
+  # Launch the TUI, automatically creating and attaching to a dedicated
+  # PHZ. This will also skip the wizard
   dns53 --auto-attach
 
   # Launch the TUI with a given domain name
@@ -124,6 +125,7 @@ func Execute(out io.Writer) error {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r53Client := r53.NewFromAPI(awsr53.NewFromConfig(cfg))
 
+			deletePhz := false
 			if opts.autoAttach {
 				zone, err := r53Client.ByName(context.Background(), "dns53")
 				if err != nil {
@@ -137,8 +139,10 @@ func Execute(out io.Writer) error {
 					}
 
 					zone = &newZone
+
+					// As the PHZ was created by this process, an attempt to delete it can be made
+					deletePhz = true
 				} else {
-					// TODO: associate with an already existing VPC (don't return an error)
 					if err := r53Client.AssociateVPCWithZone(context.Background(), zone.ID, metadata.VPC, metadata.Region); err != nil {
 						return err
 					}
@@ -154,7 +158,7 @@ func Execute(out io.Writer) error {
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
-				DeletePhz:  opts.autoAttach,
+				DeletePhz:  deletePhz,
 			})
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()

@@ -154,6 +154,11 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				m.opts.R53Client.DisassociateRecord(context.Background(), record)
+
+				// As a result of an auto-attachment, attempt to tidy up the dns53 private hosted zone
+				if m.opts.DeletePhz {
+					m.opts.R53Client.DeletePrivateHostedZone(context.Background(), m.connected.phz.ID)
+				}
 			}
 
 			return m, tea.Quit
@@ -272,8 +277,12 @@ func (m DashboardModel) queryHostedZone() tea.Msg {
 func (m DashboardModel) initAssociation() tea.Msg {
 	name := m.opts.DomainName
 	if name == "" {
-		// TODO: Don't create a domain with duplicate dns53 within it
 		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.ec2.IPv4, ".", "-"), m.connected.phz.Name)
+
+		// If attaching to the dns53 domain, strip off the duplicate suffix
+		if strings.Count(name, "dns53") > 1 {
+			name = strings.TrimSuffix(name, ".dns53")
+		}
 	} else {
 		// Ensure root domain is appended as a suffix
 		if !strings.HasSuffix(name, "."+m.connected.phz.Name) {

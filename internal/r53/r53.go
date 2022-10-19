@@ -139,6 +139,14 @@ func (r *Client) DeletePrivateHostedZone(ctx context.Context, id string) error {
 	_, err := r.api.DeleteHostedZone(ctx, &awsr53.DeleteHostedZoneInput{
 		Id: aws.String(id),
 	})
+	if err != nil {
+		// The hosted zone may be owned by another process and contain record sets.
+		// It is not deemed a failure when deletion fails in this scenario
+		var errNotEmpty *types.HostedZoneNotEmpty
+		if errors.As(err, &errNotEmpty) {
+			return nil
+		}
+	}
 
 	return err
 }
