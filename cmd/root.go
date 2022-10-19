@@ -127,29 +127,10 @@ func Execute(out io.Writer) error {
 
 			deletePhz := false
 			if opts.autoAttach {
-				zone, err := r53Client.ByName(context.Background(), "dns53")
-				if err != nil {
+				var err error
+				if opts.phzID, deletePhz, err = autoAttachToZone(r53Client, "dns53", metadata.VPC, metadata.Region); err != nil {
 					return err
 				}
-
-				if zone == nil {
-					newZone, err := r53Client.CreatePrivateHostedZone(context.Background(), "dns53", metadata.VPC, metadata.Region)
-					if err != nil {
-						return err
-					}
-
-					zone = &newZone
-
-					// As the PHZ was created by this process, an attempt to delete it can be made
-					deletePhz = true
-				} else {
-					if err := r53Client.AssociateVPCWithZone(context.Background(), zone.ID, metadata.VPC, metadata.Region); err != nil {
-						return err
-					}
-				}
-
-				// Enforce explicit use of the "dns53" hosted zone. Ensure wizard is skipped
-				opts.phzID = zone.ID
 			}
 
 			model := tui.Dashboard(tui.DashboardOptions{
@@ -237,4 +218,31 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 	dmn = domainRegex.ReplaceAllString(dmn, "")
 
 	return dmn, nil
+}
+
+func autoAttachToZone(client *r53.Client, name, vpc, region string) (string, bool, error) {
+	deletePhz := false
+
+	zone, err := client.ByName(context.Background(), "dns53")
+	if err != nil {
+		return "", deletePhz, err
+	}
+
+	if zone == nil {
+		newZone, err := client.CreatePrivateHostedZone(context.Background(), "dns53", vpc, region)
+		if err != nil {
+			return "", deletePhz, err
+		}
+
+		zone = &newZone
+
+		// As the PHZ was created by this process, an attempt to delete it can be made
+		deletePhz = true
+	} else {
+		if err := client.AssociateVPCWithZone(context.Background(), zone.ID, vpc, region); err != nil {
+			return "", deletePhz, err
+		}
+	}
+
+	return zone.ID, deletePhz, nil
 }
