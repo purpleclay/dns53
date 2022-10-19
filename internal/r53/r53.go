@@ -298,7 +298,6 @@ func (r *Client) AssociateVPCWithZone(ctx context.Context, id, vpc, region strin
 			VPCRegion: types.VPCRegion(region),
 		},
 	})
-
 	if err != nil {
 		// If an association already exists between the VPC and PHZ, swallow the error
 		var errAssocExists *types.ConflictingDomainExists
