@@ -57,6 +57,10 @@ Built using Bubbletea 🧋`
   # Launch the TUI using a chosen PHZ, effectively skipping the wizard
   dns53 --phz-id Z000000000ABCDEFGHIJK
 
+  # Launch the TUI, automatically creating and attaching to a default
+  # PHZ. This will also skip the wizard
+  dns53 --auto-attach
+
   # Launch the TUI with a given domain name
   dns53 --domain-name custom.domain
 
@@ -79,6 +83,15 @@ var (
 type options struct {
 	phzID      string
 	domainName string
+	autoAttach bool
+}
+
+type autoAttachment struct {
+	phzID         string
+	vpc           string
+	region        string
+	createdPhz    bool
+	associatedPhz bool
 }
 
 func Execute(out io.Writer) error {
@@ -118,8 +131,20 @@ func Execute(out io.Writer) error {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			r53Client := r53.NewFromAPI(awsr53.NewFromConfig(cfg))
+
+			if opts.autoAttach {
+				attachment, err := autoAttachToZone(r53Client, "dns53", metadata.VPC, metadata.Region)
+				if err != nil {
+					return err
+				}
+				opts.phzID = attachment.phzID
+
+				defer removeAttachmentToZone(r53Client, attachment)
+			}
+
 			model := tui.Dashboard(tui.DashboardOptions{
-				R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
+				R53Client:  r53Client,
 				Metadata:   metadata,
 				Version:    version,
 				PhzID:      opts.phzID,
@@ -135,6 +160,7 @@ func Execute(out io.Writer) error {
 	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
 
 	f := rootCmd.Flags()
+	f.BoolVar(&opts.autoAttach, "auto-attach", false, "automatically create and attach a record set to a default private hosted zone")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
@@ -201,4 +227,46 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 	dmn = domainRegex.ReplaceAllString(dmn, "")
 
 	return dmn, nil
+}
+
+func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachment, error) {
+	attachment := autoAttachment{
+		vpc:    vpc,
+		region: region,
+	}
+
+	zone, err := client.ByName(context.Background(), "dns53")
+	if err != nil {
+		return attachment, err
+	}
+
+	if zone == nil {
+		newZone, err := client.CreatePrivateHostedZone(context.Background(), "dns53", vpc, region)
+		if err != nil {
+			return attachment, err
+		}
+
+		zone = &newZone
+
+		// Record that this PHZ was created during auto-attachment
+		attachment.createdPhz = true
+	} else {
+		if err := client.AssociateVPCWithZone(context.Background(), zone.ID, vpc, region); err != nil {
+			return attachment, err
+		}
+
+		// An explicit association has been made between the EC2 VPC and the PHZ during auto-attachment
+		attachment.associatedPhz = true
+	}
+
+	attachment.phzID = zone.ID
+	return attachment, nil
+}
+
+func removeAttachmentToZone(client *r53.Client, attach autoAttachment) error {
+	if attach.createdPhz {
+		return client.DeletePrivateHostedZone(context.Background(), attach.phzID)
+	}
+
+	return client.DisassociateVPCWithZone(context.Background(), attach.phzID, attach.vpc, attach.region)
 }
