@@ -86,6 +86,12 @@ type options struct {
 	autoAttach bool
 }
 
+type autoAttachment struct {
+	phzID         string
+	createdPhz    bool
+	associatedPhz bool
+}
+
 func Execute(out io.Writer) error {
 	opts := options{}
 
@@ -125,12 +131,14 @@ func Execute(out io.Writer) error {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r53Client := r53.NewFromAPI(awsr53.NewFromConfig(cfg))
 
-			deletePhz := false
+			var attachment autoAttachment
 			if opts.autoAttach {
 				var err error
-				if opts.phzID, deletePhz, err = autoAttachToZone(r53Client, "dns53", metadata.VPC, metadata.Region); err != nil {
+				if attachment, err = autoAttachToZone(r53Client, "dns53", metadata.VPC, metadata.Region); err != nil {
 					return err
 				}
+
+				// TODO: queue a defer to run and tidy up auto-attachment (errors can be logged to console)
 			}
 
 			model := tui.Dashboard(tui.DashboardOptions{
@@ -139,7 +147,7 @@ func Execute(out io.Writer) error {
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
-				DeletePhz:  deletePhz,
+				DeletePhz:  attachment.createdPhz, // TODO: remove and handle by defer
 			})
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()
@@ -220,29 +228,33 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 	return dmn, nil
 }
 
-func autoAttachToZone(client *r53.Client, name, vpc, region string) (string, bool, error) {
-	deletePhz := false
+func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachment, error) {
+	attachment := autoAttachment{}
 
 	zone, err := client.ByName(context.Background(), "dns53")
 	if err != nil {
-		return "", deletePhz, err
+		return attachment, err
 	}
 
 	if zone == nil {
 		newZone, err := client.CreatePrivateHostedZone(context.Background(), "dns53", vpc, region)
 		if err != nil {
-			return "", deletePhz, err
+			return attachment, err
 		}
 
 		zone = &newZone
 
-		// As the PHZ was created by this process, an attempt to delete it can be made
-		deletePhz = true
+		// Record that this PHZ was created during auto-attachment
+		attachment.createdPhz = true
 	} else {
 		if err := client.AssociateVPCWithZone(context.Background(), zone.ID, vpc, region); err != nil {
-			return "", deletePhz, err
+			return attachment, err
 		}
+
+		// An explicit association has been made between the EC2 VPC and the PHZ during auto-attachment
+		attachment.associatedPhz = true
 	}
 
-	return zone.ID, deletePhz, nil
+	attachment.phzID = zone.ID
+	return attachment, nil
 }

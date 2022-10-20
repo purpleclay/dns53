@@ -23,10 +23,17 @@ SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
+	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
+	"github.com/purpleclay/dns53/internal/r53/r53mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -153,4 +160,91 @@ func TestCleanTagsAppendsToMap(t *testing.T) {
 		assert.Contains(t, tags, k)
 		assert.Equal(t, v, tags[k])
 	}
+}
+
+func TestAutoAttachToZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, nil)
+	m.On("CreateHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.CreateHostedZoneOutput{
+		HostedZone: &types.HostedZone{
+			Id:   aws.String("/hostedzone/Z00000000001"),
+			Name: aws.String("dns53."),
+		},
+	}, nil)
+
+	attachment, err := autoAttachToZone(r53.NewFromAPI(m), "dns53", "vpc-12345", "eu-west-2")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Z00000000001", attachment.phzID)
+	assert.True(t, attachment.createdPhz)
+	assert.False(t, attachment.associatedPhz)
+}
+
+func TestAutoAttachToZoneExisting(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
+		HostedZones: []types.HostedZone{
+			{
+				Id:   aws.String("/hostedzone/Z00000000002"),
+				Name: aws.String("dns53"),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+		},
+	}, nil)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, nil)
+
+	attachment, err := autoAttachToZone(r53.NewFromAPI(m), "dns53", "vpc-12345", "eu-west-2")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Z00000000002", attachment.phzID)
+	assert.False(t, attachment.createdPhz)
+	assert.True(t, attachment.associatedPhz)
+}
+
+func TestAutoAttachToZoneSearchError(t *testing.T) {
+	errMsg := "failed to search"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, errors.New(errMsg))
+
+	_, err := autoAttachToZone(r53.NewFromAPI(m), "dns53", "vpc-12345", "eu-west-2")
+
+	require.EqualError(t, err, errMsg)
+	m.AssertNotCalled(t, "AssociateVPCWithHostedZone")
+}
+
+func TestAutoAttachToZoneCreationError(t *testing.T) {
+	errMsg := "failed to create"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, nil)
+	m.On("CreateHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.CreateHostedZoneOutput{}, errors.New(errMsg))
+
+	_, err := autoAttachToZone(r53.NewFromAPI(m), "dns53", "vpc-12345", "eu-west-2")
+
+	require.EqualError(t, err, errMsg)
+}
+
+func TestAutoAttachToZoneAssociationError(t *testing.T) {
+	errMsg := "failed to associate"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
+		HostedZones: []types.HostedZone{
+			{
+				Id:   aws.String("/hostedzone/Z00000000003"),
+				Name: aws.String("dns53"),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+		},
+	}, nil)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, errors.New(errMsg))
+
+	_, err := autoAttachToZone(r53.NewFromAPI(m), "dns53", "vpc-12345", "eu-west-2")
+
+	require.EqualError(t, err, errMsg)
 }
