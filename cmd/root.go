@@ -57,7 +57,7 @@ Built using Bubbletea 🧋`
   # Launch the TUI using a chosen PHZ, effectively skipping the wizard
   dns53 --phz-id Z000000000ABCDEFGHIJK
 
-  # Launch the TUI, automatically creating and attaching to a dedicated
+  # Launch the TUI, automatically creating and attaching to a default
   # PHZ. This will also skip the wizard
   dns53 --auto-attach
 
