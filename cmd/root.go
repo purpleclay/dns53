@@ -138,6 +138,7 @@ func Execute(out io.Writer) error {
 				if err != nil {
 					return err
 				}
+				opts.phzID = attachment.phzID
 
 				defer removeAttachmentToZone(r53Client, attachment)
 			}
