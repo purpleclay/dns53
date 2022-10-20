@@ -88,6 +88,8 @@ type options struct {
 
 type autoAttachment struct {
 	phzID         string
+	vpc           string
+	region        string
 	createdPhz    bool
 	associatedPhz bool
 }
@@ -131,14 +133,13 @@ func Execute(out io.Writer) error {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r53Client := r53.NewFromAPI(awsr53.NewFromConfig(cfg))
 
-			var attachment autoAttachment
 			if opts.autoAttach {
-				var err error
-				if attachment, err = autoAttachToZone(r53Client, "dns53", metadata.VPC, metadata.Region); err != nil {
+				attachment, err := autoAttachToZone(r53Client, "dns53", metadata.VPC, metadata.Region)
+				if err != nil {
 					return err
 				}
 
-				// TODO: queue a defer to run and tidy up auto-attachment (errors can be logged to console)
+				defer removeAttachmentToZone(r53Client, attachment)
 			}
 
 			model := tui.Dashboard(tui.DashboardOptions{
@@ -147,7 +148,6 @@ func Execute(out io.Writer) error {
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
-				DeletePhz:  attachment.createdPhz, // TODO: remove and handle by defer
 			})
 
 			return tea.NewProgram(model, tea.WithAltScreen()).Start()
@@ -229,7 +229,10 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 }
 
 func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachment, error) {
-	attachment := autoAttachment{}
+	attachment := autoAttachment{
+		vpc:    vpc,
+		region: region,
+	}
 
 	zone, err := client.ByName(context.Background(), "dns53")
 	if err != nil {
@@ -257,4 +260,12 @@ func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachm
 
 	attachment.phzID = zone.ID
 	return attachment, nil
+}
+
+func removeAttachmentToZone(client *r53.Client, attach autoAttachment) error {
+	if attach.createdPhz {
+		return client.DeletePrivateHostedZone(context.Background(), attach.phzID)
+	}
+
+	return client.DisassociateVPCWithZone(context.Background(), attach.phzID, attach.vpc, attach.region)
 }

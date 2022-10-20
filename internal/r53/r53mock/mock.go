@@ -69,6 +69,11 @@ func (m *ClientAPI) AssociateVPCWithHostedZone(ctx context.Context, params *rout
 	return args.Get(0).(*route53.AssociateVPCWithHostedZoneOutput), args.Error(1)
 }
 
+func (m *ClientAPI) DisassociateVPCFromHostedZone(ctx context.Context, params *route53.DisassociateVPCFromHostedZoneInput, optFns ...func(*route53.Options)) (*route53.DisassociateVPCFromHostedZoneOutput, error) {
+	args := m.Called(ctx, params, optFns)
+	return args.Get(0).(*route53.DisassociateVPCFromHostedZoneOutput), args.Error(1)
+}
+
 func New(t testing.TB) *ClientAPI {
 	t.Helper()
 

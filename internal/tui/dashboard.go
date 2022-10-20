@@ -60,7 +60,6 @@ type DashboardOptions struct {
 	Version    string
 	PhzID      string
 	DomainName string
-	DeletePhz  bool
 }
 
 type associationRequest struct {
@@ -154,11 +153,6 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				m.opts.R53Client.DisassociateRecord(context.Background(), record)
-
-				// As a result of an auto-attachment, attempt to tidy up the dns53 private hosted zone
-				if m.opts.DeletePhz {
-					m.opts.R53Client.DeletePrivateHostedZone(context.Background(), m.connected.phz.ID)
-				}
 			}
 
 			return m, tea.Quit

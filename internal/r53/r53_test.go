@@ -378,3 +378,33 @@ func TestAssociateVPCWithZoneDuplicateAssociationIgnored(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
+func TestDisassociateVPCWithZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	err := c.DisassociateVPCWithZone(context.Background(), "Z00000000000019", vpcID, region)
+
+	assert.NoError(t, err)
+}
+
+func TestDisassociateVPCWithZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	err := c.DisassociateVPCWithZone(context.Background(), "Z00000000000020", vpcID, region)
+
+	assert.Error(t, err)
+}
+
+func TestDisassociateVPCWithZoneNoAssociationExists(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, &types.VPCAssociationNotFound{})
+
+	c := r53.NewFromAPI(m)
+	err := c.DisassociateVPCWithZone(context.Background(), "Z00000000000021", vpcID, region)
+
+	assert.NoError(t, err)
+}

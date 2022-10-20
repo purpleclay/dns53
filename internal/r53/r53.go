@@ -64,6 +64,9 @@ type DNSClientAPI interface {
 
 	// AssociateVPCWithHostedZone will associate a VPC with a Route53 Private Hosted Zone
 	AssociateVPCWithHostedZone(ctx context.Context, params *awsr53.AssociateVPCWithHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.AssociateVPCWithHostedZoneOutput, error)
+
+	// DisassociateVPCFromHostedZone will disassociate a VPC with a Route53 Private Hosted Zone
+	DisassociateVPCFromHostedZone(ctx context.Context, params *awsr53.DisassociateVPCFromHostedZoneInput, optFns ...func(*awsr53.Options)) (*awsr53.DisassociateVPCFromHostedZoneOutput, error)
 }
 
 // Client defines the client for interacting with Amazon Route 53
@@ -302,6 +305,33 @@ func (r *Client) AssociateVPCWithZone(ctx context.Context, id, vpc, region strin
 		// If an association already exists between the VPC and PHZ, swallow the error
 		var errAssocExists *types.ConflictingDomainExists
 		if errors.As(err, &errAssocExists) {
+			return nil
+		}
+	}
+
+	return err
+}
+
+// DisassociateVPCWithZone attempts to disassociate a given VPC with a Route53
+// Private Hosted Zone. If no association exists between the VPC and PHZ, a
+// VPCAssociationNotFound error is thrown by the AWS SDK and handled accordingly
+//
+// The equivalent operation can be achieved through the CLI using:
+//
+//	aws route53 disassociate-vpc-with-hosted-zone --hosted-zone-id <HOSTED_ZONE_ID> \
+//	 --vpc VPCId=<VPC_ID>,VPCRegion=<VPC_REGION>
+func (r *Client) DisassociateVPCWithZone(ctx context.Context, id, vpc, region string) error {
+	_, err := r.api.DisassociateVPCFromHostedZone(ctx, &awsr53.DisassociateVPCFromHostedZoneInput{
+		HostedZoneId: aws.String(id),
+		VPC: &types.VPC{
+			VPCId:     aws.String(vpc),
+			VPCRegion: types.VPCRegion(region),
+		},
+	})
+	if err != nil {
+		// If no association exists, swallow the error
+		var errNoAssocExists *types.VPCAssociationNotFound
+		if errors.As(err, &errNoAssocExists) {
 			return nil
 		}
 	}
