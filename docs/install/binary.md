@@ -35,7 +35,7 @@ sudo apt update
 sudo apt install -y dns53
 ```
 
-You may need to install the `ca-certificates` package if you encounter [trust [issues](https://gemfury.com/help/could-not-verify-ssl-certificate/) with regard to the Gemfury certificate:
+You may need to install the `ca-certificates` package if you encounter [trust issues](https://gemfury.com/help/could-not-verify-ssl-certificate/) with regard to the Gemfury certificate:
 
 ```sh
 sudo apt update && sudo apt install -y ca-certificates

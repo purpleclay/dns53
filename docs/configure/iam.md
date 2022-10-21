@@ -6,7 +6,7 @@ status: new
 
 # IAM Permissions
 
-Limited access to Route53 and EC2 is required for `dns53` to work. Your IAM persona must have the following permissions granted:
+Access to Route53 and EC2 is required for `dns53` to work. Your IAM persona must have the following permissions granted:
 
 ```json
 {
