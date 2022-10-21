@@ -29,3 +29,7 @@ If someone in your team, or organisation, was super keen and already auto-attach
 1. Check if your launched EC2 is within a VPC associated with the PHZ. If not, it will create a new association.
 1. Broadcasts your EC2 as expected, using a custom domain name if provided.
 1. Tidies everything up when you exit.
+
+## A 10,000-foot view
+
+![Auto Attachment Flow](../static/auto-attachment-flow.png)
