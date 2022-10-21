@@ -1,11 +1,12 @@
 ---
 description: "Understand what Identity Access Management (IAM) permissions are needed for dns53 to run"
 icon: material/shield-lock-outline
+status: new
 ---
 
 # IAM Permissions
 
-Limited access to Route53 and EC2 is required for `dns53` to work. Your IAM persona must have the following permissions granted:
+Access to Route53 and EC2 is required for `dns53` to work. Your IAM persona must have the following permissions granted:
 
 ```json
 {
@@ -13,12 +14,23 @@ Limited access to Route53 and EC2 is required for `dns53` to work. Your IAM pers
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": ["route53:GetHostedZone", "route53:ChangeResourceRecordSets"],
+      "Action": [
+        "route53:AssociateVPCWithHostedZone",
+        "route53:ChangeResourceRecordSets",
+        "route53:DeleteHostedZone",
+        "route53:DisassociateVPCFromHostedZone",
+        "route53:GetHostedZone"
+      ],
       "Resource": "arn:aws:route53:::hostedzone/*"
     },
     {
       "Effect": "Allow",
-      "Action": ["route53:ListHostedZonesByVPC", "ec2:DescribeVpcs"],
+      "Action": [
+        "ec2:DescribeVpcs",
+        "route53:CreateHostedZone",
+        "route53:ListHostedZonesByName",
+        "route53:ListHostedZonesByVPC"
+      ],
       "Resource": "*"
     },
     {
