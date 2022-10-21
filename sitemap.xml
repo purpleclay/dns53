@@ -11,6 +11,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://docs.purpleclay.dev/dns53/configure/auto-attachment/</loc>
+         <lastmod>2022-10-21</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://docs.purpleclay.dev/dns53/configure/broadcast-ec2/</loc>
          <lastmod>2022-10-21</lastmod>
          <changefreq>daily</changefreq>
