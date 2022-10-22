@@ -81,9 +81,10 @@ var (
 )
 
 type options struct {
-	phzID      string
-	domainName string
-	autoAttach bool
+	phzID            string
+	domainName       string
+	autoAttach       bool
+	disableAltScreen bool
 }
 
 type autoAttachment struct {
@@ -151,16 +152,22 @@ func Execute(out io.Writer) error {
 				DomainName: opts.domainName,
 			})
 
-			return tea.NewProgram(model, tea.WithAltScreen()).Start()
+			teaOptions := []tea.ProgramOption{tea.WithOutput(out)}
+			if !opts.disableAltScreen {
+				teaOptions = append(teaOptions, tea.WithAltScreen())
+			}
+
+			return tea.NewProgram(model, teaOptions...).Start()
 		},
 	}
 
 	pf := rootCmd.PersistentFlags()
-	pf.StringVar(&globalOpts.AWSRegion, "region", "", "the AWS region to use when querying AWS")
 	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
+	pf.StringVar(&globalOpts.AWSRegion, "region", "", "the AWS region to use when querying AWS")
 
 	f := rootCmd.Flags()
 	f.BoolVar(&opts.autoAttach, "auto-attach", false, "automatically create and attach a record set to a default private hosted zone")
+	f.BoolVar(&opts.disableAltScreen, "disable-alt-screen", false, "launch the TUI without alternate screen mode")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
