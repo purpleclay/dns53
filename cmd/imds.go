@@ -25,11 +25,8 @@ package cmd
 import (
 	"context"
 	"errors"
-	"io"
 	"strings"
 
-	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
-	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/purpleclay/dns53/internal/ec2"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/spf13/cobra"
@@ -67,40 +64,34 @@ type imdsOptions struct {
 	InstanceMetadataTags toggleSetting
 }
 
-func newIMDSCommand(out io.Writer) *cobra.Command {
+func newIMDSCommand() *cobra.Command {
 	opt := imdsOptions{}
 
-	imdsCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:           "imds",
 		Short:         "Toggle EC2 IMDS features",
 		Args:          cobra.NoArgs,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := awsConfig(globalOpts)
-			if err != nil {
-				return err
-			}
+			ctx := cmd.Context().(*GlobalContext)
 
 			if opt.InstanceMetadataTags == "" {
 				return nil
 			}
 
-			return toggleMetadataTags(awsec2.NewFromConfig(cfg), awsimds.NewFromConfig(cfg), opt.InstanceMetadataTags)
+			return toggleMetadataTags(ctx.ec2Client, ctx.imdsClient, opt.InstanceMetadataTags)
 		},
 	}
 
-	f := imdsCmd.Flags()
+	f := cmd.Flags()
 	f.Var(&opt.InstanceMetadataTags, "instance-metadata-tags", "toggle the inclusion of EC2 instance tags within IMDS (on|off)")
 
-	imdsCmd.MarkFlagRequired("--instance-metadata-tags")
-	return imdsCmd
+	cmd.MarkFlagRequired("--instance-metadata-tags")
+	return cmd
 }
 
-func toggleMetadataTags(ec2API ec2.ClientAPI, imdsAPI imds.ClientAPI, setting toggleSetting) error {
-	ec2Client := ec2.NewFromAPI(ec2API)
-	imdsClient := imds.NewFromAPI(imdsAPI)
-
+func toggleMetadataTags(ec2Client *ec2.Client, imdsClient *imds.Client, setting toggleSetting) error {
 	metadata, err := imdsClient.InstanceMetadata(context.Background())
 	if err != nil {
 		return err

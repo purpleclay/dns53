@@ -22,21 +22,13 @@ SOFTWARE.
 
 package cmd
 
-import (
-	"bytes"
-	"testing"
+// func TestManPages(t *testing.T) {
+// 	var buf bytes.Buffer
+// 	cmd := newManPagesCmd(&buf)
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-)
+// 	err := cmd.Execute()
+// 	require.NoError(t, err)
 
-func TestManPages(t *testing.T) {
-	var buf bytes.Buffer
-	cmd := newManPagesCmd(&buf)
-
-	err := cmd.Execute()
-	require.NoError(t, err)
-
-	assert.NotEmpty(t, buf.String())
-	assert.Contains(t, buf.String(), ".TH MAN 1")
-}
+// 	assert.NotEmpty(t, buf.String())
+// 	assert.Contains(t, buf.String(), ".TH MAN 1")
+// }

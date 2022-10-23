@@ -37,15 +37,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAWSConfig(t *testing.T) {
-	cfg, err := awsConfig(&globalOptions{
-		AWSRegion:  "eu-west-2",
-		AWSProfile: "testing",
-	})
+// func TestAWSConfig(t *testing.T) {
+// 	cfg, err := awsConfig(&globalOptions{
+// 		AWSRegion:  "eu-west-2",
+// 		AWSProfile: "testing",
+// 	})
 
-	require.NoError(t, err)
-	assert.Equal(t, "eu-west-2", cfg.Region)
-}
+// 	require.NoError(t, err)
+// 	assert.Equal(t, "eu-west-2", cfg.Region)
+// }
 
 func TestResolveDomainName(t *testing.T) {
 	metadata := imds.Metadata{

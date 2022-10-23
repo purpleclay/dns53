@@ -82,7 +82,7 @@ type versionOptions struct {
 	short bool
 }
 
-func newVersionCmd(out io.Writer) *cobra.Command {
+func newVersionCmd() *cobra.Command {
 	opts := versionOptions{}
 
 	cmd := &cobra.Command{
@@ -91,7 +91,8 @@ func newVersionCmd(out io.Writer) *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return opts.run(out)
+			ctx := cmd.Context().(*GlobalContext)
+			return opts.run(ctx.out)
 		},
 	}
 

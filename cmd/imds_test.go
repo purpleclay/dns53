@@ -25,12 +25,7 @@ package cmd
 import (
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/purpleclay/dns53/internal/ec2/ec2mock"
-	"github.com/purpleclay/dns53/internal/imds/imdsstub"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,32 +80,34 @@ func TestToggleSettingType(t *testing.T) {
 	assert.Equal(t, "string", toggle.Type())
 }
 
-func TestToggleMetadataTags(t *testing.T) {
-	tests := []struct {
-		name     string
-		toggle   toggleSetting
-		expected string
-	}{
-		{
-			name:     "On",
-			toggle:   toggleSettingOn,
-			expected: "enabled",
-		},
-		{
-			name:     "Off",
-			toggle:   toggleSettingOff,
-			expected: "disabled",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockEC2 := ec2mock.New(t)
-			mockEC2.On("ModifyInstanceMetadataOptions", mock.Anything, mock.MatchedBy(func(req *ec2.ModifyInstanceMetadataOptionsInput) bool {
-				return req.InstanceMetadataTags == types.InstanceMetadataTagsState(tt.expected)
-			}), mock.Anything).Return(&ec2.ModifyInstanceMetadataOptionsOutput{}, nil)
+// TODO: test through the command directly
 
-			err := toggleMetadataTags(mockEC2, imdsstub.New(t), tt.toggle)
-			assert.NoError(t, err)
-		})
-	}
-}
+// func TestToggleMetadataTags(t *testing.T) {
+// 	tests := []struct {
+// 		name     string
+// 		toggle   toggleSetting
+// 		expected string
+// 	}{
+// 		{
+// 			name:     "On",
+// 			toggle:   toggleSettingOn,
+// 			expected: "enabled",
+// 		},
+// 		{
+// 			name:     "Off",
+// 			toggle:   toggleSettingOff,
+// 			expected: "disabled",
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			mockEC2 := ec2mock.New(t)
+// 			mockEC2.On("ModifyInstanceMetadataOptions", mock.Anything, mock.MatchedBy(func(req *ec2.ModifyInstanceMetadataOptionsInput) bool {
+// 				return req.InstanceMetadataTags == types.InstanceMetadataTagsState(tt.expected)
+// 			}), mock.Anything).Return(&ec2.ModifyInstanceMetadataOptionsOutput{}, nil)
+
+// 			err := toggleMetadataTags(mockEC2, imdsstub.New(t), tt.toggle)
+// 			assert.NoError(t, err)
+// 		})
+// 	}
+// }
