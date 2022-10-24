@@ -23,17 +23,13 @@ SOFTWARE.
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"io"
 
-	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/olekukonko/tablewriter"
-	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/spf13/cobra"
 )
 
-func newTagsCommand(out io.Writer) *cobra.Command {
+func newTagsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "tags",
 		Short:         "Lists all available EC2 instance tags and how to use them with Go templating",
@@ -41,18 +37,14 @@ func newTagsCommand(out io.Writer) *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := awsConfig(globalOpts)
+			ctx := cmd.Context().(*globalContext)
+
+			metadata, err := ctx.imdsClient.InstanceMetadata(ctx)
 			if err != nil {
 				return err
 			}
 
-			imdsClient := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
-			metadata, err := imdsClient.InstanceMetadata(context.Background())
-			if err != nil {
-				return err
-			}
-
-			table := tablewriter.NewWriter(out)
+			table := tablewriter.NewWriter(ctx.out)
 			table.SetHeader([]string{"Tag", "Value", "Property Chaining", "Indexed"})
 
 			for k, v := range metadata.Tags {

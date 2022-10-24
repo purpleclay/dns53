@@ -71,7 +71,7 @@ type completionOptions struct {
 	shell          string
 }
 
-func newCompletionCmd(out io.Writer) *cobra.Command {
+func newCompletionCmd() *cobra.Command {
 	opts := completionOptions{}
 
 	cmd := &cobra.Command{
@@ -88,8 +88,10 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Args:                  cobra.NoArgs,
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context().(*globalContext)
+
 			opts.shell = "bash"
-			return opts.Run(out, cmd)
+			return opts.Run(ctx.out, cmd)
 		},
 	}
 
@@ -99,8 +101,10 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:  zshDesc,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context().(*globalContext)
+
 			opts.shell = "zsh"
-			return opts.Run(out, cmd)
+			return opts.Run(ctx.out, cmd)
 		},
 	}
 	zsh.Flags().BoolVar(&opts.noDescriptions, noDescFlag, false, noDescFlagText)
@@ -111,8 +115,10 @@ func newCompletionCmd(out io.Writer) *cobra.Command {
 		Long:  fishDesc,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context().(*globalContext)
+
 			opts.shell = "fish"
-			return opts.Run(out, cmd)
+			return opts.Run(ctx.out, cmd)
 		},
 	}
 	fish.Flags().BoolVar(&opts.noDescriptions, noDescFlag, false, noDescFlagText)

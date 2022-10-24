@@ -32,9 +32,12 @@ import (
 
 func TestManPages(t *testing.T) {
 	var buf bytes.Buffer
-	cmd := newManPagesCmd(&buf)
+	ctx := &globalContext{
+		out: &buf,
+	}
+	cmd := newManPagesCmd()
 
-	err := cmd.Execute()
+	err := cmd.ExecuteContext(ctx)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, buf.String())

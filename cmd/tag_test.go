@@ -24,56 +24,47 @@ package cmd
 
 import (
 	"bytes"
-	"encoding/json"
-	"runtime"
+	"errors"
+	"strings"
 	"testing"
 
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/imds/imdsstub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestVersionCommand(t *testing.T) {
-	version = "v0.1.0"
-	gitBranch = "main"
-	gitCommit = "d4b3bd00406444561e646607d7f941097dbd1b40"
-	buildDate = "2022-06-29T20:05:51Z"
-
+func TestTagsCommand(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := &globalContext{
-		out: &buf,
+		out:        &buf,
+		imdsClient: imds.NewFromAPI(imdsstub.New(t)),
 	}
-	cmd := newVersionCmd()
 
+	cmd := newTagsCommand()
 	err := cmd.ExecuteContext(ctx)
+
 	require.NoError(t, err)
 
-	assert.NotEmpty(t, buf.String())
+	// Can't guarantee order of tags so break up the testing of the table
+	table := buf.String()
 
-	var bi BuildInfo
-	json.Unmarshal(buf.Bytes(), &bi)
-	assert.Equal(t, version, bi.Version)
-	assert.Equal(t, gitBranch, bi.GitBranch)
-	assert.Equal(t, gitCommit, bi.GitCommit)
-	assert.Equal(t, buildDate, bi.BuildDate)
-	assert.Equal(t, runtime.Version(), bi.Go.Version)
-	assert.Equal(t, runtime.GOOS, bi.Go.OS)
-	assert.Equal(t, runtime.GOARCH, bi.Go.Arch)
+	assert.True(t, strings.HasPrefix(table, `+-------------+----------+-----------------------+-------------------------------+
+|     TAG     |  VALUE   |   PROPERTY CHAINING   |            INDEXED            |
++-------------+----------+-----------------------+-------------------------------+
+`))
+	assert.Contains(t, table, "| Name        | stub-ec2 | {{.Tags.Name}}        | {{index .Tags \"Name\"}}        |\n")
+	assert.Contains(t, table, "| Environment | dev      | {{.Tags.Environment}} | {{index .Tags \"Environment\"}} |\n")
+	assert.True(t, strings.HasSuffix(table, "+-------------+----------+-----------------------+-------------------------------+\n"))
 }
 
-func TestVersionCommandShort(t *testing.T) {
-	version = "v0.1.0"
-
-	var buf bytes.Buffer
+func TestTagsCommandIMDSError(t *testing.T) {
 	ctx := &globalContext{
-		out: &buf,
+		imdsClient: imds.NewFromAPI(imdsstub.NewWithError(t, errors.New("error"))),
 	}
 
-	cmd := newVersionCmd()
-	cmd.SetArgs([]string{"--short"})
-
+	cmd := newTagsCommand()
 	err := cmd.ExecuteContext(ctx)
-	require.NoError(t, err)
 
-	assert.NotEmpty(t, buf.String())
-	assert.Contains(t, buf.String(), version)
+	require.Error(t, err)
 }
