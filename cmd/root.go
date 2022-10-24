@@ -152,9 +152,8 @@ func (c *Command) Execute(args []string) error {
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: use the context instead of context.Background
 			var err error
-			if metadata, err = c.ctx.imdsClient.InstanceMetadata(context.Background()); err != nil {
+			if metadata, err = c.ctx.imdsClient.InstanceMetadata(c.ctx); err != nil {
 				return err
 			}
 
@@ -168,13 +167,13 @@ func (c *Command) Execute(args []string) error {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.autoAttach {
-				attachment, err := autoAttachToZone(c.ctx.r53Client, "dns53", metadata.VPC, metadata.Region)
+				attachment, err := autoAttachToZone(c.ctx, "dns53", metadata.VPC, metadata.Region)
 				if err != nil {
 					return err
 				}
 				opts.phzID = attachment.phzID
 
-				defer removeAttachmentToZone(c.ctx.r53Client, attachment)
+				defer removeAttachmentToZone(c.ctx, attachment)
 			}
 
 			model := tui.Dashboard(tui.DashboardOptions{
@@ -184,6 +183,8 @@ func (c *Command) Execute(args []string) error {
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
 			})
+
+			// TODO: capture the model so that it can be inspected during tests (ensure flags are being used correctly)
 
 			var err error
 			p := tea.NewProgram(model, tea.WithOutput(c.ctx.out), tea.WithAltScreen())
@@ -271,19 +272,19 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 	return dmn, nil
 }
 
-func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachment, error) {
+func autoAttachToZone(ctx *globalContext, name, vpc, region string) (autoAttachment, error) {
 	attachment := autoAttachment{
 		vpc:    vpc,
 		region: region,
 	}
 
-	zone, err := client.ByName(context.Background(), "dns53")
+	zone, err := ctx.r53Client.ByName(ctx, "dns53")
 	if err != nil {
 		return attachment, err
 	}
 
 	if zone == nil {
-		newZone, err := client.CreatePrivateHostedZone(context.Background(), "dns53", vpc, region)
+		newZone, err := ctx.r53Client.CreatePrivateHostedZone(ctx, "dns53", vpc, region)
 		if err != nil {
 			return attachment, err
 		}
@@ -293,7 +294,7 @@ func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachm
 		// Record that this PHZ was created during auto-attachment
 		attachment.createdPhz = true
 	} else {
-		if err := client.AssociateVPCWithZone(context.Background(), zone.ID, vpc, region); err != nil {
+		if err := ctx.r53Client.AssociateVPCWithZone(ctx, zone.ID, vpc, region); err != nil {
 			return attachment, err
 		}
 
@@ -305,10 +306,10 @@ func autoAttachToZone(client *r53.Client, name, vpc, region string) (autoAttachm
 	return attachment, nil
 }
 
-func removeAttachmentToZone(client *r53.Client, attach autoAttachment) error {
+func removeAttachmentToZone(ctx *globalContext, attach autoAttachment) error {
 	if attach.createdPhz {
-		return client.DeletePrivateHostedZone(context.Background(), attach.phzID)
+		return ctx.r53Client.DeletePrivateHostedZone(ctx, attach.phzID)
 	}
 
-	return client.DisassociateVPCWithZone(context.Background(), attach.phzID, attach.vpc, attach.region)
+	return ctx.r53Client.DisassociateVPCWithZone(ctx, attach.phzID, attach.vpc, attach.region)
 }

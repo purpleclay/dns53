@@ -23,12 +23,10 @@ SOFTWARE.
 package cmd
 
 import (
-	"context"
 	"errors"
 	"strings"
 
 	"github.com/purpleclay/dns53/internal/ec2"
-	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/spf13/cobra"
 )
 
@@ -76,7 +74,7 @@ func newIMDSCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context().(*globalContext)
 
-			return toggleMetadataTags(ctx.ec2Client, ctx.imdsClient, opt.InstanceMetadataTags)
+			return toggleMetadataTags(ctx, opt.InstanceMetadataTags)
 		},
 	}
 
@@ -87,8 +85,8 @@ func newIMDSCommand() *cobra.Command {
 	return cmd
 }
 
-func toggleMetadataTags(ec2Client *ec2.Client, imdsClient *imds.Client, setting toggleSetting) error {
-	metadata, err := imdsClient.InstanceMetadata(context.Background())
+func toggleMetadataTags(ctx *globalContext, setting toggleSetting) error {
+	metadata, err := ctx.imdsClient.InstanceMetadata(ctx)
 	if err != nil {
 		return err
 	}
@@ -102,5 +100,5 @@ func toggleMetadataTags(ec2Client *ec2.Client, imdsClient *imds.Client, setting 
 		toggle = ec2.InstanceMetadataToggleDisabled
 	}
 
-	return ec2Client.ToggleInstanceMetadataTags(context.Background(), metadata.InstanceID, toggle)
+	return ctx.ec2Client.ToggleInstanceMetadataTags(ctx, metadata.InstanceID, toggle)
 }
