@@ -153,6 +153,48 @@ func TestCleanTagsAppendsToMap(t *testing.T) {
 	}
 }
 
+func TestRootCommand(t *testing.T) {
+	options := []globalContextOption{
+		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
+		withSkipTea(),
+	}
+
+	cmd := newWithOptions(options...)
+	err := cmd.Execute([]string{})
+
+	require.NoError(t, err)
+	assert.Equal(t, cmd.ctx.teaModelOptions.PhzID, "")
+	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
+}
+
+func TestRootCommandWithPrivateHostedZoneID(t *testing.T) {
+	options := []globalContextOption{
+		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
+		withSkipTea(),
+	}
+
+	cmd := newWithOptions(options...)
+	err := cmd.Execute([]string{"--phz-id", "Z00000000001"})
+
+	require.NoError(t, err)
+	assert.Equal(t, cmd.ctx.teaModelOptions.PhzID, "Z00000000001")
+	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
+}
+
+func TestRootCommandWithCustomDomain(t *testing.T) {
+	options := []globalContextOption{
+		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
+		withSkipTea(),
+	}
+
+	cmd := newWithOptions(options...)
+	err := cmd.Execute([]string{"--domain-name", "custom.{{.Name}}"})
+
+	require.NoError(t, err)
+	assert.Equal(t, cmd.ctx.teaModelOptions.PhzID, "")
+	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "custom.stub-ec2")
+}
+
 func TestRootCommandAutoAttachToZone(t *testing.T) {
 	m := r53mock.New(t)
 	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
@@ -162,12 +204,12 @@ func TestRootCommandAutoAttachToZone(t *testing.T) {
 		return true
 	}), mock.Anything).Return(&awsr53.CreateHostedZoneOutput{
 		HostedZone: &types.HostedZone{
-			Id:   aws.String("/hostedzone/Z00000000001"),
+			Id:   aws.String("/hostedzone/Z00000000002"),
 			Name: aws.String("dns53."),
 		},
 	}, nil)
 	m.On("DeleteHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.DeleteHostedZoneInput) bool {
-		return *req.Id == "Z00000000001"
+		return *req.Id == "Z00000000002"
 	}), mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, nil)
 
 	// Configure the command to run in test mode
@@ -178,7 +220,7 @@ func TestRootCommandAutoAttachToZone(t *testing.T) {
 	}
 
 	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--auto-attach", "--domain-name", "custom.{{.Name}}"})
+	err := cmd.Execute([]string{"--auto-attach"})
 
 	require.NoError(t, err)
 }
@@ -190,7 +232,7 @@ func TestRootCommandAutoAttachToZoneExisting(t *testing.T) {
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
 		HostedZones: []types.HostedZone{
 			{
-				Id:   aws.String("/hostedzone/Z00000000002"),
+				Id:   aws.String("/hostedzone/Z00000000003"),
 				Name: aws.String("dns53"),
 				Config: &types.HostedZoneConfig{
 					PrivateZone: true,
@@ -199,10 +241,10 @@ func TestRootCommandAutoAttachToZoneExisting(t *testing.T) {
 		},
 	}, nil)
 	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.AssociateVPCWithHostedZoneInput) bool {
-		return *req.HostedZoneId == "Z00000000002"
+		return *req.HostedZoneId == "Z00000000003"
 	}), mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, nil)
 	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.DisassociateVPCFromHostedZoneInput) bool {
-		return *req.HostedZoneId == "Z00000000002"
+		return *req.HostedZoneId == "Z00000000003"
 	}), mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, nil)
 
 	// Configure the command to run in test mode
@@ -265,7 +307,7 @@ func TestRootCommandAutoAttachToZoneAssociationError(t *testing.T) {
 	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
 		HostedZones: []types.HostedZone{
 			{
-				Id:   aws.String("/hostedzone/Z00000000003"),
+				Id:   aws.String("/hostedzone/Z00000000004"),
 				Name: aws.String("dns53"),
 				Config: &types.HostedZoneConfig{
 					PrivateZone: true,

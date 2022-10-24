@@ -177,17 +177,17 @@ func (c *Command) Execute(args []string) error {
 				defer removeAttachmentToZone(c.ctx, attachment)
 			}
 
-			model := tui.Dashboard(tui.DashboardOptions{
+			// At the moment there isn't a nicer way to capture this
+			c.ctx.teaModelOptions = tui.DashboardOptions{
 				R53Client:  c.ctx.r53Client,
 				Metadata:   metadata,
 				Version:    version,
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
-			})
-			c.ctx.teaModel = model
+			}
 
 			var err error
-			p := tea.NewProgram(model, tea.WithOutput(c.ctx.out), tea.WithAltScreen())
+			p := tea.NewProgram(tui.Dashboard(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
 
 			if !c.ctx.skipTea {
 				err = p.Start()
