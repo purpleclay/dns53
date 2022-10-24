@@ -22,41 +22,58 @@ SOFTWARE.
 
 package cmd
 
-// func TestVersionLong(t *testing.T) {
-// 	version = "v0.1.0"
-// 	gitBranch = "main"
-// 	gitCommit = "d4b3bd00406444561e646607d7f941097dbd1b40"
-// 	buildDate = "2022-06-29T20:05:51Z"
+import (
+	"bytes"
+	"encoding/json"
+	"runtime"
+	"testing"
 
-// 	var buf bytes.Buffer
-// 	cmd := newVersionCmd(&buf)
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
 
-// 	err := cmd.Execute()
-// 	require.NoError(t, err)
+func TestVersionCommand(t *testing.T) {
+	version = "v0.1.0"
+	gitBranch = "main"
+	gitCommit = "d4b3bd00406444561e646607d7f941097dbd1b40"
+	buildDate = "2022-06-29T20:05:51Z"
 
-// 	assert.NotEmpty(t, buf.String())
+	var buf bytes.Buffer
+	ctx := &globalContext{
+		out: &buf,
+	}
+	cmd := newVersionCmd()
 
-// 	var bi BuildInfo
-// 	json.Unmarshal(buf.Bytes(), &bi)
-// 	assert.Equal(t, version, bi.Version)
-// 	assert.Equal(t, gitBranch, bi.GitBranch)
-// 	assert.Equal(t, gitCommit, bi.GitCommit)
-// 	assert.Equal(t, buildDate, bi.BuildDate)
-// 	assert.Equal(t, runtime.Version(), bi.Go.Version)
-// 	assert.Equal(t, runtime.GOOS, bi.Go.OS)
-// 	assert.Equal(t, runtime.GOARCH, bi.Go.Arch)
-// }
+	err := cmd.ExecuteContext(ctx)
+	require.NoError(t, err)
 
-// func TestVersionShort(t *testing.T) {
-// 	version = "v0.1.0"
+	assert.NotEmpty(t, buf.String())
 
-// 	var buf bytes.Buffer
-// 	cmd := newVersionCmd(&buf)
-// 	cmd.SetArgs([]string{"--short"})
+	var bi BuildInfo
+	json.Unmarshal(buf.Bytes(), &bi)
+	assert.Equal(t, version, bi.Version)
+	assert.Equal(t, gitBranch, bi.GitBranch)
+	assert.Equal(t, gitCommit, bi.GitCommit)
+	assert.Equal(t, buildDate, bi.BuildDate)
+	assert.Equal(t, runtime.Version(), bi.Go.Version)
+	assert.Equal(t, runtime.GOOS, bi.Go.OS)
+	assert.Equal(t, runtime.GOARCH, bi.Go.Arch)
+}
 
-// 	err := cmd.Execute()
-// 	require.NoError(t, err)
+func TestVersionCommandShort(t *testing.T) {
+	version = "v0.1.0"
 
-// 	assert.NotEmpty(t, buf.String())
-// 	assert.Contains(t, buf.String(), version)
-// }
+	var buf bytes.Buffer
+	ctx := &globalContext{
+		out: &buf,
+	}
+
+	cmd := newVersionCmd()
+	cmd.SetArgs([]string{"--short"})
+
+	err := cmd.ExecuteContext(ctx)
+	require.NoError(t, err)
+
+	assert.NotEmpty(t, buf.String())
+	assert.Contains(t, buf.String(), version)
+}

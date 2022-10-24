@@ -40,7 +40,7 @@ func newManPagesCmd() *cobra.Command {
 		SilenceErrors:         true,
 		Args:                  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
+			ctx := cmd.Context().(*globalContext)
 
 			mp, err := mcobra.NewManPage(1, cmd.Root())
 			if err != nil {

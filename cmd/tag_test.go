@@ -21,3 +21,50 @@ SOFTWARE.
 */
 
 package cmd
+
+import (
+	"bytes"
+	"errors"
+	"strings"
+	"testing"
+
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/imds/imdsstub"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestTagsCommand(t *testing.T) {
+	var buf bytes.Buffer
+	ctx := &globalContext{
+		out:        &buf,
+		imdsClient: imds.NewFromAPI(imdsstub.New(t)),
+	}
+
+	cmd := newTagsCommand()
+	err := cmd.ExecuteContext(ctx)
+
+	require.NoError(t, err)
+
+	// Can't guarantee order of tags so break up the testing of the table
+	table := buf.String()
+
+	assert.True(t, strings.HasPrefix(table, `+-------------+----------+-----------------------+-------------------------------+
+|     TAG     |  VALUE   |   PROPERTY CHAINING   |            INDEXED            |
++-------------+----------+-----------------------+-------------------------------+
+`))
+	assert.Contains(t, table, "| Name        | stub-ec2 | {{.Tags.Name}}        | {{index .Tags \"Name\"}}        |\n")
+	assert.Contains(t, table, "| Environment | dev      | {{.Tags.Environment}} | {{index .Tags \"Environment\"}} |\n")
+	assert.True(t, strings.HasSuffix(table, "+-------------+----------+-----------------------+-------------------------------+\n"))
+}
+
+func TestTagsCommandIMDSError(t *testing.T) {
+	ctx := &globalContext{
+		imdsClient: imds.NewFromAPI(imdsstub.NewWithError(t, errors.New("error"))),
+	}
+
+	cmd := newTagsCommand()
+	err := cmd.ExecuteContext(ctx)
+
+	require.Error(t, err)
+}

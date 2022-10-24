@@ -88,7 +88,7 @@ func newCompletionCmd() *cobra.Command {
 		Args:                  cobra.NoArgs,
 		DisableFlagsInUseLine: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
+			ctx := cmd.Context().(*globalContext)
 
 			opts.shell = "bash"
 			return opts.Run(ctx.out, cmd)
@@ -101,7 +101,7 @@ func newCompletionCmd() *cobra.Command {
 		Long:  zshDesc,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
+			ctx := cmd.Context().(*globalContext)
 
 			opts.shell = "zsh"
 			return opts.Run(ctx.out, cmd)
@@ -115,7 +115,7 @@ func newCompletionCmd() *cobra.Command {
 		Long:  fishDesc,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
+			ctx := cmd.Context().(*globalContext)
 
 			opts.shell = "fish"
 			return opts.Run(ctx.out, cmd)

@@ -80,10 +80,9 @@ type globalOptions struct {
 }
 
 type options struct {
-	phzID            string
-	domainName       string
-	autoAttach       bool
-	disableAltScreen bool
+	phzID      string
+	domainName string
+	autoAttach bool
 }
 
 type autoAttachment struct {
@@ -96,14 +95,24 @@ type autoAttachment struct {
 
 // Command ...
 type Command struct {
-	ctx     *GlobalContext
-	ctxOpts []GlobalContextOption
+	ctx     *globalContext
+	ctxOpts []globalContextOption
 }
 
 // New ...
-func New(options ...GlobalContextOption) *Command {
+func New() *Command {
 	return &Command{
-		ctx: &GlobalContext{
+		ctx: &globalContext{
+			out:     os.Stdout,
+			Context: context.Background(),
+		},
+	}
+}
+
+// This is deliberately unexported and is used for testing only
+func newWithOptions(options ...globalContextOption) *Command {
+	return &Command{
+		ctx: &globalContext{
 			out:     os.Stdout,
 			Context: context.Background(),
 		},
@@ -111,7 +120,7 @@ func New(options ...GlobalContextOption) *Command {
 	}
 }
 
-func (c *Command) Execute() error {
+func (c *Command) Execute(args []string) error {
 	globalOpts := &globalOptions{}
 	opts := options{}
 
@@ -145,6 +154,7 @@ func (c *Command) Execute() error {
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: use the context instead of context.Background
 			var err error
 			if metadata, err = c.ctx.imdsClient.InstanceMetadata(context.Background()); err != nil {
 				return err
@@ -177,12 +187,14 @@ func (c *Command) Execute() error {
 				DomainName: opts.domainName,
 			})
 
-			teaOptions := []tea.ProgramOption{tea.WithOutput(c.ctx.out)}
-			if !opts.disableAltScreen {
-				teaOptions = append(teaOptions, tea.WithAltScreen())
+			var err error
+			p := tea.NewProgram(model, tea.WithOutput(c.ctx.out), tea.WithAltScreen())
+
+			if !c.ctx.skipTea {
+				err = p.Start()
 			}
 
-			return tea.NewProgram(model, teaOptions...).Start()
+			return err
 		},
 	}
 
@@ -192,7 +204,6 @@ func (c *Command) Execute() error {
 
 	f := rootCmd.Flags()
 	f.BoolVar(&opts.autoAttach, "auto-attach", false, "automatically create and attach a record set to a default private hosted zone")
-	f.BoolVar(&opts.disableAltScreen, "disable-alt-screen", false, "launch the TUI without alternate screen mode")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
@@ -202,6 +213,7 @@ func (c *Command) Execute() error {
 	rootCmd.AddCommand(newIMDSCommand())
 	rootCmd.AddCommand(newTagsCommand())
 
+	rootCmd.SetArgs(args)
 	return rootCmd.ExecuteContext(c.ctx)
 }
 

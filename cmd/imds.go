@@ -74,11 +74,7 @@ func newIMDSCommand() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
-
-			if opt.InstanceMetadataTags == "" {
-				return nil
-			}
+			ctx := cmd.Context().(*globalContext)
 
 			return toggleMetadataTags(ctx.ec2Client, ctx.imdsClient, opt.InstanceMetadataTags)
 		},
@@ -87,7 +83,7 @@ func newIMDSCommand() *cobra.Command {
 	f := cmd.Flags()
 	f.Var(&opt.InstanceMetadataTags, "instance-metadata-tags", "toggle the inclusion of EC2 instance tags within IMDS (on|off)")
 
-	cmd.MarkFlagRequired("--instance-metadata-tags")
+	cmd.MarkFlagRequired("instance-metadata-tags")
 	return cmd
 }
 

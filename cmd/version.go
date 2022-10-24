@@ -91,7 +91,7 @@ func newVersionCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
+			ctx := cmd.Context().(*globalContext)
 			return opts.run(ctx.out)
 		},
 	}

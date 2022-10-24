@@ -31,45 +31,41 @@ import (
 	"github.com/purpleclay/dns53/internal/r53"
 )
 
-// GlobalContext can be used to share state between cobra commands
-type GlobalContext struct {
+// Can be used to share internal state between cobra commands
+type globalContext struct {
 	context.Context
 
-	out        io.Writer
+	out io.Writer
+
+	// Only here to prevent the starting of bubbletea, useful when
+	// testing just the cobra command
+	skipTea bool
+
+	// Support overwriting the clients during within the
+	// PersistentPreRunE hook for testing
 	imdsClient *imds.Client
 	ec2Client  *ec2.Client
 	r53Client  *r53.Client
 }
 
-// GlobalContextOption is used to set an option within the GlobalContext at
-// initialisation time. Initialisation of the context will occur during
-// PersistentPreRunE within the root command
-type GlobalContextOption func(*GlobalContext)
+// Options provide a way of overriding parts of the context during
+// execution, especially useful when configuring mocks during testing
+type globalContextOption func(*globalContext)
 
-// WithOutput sets the output which, by default, is stdout
-func WithOutput(output io.Writer) GlobalContextOption {
-	return func(c *GlobalContext) {
-		c.out = output
-	}
-}
-
-// WithEC2Client ...
-func WithEC2Client(client *ec2.Client) GlobalContextOption {
-	return func(c *GlobalContext) {
-		c.ec2Client = client
-	}
-}
-
-// WithIMDSClient ...
-func WithIMDSClient(client *imds.Client) GlobalContextOption {
-	return func(c *GlobalContext) {
+func withIMDSClient(client *imds.Client) globalContextOption {
+	return func(c *globalContext) {
 		c.imdsClient = client
 	}
 }
 
-// WithR53Client ...
-func WithR53Client(client *r53.Client) GlobalContextOption {
-	return func(c *GlobalContext) {
+func withR53Client(client *r53.Client) globalContextOption {
+	return func(c *globalContext) {
 		c.r53Client = client
+	}
+}
+
+func withSkipTea() globalContextOption {
+	return func(c *globalContext) {
+		c.skipTea = true
 	}
 }

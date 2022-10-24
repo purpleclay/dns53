@@ -23,7 +23,6 @@ SOFTWARE.
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/olekukonko/tablewriter"
@@ -38,9 +37,9 @@ func newTagsCommand() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := cmd.Context().(*GlobalContext)
+			ctx := cmd.Context().(*globalContext)
 
-			metadata, err := ctx.imdsClient.InstanceMetadata(context.Background())
+			metadata, err := ctx.imdsClient.InstanceMetadata(ctx)
 			if err != nil {
 				return err
 			}

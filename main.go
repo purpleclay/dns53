@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	if err := cmd.New().Execute(); err != nil {
+	if err := cmd.New().Execute(os.Args[1:]); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
