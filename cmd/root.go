@@ -91,13 +91,13 @@ type autoAttachment struct {
 	associatedPhz bool
 }
 
-// Command ...
+// Command defines the root DNS 53 cobra command
 type Command struct {
 	ctx     *globalContext
 	ctxOpts []globalContextOption
 }
 
-// New ...
+// New initialises the root DNS 53 command
 func New() *Command {
 	return &Command{
 		ctx: &globalContext{
@@ -118,6 +118,7 @@ func newWithOptions(options ...globalContextOption) *Command {
 	}
 }
 
+// Execute the DNS 53 command
 func (c *Command) Execute(args []string) error {
 	globalOpts := &globalOptions{}
 	opts := options{}
@@ -183,8 +184,7 @@ func (c *Command) Execute(args []string) error {
 				PhzID:      opts.phzID,
 				DomainName: opts.domainName,
 			})
-
-			// TODO: capture the model so that it can be inspected during tests (ensure flags are being used correctly)
+			c.ctx.teaModel = model
 
 			var err error
 			p := tea.NewProgram(model, tea.WithOutput(c.ctx.out), tea.WithAltScreen())

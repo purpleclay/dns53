@@ -29,6 +29,7 @@ import (
 	"github.com/purpleclay/dns53/internal/ec2"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
+	"github.com/purpleclay/dns53/internal/tui"
 )
 
 // Can be used to share internal state between cobra commands
@@ -40,6 +41,9 @@ type globalContext struct {
 	// Only here to prevent the starting of bubbletea, useful when
 	// testing just the cobra command
 	skipTea bool
+
+	// Capture the tea model for validation
+	teaModel *tui.DashboardModel
 
 	// Support overwriting the clients during within the
 	// PersistentPreRunE hook for testing
