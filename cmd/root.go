@@ -70,9 +70,7 @@ Built using Bubbletea 🧋`
   dns53 --domain-name "{{.IPv4}}.{{.Region}}"`
 )
 
-var (
-	domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
-)
+var domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
 
 type globalOptions struct {
 	awsRegion  string
