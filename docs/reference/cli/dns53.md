@@ -19,6 +19,7 @@ dns53 [command]
 ## Flags
 
 ```text
+    --auto-attach          automatically create and attach a record set to a default private hosted zone
     --domain-name string   assign a custom domain name when generating a record set
 -h, --help                 help for dns53
     --phz-id string        an ID of a Route53 private hosted zone to use when generating a record set

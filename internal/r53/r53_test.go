@@ -44,8 +44,71 @@ const (
 
 var errAPI = errors.New("api error")
 
+func TestCreatePrivateHostedZone(t *testing.T) {
+	domain := "dns53"
+
+	m := r53mock.New(t)
+	m.On("CreateHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.CreateHostedZoneInput) bool {
+		return true
+	}), mock.Anything).Return(&awsr53.CreateHostedZoneOutput{
+		HostedZone: &types.HostedZone{
+			Id:   aws.String("/hostedzone/Z00000000000001"),
+			Name: aws.String(domain + "."),
+		},
+	}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.CreatePrivateHostedZone(context.Background(), "dns53", vpcID, region)
+
+	require.NoError(t, err)
+	assert.Equal(t, "Z00000000000001", hz.ID)
+	assert.Equal(t, domain, hz.Name)
+}
+
+func TestCreatePrivateHostedZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("CreateHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.CreateHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	_, err := c.CreatePrivateHostedZone(context.Background(), "Z00000000000002", vpcID, region)
+
+	assert.Error(t, err)
+}
+
+func TestDeletePrivateHostedZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DeleteHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.DeleteHostedZoneInput) bool {
+		return *req.Id == "Z00000000000003"
+	}), mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	err := c.DeletePrivateHostedZone(context.Background(), "Z00000000000003")
+
+	assert.NoError(t, err)
+}
+
+func TestDeletePrivateHostedZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DeleteHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	err := c.DeletePrivateHostedZone(context.Background(), "Z00000000000004")
+
+	assert.Error(t, err)
+}
+
+func TestDeletePrivateHostedZoneNotEmpty(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DeleteHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, &types.HostedZoneNotEmpty{})
+
+	c := r53.NewFromAPI(m)
+	err := c.DeletePrivateHostedZone(context.Background(), "Z00000000000005")
+
+	assert.NoError(t, err)
+}
+
 func TestByIDStripsPrefix(t *testing.T) {
-	id := "Z0011223344HHGHGH"
+	id := "Z00000000000006"
 
 	out := &awsr53.GetHostedZoneOutput{
 		HostedZone: &types.HostedZone{
@@ -84,11 +147,11 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 	}), mock.Anything).Return(&awsr53.ListHostedZonesByVPCOutput{
 		HostedZoneSummaries: []types.HostedZoneSummary{
 			{
-				HostedZoneId: aws.String("Z0011223344HHGHGH"),
+				HostedZoneId: aws.String("Z00000000000007"),
 				Name:         aws.String("testing1."),
 			},
 			{
-				HostedZoneId: aws.String("Z0099887766JKJJKJ"),
+				HostedZoneId: aws.String("Z00000000000008"),
 				Name:         aws.String("testing2."),
 			},
 		},
@@ -101,11 +164,11 @@ func TestByVPCTrimsDotSuffix(t *testing.T) {
 
 	expected := []r53.PrivateHostedZone{
 		{
-			ID:   "Z0011223344HHGHGH",
+			ID:   "Z00000000000007",
 			Name: "testing1",
 		},
 		{
-			ID:   "Z0099887766JKJJKJ",
+			ID:   "Z00000000000008",
 			Name: "testing2",
 		},
 	}
@@ -122,9 +185,99 @@ func TestByVPCError(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestByNameExcludesPublicZones(t *testing.T) {
+	domain := "dns53"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
+		return *req.DNSName == domain
+	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
+		HostedZones: []types.HostedZone{
+			{
+				Id:   aws.String("/hostedzone/Z00000000000009"),
+				Name: aws.String("dns53."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: false,
+				},
+			},
+			{
+				Id:   aws.String("/hostedzone/Z00000000000010"),
+				Name: aws.String("dns53."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+		},
+	}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), domain)
+
+	require.NoError(t, err)
+	require.NotNil(t, hz)
+	assert.Equal(t, "Z00000000000010", hz.ID)
+	assert.Equal(t, domain, hz.Name)
+}
+
+func TestByNameExactMatchOnly(t *testing.T) {
+	domain := "dns53"
+
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
+		return *req.DNSName == domain
+	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
+		HostedZones: []types.HostedZone{
+			{
+				Id:   aws.String("/hostedzone/Z00000000000011"),
+				Name: aws.String("dns53zone."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+			{
+				Id:   aws.String("/hostedzone/Z00000000000012"),
+				Name: aws.String("dns53."),
+				Config: &types.HostedZoneConfig{
+					PrivateZone: true,
+				},
+			},
+		},
+	}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), domain)
+
+	require.NoError(t, err)
+	require.NotNil(t, hz)
+	assert.Equal(t, "Z00000000000012", hz.ID)
+	assert.Equal(t, domain, hz.Name)
+}
+
+func TestByNameNoMatch(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), "Z00000000000013")
+
+	require.NoError(t, err)
+	assert.Nil(t, hz)
+}
+
+func TestByNameError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	hz, err := c.ByName(context.Background(), "error")
+
+	require.Error(t, err)
+	assert.Nil(t, hz)
+}
+
 func TestAssociateRecord(t *testing.T) {
 	res := r53.ResourceRecord{
-		PhzID:    "Z0011223344HHGHGH",
+		PhzID:    "Z00000000000014",
 		Name:     "testing",
 		Resource: "testing.zone",
 	}
@@ -159,7 +312,7 @@ func TestAssociateRecordError(t *testing.T) {
 
 func TestDisassociateRecord(t *testing.T) {
 	res := r53.ResourceRecord{
-		PhzID:    "Z0011223344HHGHGH",
+		PhzID:    "Z00000000000015",
 		Name:     "testing",
 		Resource: "testing.zone",
 	}
@@ -190,4 +343,68 @@ func TestDisassociateRecordError(t *testing.T) {
 	err := c.DisassociateRecord(context.Background(), r53.ResourceRecord{})
 
 	assert.Error(t, err)
+}
+
+func TestAssociateVPCWithZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.AssociateVPCWithHostedZoneInput) bool {
+		return *req.HostedZoneId == "Z00000000000016" &&
+			*req.VPC.VPCId == vpcID &&
+			req.VPC.VPCRegion == types.VPCRegion(region)
+	}), mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	err := c.AssociateVPCWithZone(context.Background(), "Z00000000000016", vpcID, region)
+
+	require.NoError(t, err)
+}
+
+func TestAssociateVPCWithZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	err := c.AssociateVPCWithZone(context.Background(), "Z00000000000017", vpcID, region)
+
+	assert.Error(t, err)
+}
+
+func TestAssociateVPCWithZoneDuplicateAssociationIgnored(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, &types.ConflictingDomainExists{})
+
+	c := r53.NewFromAPI(m)
+	err := c.AssociateVPCWithZone(context.Background(), "Z00000000000018", vpcID, region)
+
+	assert.NoError(t, err)
+}
+
+func TestDisassociateVPCWithZone(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, nil)
+
+	c := r53.NewFromAPI(m)
+	err := c.DisassociateVPCWithZone(context.Background(), "Z00000000000019", vpcID, region)
+
+	assert.NoError(t, err)
+}
+
+func TestDisassociateVPCWithZoneError(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, errAPI)
+
+	c := r53.NewFromAPI(m)
+	err := c.DisassociateVPCWithZone(context.Background(), "Z00000000000020", vpcID, region)
+
+	assert.Error(t, err)
+}
+
+func TestDisassociateVPCWithZoneNoAssociationExists(t *testing.T) {
+	m := r53mock.New(t)
+	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, &types.VPCAssociationNotFound{})
+
+	c := r53.NewFromAPI(m)
+	err := c.DisassociateVPCWithZone(context.Background(), "Z00000000000021", vpcID, region)
+
+	assert.NoError(t, err)
 }

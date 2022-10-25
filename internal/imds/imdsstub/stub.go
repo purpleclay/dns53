@@ -48,6 +48,7 @@ var defaultMetadata = map[string]string{
 type Client struct {
 	t        testing.TB
 	metadata map[string]string
+	err      error
 }
 
 func New(t testing.TB) *Client {
@@ -65,8 +66,16 @@ func NewWithoutTags(t testing.TB) *Client {
 	return &Client{t: t, metadata: noTags}
 }
 
+func NewWithError(t testing.TB, err error) *Client {
+	return &Client{t: t, err: err}
+}
+
 func (c *Client) GetMetadata(ctx context.Context, params *imds.GetMetadataInput, optFns ...func(*imds.Options)) (*imds.GetMetadataOutput, error) {
 	c.t.Helper()
+
+	if c.err != nil {
+		return &imds.GetMetadataOutput{}, c.err
+	}
 
 	if category, ok := c.metadata[params.Path]; ok {
 		return wrapOutput(category), nil

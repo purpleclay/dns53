@@ -30,36 +30,48 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCompletionBash(t *testing.T) {
+func TestCompletionCommandBash(t *testing.T) {
 	var buf bytes.Buffer
-	cmd := newCompletionCmd(&buf)
+	ctx := &globalContext{
+		out: &buf,
+	}
+
+	cmd := newCompletionCmd()
 	cmd.SetArgs([]string{"bash"})
 
-	err := cmd.Execute()
+	err := cmd.ExecuteContext(ctx)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, buf.String())
 	assert.Contains(t, buf.String(), "bash completion V2 for completion ")
 }
 
-func TestCompletionZsh(t *testing.T) {
+func TestCompletionCommandZsh(t *testing.T) {
 	var buf bytes.Buffer
-	cmd := newCompletionCmd(&buf)
+	ctx := &globalContext{
+		out: &buf,
+	}
+
+	cmd := newCompletionCmd()
 	cmd.SetArgs([]string{"zsh"})
 
-	err := cmd.Execute()
+	err := cmd.ExecuteContext(ctx)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, buf.String())
 	assert.Contains(t, buf.String(), "zsh completion for completion")
 }
 
-func TestCompletionZshNoDescriptions(t *testing.T) {
+func TestCompletionCommandZshNoDescriptions(t *testing.T) {
 	var buf bytes.Buffer
-	cmd := newCompletionCmd(&buf)
+	ctx := &globalContext{
+		out: &buf,
+	}
+
+	cmd := newCompletionCmd()
 	cmd.SetArgs([]string{"zsh", "--no-descriptions"})
 
-	err := cmd.Execute()
+	err := cmd.ExecuteContext(ctx)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, buf.String())
@@ -67,12 +79,16 @@ func TestCompletionZshNoDescriptions(t *testing.T) {
 	assert.Contains(t, buf.String(), "__completeNoDesc")
 }
 
-func TestCompletionFish(t *testing.T) {
+func TestCompletionCommandFish(t *testing.T) {
 	var buf bytes.Buffer
-	cmd := newCompletionCmd(&buf)
+	ctx := &globalContext{
+		out: &buf,
+	}
+
+	cmd := newCompletionCmd()
 	cmd.SetArgs([]string{"fish"})
 
-	err := cmd.Execute()
+	err := cmd.ExecuteContext(ctx)
 	require.NoError(t, err)
 
 	assert.NotEmpty(t, buf.String())

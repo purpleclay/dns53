@@ -33,12 +33,16 @@ theme:
 nav:
   - Home: index.md
   - Getting Started:
-      - Installation: install.md
       - Broadcast your EC2: configure/broadcast-ec2.md
       - Custom Domain: configure/custom-domain.md
+      - EC2 Auto Attachment: configure/auto-attachment.md
       - Expose EC2 Tags: configure/exposing-tags.md
       - List EC2 Tags: configure/list-tags.md
       - IAM: configure/iam.md
+      - License: license.md
+      - Installation:
+          - Binary: install/binary.md
+          - From Source: install/source.md
   - Reference:
       - Templating: reference/templating.md
       - CLI:

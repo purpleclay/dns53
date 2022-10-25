@@ -26,7 +26,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"io"
+	"os"
 	"regexp"
 	"strings"
 	"text/template"
@@ -34,9 +34,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsimds "github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
+	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
+	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/gobeam/stringy"
+	"github.com/purpleclay/dns53/internal/ec2"
 	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui"
 	"github.com/spf13/cobra"
 )
@@ -55,6 +59,10 @@ Built using Bubbletea 🧋`
   # Launch the TUI using a chosen PHZ, effectively skipping the wizard
   dns53 --phz-id Z000000000ABCDEFGHIJK
 
+  # Launch the TUI, automatically creating and attaching to a default
+  # PHZ. This will also skip the wizard
+  dns53 --auto-attach
+
   # Launch the TUI with a given domain name
   dns53 --domain-name custom.domain
 
@@ -62,28 +70,60 @@ Built using Bubbletea 🧋`
   dns53 --domain-name "{{.IPv4}}.{{.Region}}"`
 )
 
-// Global options set through persistent flags
+var domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
+
 type globalOptions struct {
-	AWSRegion  string
-	AWSProfile string
+	awsRegion  string
+	awsProfile string
 }
-
-var (
-	globalOpts = &globalOptions{}
-
-	domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
-)
 
 type options struct {
 	phzID      string
 	domainName string
+	autoAttach bool
 }
 
-func Execute(out io.Writer) error {
+type autoAttachment struct {
+	phzID         string
+	vpc           string
+	region        string
+	createdPhz    bool
+	associatedPhz bool
+}
+
+// Command defines the root DNS 53 cobra command
+type Command struct {
+	ctx     *globalContext
+	ctxOpts []globalContextOption
+}
+
+// New initialises the root DNS 53 command
+func New() *Command {
+	return &Command{
+		ctx: &globalContext{
+			out:     os.Stdout,
+			Context: context.Background(),
+		},
+	}
+}
+
+// This is deliberately unexported and is used for testing only
+func newWithOptions(options ...globalContextOption) *Command {
+	return &Command{
+		ctx: &globalContext{
+			out:     os.Stdout,
+			Context: context.Background(),
+		},
+		ctxOpts: options,
+	}
+}
+
+// Execute the DNS 53 command
+func (c *Command) Execute(args []string) error {
+	globalOpts := &globalOptions{}
 	opts := options{}
 
 	// Capture in PreRun lifecycle
-	var cfg aws.Config
 	var metadata imds.Metadata
 
 	rootCmd := &cobra.Command{
@@ -94,16 +134,27 @@ func Execute(out io.Writer) error {
 		Example:       examples,
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-
-			cfg, err = awsConfig(globalOpts)
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Construct the required AWS Clients and execute any of the provided options
+			cfg, err := awsConfig(globalOpts)
 			if err != nil {
 				return err
 			}
 
-			imdsClient := imds.NewFromAPI(awsimds.NewFromConfig(cfg))
-			if metadata, err = imdsClient.InstanceMetadata(context.Background()); err != nil {
+			c.ctx.ec2Client = ec2.NewFromAPI(awsec2.NewFromConfig(cfg))
+			c.ctx.imdsClient = imds.NewFromAPI(awsimds.NewFromConfig(cfg))
+			c.ctx.r53Client = r53.NewFromAPI(awsr53.NewFromConfig(cfg))
+
+			// Overwrite any options within the GlobalContext. Especially useful with testing
+			for _, opt := range c.ctxOpts {
+				opt(c.ctx)
+			}
+
+			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+			if metadata, err = c.ctx.imdsClient.InstanceMetadata(c.ctx); err != nil {
 				return err
 			}
 
@@ -116,54 +167,64 @@ func Execute(out io.Writer) error {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// model := tui.Dashboard(tui.DashboardOptions{
-			// 	R53Client:  r53.NewFromAPI(awsr53.NewFromConfig(cfg)),
-			// 	Metadata:   metadata,
-			// 	Version:    version,
-			// 	PhzID:      opts.phzID,
-			// 	DomainName: opts.domainName,
-			// })
+			if opts.autoAttach {
+				attachment, err := autoAttachToZone(c.ctx, "dns53", metadata.VPC, metadata.Region)
+				if err != nil {
+					return err
+				}
+				opts.phzID = attachment.phzID
 
-			model := tui.New(tui.Options{
-				About: tui.About{
-					Name:             "dns53",
-					Version:          version,
-					ShortDescription: "Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately.",
-				},
-			})
+				defer removeAttachmentToZone(c.ctx, attachment)
+			}
 
-			return tea.NewProgram(model, tea.WithAltScreen()).Start()
+			// At the moment there isn't a nicer way to capture this
+			c.ctx.teaModelOptions = tui.DashboardOptions{
+				R53Client:  c.ctx.r53Client,
+				Metadata:   metadata,
+				Version:    version,
+				PhzID:      opts.phzID,
+				DomainName: opts.domainName,
+			}
+
+			var err error
+			p := tea.NewProgram(tui.Dashboard(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
+
+			if !c.ctx.skipTea {
+				err = p.Start()
+			}
+
+			return err
 		},
 	}
 
 	pf := rootCmd.PersistentFlags()
-	pf.StringVar(&globalOpts.AWSRegion, "region", "", "the AWS region to use when querying AWS")
-	pf.StringVar(&globalOpts.AWSProfile, "profile", "", "the AWS named profile to use when loading credentials")
+	pf.StringVar(&globalOpts.awsProfile, "profile", "", "the AWS named profile to use when loading credentials")
+	pf.StringVar(&globalOpts.awsRegion, "region", "", "the AWS region to use when querying AWS")
 
 	f := rootCmd.Flags()
+	f.BoolVar(&opts.autoAttach, "auto-attach", false, "automatically create and attach a record set to a default private hosted zone")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
 
-	rootCmd.AddCommand(newVersionCmd(out))
-	rootCmd.AddCommand(newManPagesCmd(out))
-	rootCmd.AddCommand(newCompletionCmd(out))
-	rootCmd.AddCommand(newIMDSCommand(out))
-	rootCmd.AddCommand(newTagsCommand(out))
+	rootCmd.AddCommand(newVersionCmd())
+	rootCmd.AddCommand(newManPagesCmd())
+	rootCmd.AddCommand(newCompletionCmd())
+	rootCmd.AddCommand(newIMDSCommand())
+	rootCmd.AddCommand(newTagsCommand())
 
-	return rootCmd.ExecuteContext(context.Background())
+	rootCmd.SetArgs(args)
+	return rootCmd.ExecuteContext(c.ctx)
 }
 
 func awsConfig(opts *globalOptions) (aws.Config, error) {
 	optsFn := []func(*config.LoadOptions) error{}
-	if opts.AWSProfile != "" {
-		optsFn = append(optsFn, config.WithSharedConfigProfile(opts.AWSProfile))
+	if opts.awsProfile != "" {
+		optsFn = append(optsFn, config.WithSharedConfigProfile(opts.awsProfile))
 	}
 
-	if opts.AWSRegion != "" {
-		optsFn = append(optsFn, config.WithRegion(opts.AWSRegion))
+	if opts.awsRegion != "" {
+		optsFn = append(optsFn, config.WithRegion(opts.awsRegion))
 	}
-
-	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338/latest/meta-data/"))
 
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
@@ -209,4 +270,46 @@ https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#allow-access
 	dmn = domainRegex.ReplaceAllString(dmn, "")
 
 	return dmn, nil
+}
+
+func autoAttachToZone(ctx *globalContext, name, vpc, region string) (autoAttachment, error) {
+	attachment := autoAttachment{
+		vpc:    vpc,
+		region: region,
+	}
+
+	zone, err := ctx.r53Client.ByName(ctx, "dns53")
+	if err != nil {
+		return attachment, err
+	}
+
+	if zone == nil {
+		newZone, err := ctx.r53Client.CreatePrivateHostedZone(ctx, "dns53", vpc, region)
+		if err != nil {
+			return attachment, err
+		}
+
+		zone = &newZone
+
+		// Record that this PHZ was created during auto-attachment
+		attachment.createdPhz = true
+	} else {
+		if err := ctx.r53Client.AssociateVPCWithZone(ctx, zone.ID, vpc, region); err != nil {
+			return attachment, err
+		}
+
+		// An explicit association has been made between the EC2 VPC and the PHZ during auto-attachment
+		attachment.associatedPhz = true
+	}
+
+	attachment.phzID = zone.ID
+	return attachment, nil
+}
+
+func removeAttachmentToZone(ctx *globalContext, attach autoAttachment) error {
+	if attach.createdPhz {
+		return ctx.r53Client.DeletePrivateHostedZone(ctx, attach.phzID)
+	}
+
+	return ctx.r53Client.DisassociateVPCWithZone(ctx, attach.phzID, attach.vpc, attach.region)
 }
