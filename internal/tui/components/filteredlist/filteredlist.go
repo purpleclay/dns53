@@ -25,7 +25,7 @@ package filteredlist
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/styles"
+	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
 // New ...
@@ -34,15 +34,15 @@ func New(tems []list.Item, width, height int) list.Model {
 
 	// Override the colours within the existing styles
 	delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
-		BorderForeground(styles.HighlightColour).
-		Foreground(styles.HighlightColour).
+		BorderForeground(theme.HighlightColour).
+		Foreground(theme.HighlightColour).
 		Bold(true)
 
 	delegate.Styles.SelectedDesc = delegate.Styles.SelectedDesc.
-		Foreground(styles.HighlightFeintColour)
+		Foreground(theme.HighlightFeintColour)
 
 	delegate.Styles.DimmedDesc = delegate.Styles.DimmedDesc.
-		Foreground(styles.FeintColour)
+		Foreground(theme.FeintColour)
 
 	delegate.Styles.FilterMatch = lipgloss.NewStyle().
 		Underline(true).
@@ -50,18 +50,17 @@ func New(tems []list.Item, width, height int) list.Model {
 
 	filteredList := list.New([]list.Item{}, delegate, width, height)
 
-	// TODO: look into setting a spinner, removes the need for the first message ("Retrieving PHZs...")
 	// TODO: provide a custom key map, this will be used when displaying the footer
 
 	// Override the colours within the existing styles
 	filteredList.Styles.FilterPrompt = filteredList.Styles.FilterPrompt.
-		Foreground(styles.HighlightColour)
+		Foreground(theme.HighlightColour)
 
 	filteredList.Styles.FilterCursor = filteredList.Styles.FilterCursor.
-		Foreground(styles.HighlightColour)
+		Foreground(theme.HighlightColour)
 
 	filteredList.Styles.StatusBarFilterCount = filteredList.Styles.StatusBarFilterCount.
-		Foreground(styles.FeintColour)
+		Foreground(theme.FeintColour)
 
 	filteredList.SetShowTitle(false)
 	filteredList.SetShowHelp(false)

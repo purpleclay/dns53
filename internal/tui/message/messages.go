@@ -22,8 +22,22 @@ SOFTWARE.
 
 package message
 
-// NextPage ...
-type NextPage struct{}
+import (
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
+)
 
-// Quit ...
-type Quit struct{}
+// R53ZoneSelectedMsg ...
+type R53ZoneSelectedMsg struct {
+	HostedZone r53.PrivateHostedZone
+	EC2        imds.Metadata
+}
+
+// ErrorMsg ...
+type ErrorMsg struct {
+	// Reason ...
+	Reason string
+
+	// Cause ...
+	Cause error
+}

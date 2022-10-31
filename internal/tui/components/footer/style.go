@@ -20,30 +20,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package component
+package footer
 
 import (
-	"github.com/charmbracelet/bubbles/help"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// Bubble ...
-type Bubble interface {
-	tea.Model
-	help.KeyMap
-
-	// Resize ...
-	Resize(width, height int)
+type Styles struct {
+	Border lipgloss.Style
 }
 
-// Model ...
-type Model struct {
-	Width  int
-	Height int
-}
+// DefaultStyles ...
+func DefaultStyles() *Styles {
+	s := &Styles{}
 
-// Resize ...
-func (m *Model) Resize(width, height int) {
-	m.Width = width
-	m.Height = height
+	s.Border = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), true, false, false, false).
+		BorderForeground(theme.BorderColour)
+
+	return s
 }

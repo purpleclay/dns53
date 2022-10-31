@@ -20,39 +20,56 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package header
+package dashboard
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/styles"
+	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
 // Styles ...
 type Styles struct {
-	Name        lipgloss.Style
-	Description lipgloss.Style
-	Version     lipgloss.Style
-	Border      lipgloss.Style
+	PrimaryLabel   lipgloss.Style
+	SecondaryLabel lipgloss.Style
+	Spacing        string
+	PendingStatus  lipgloss.Style
+	ActiveStatus   lipgloss.Style
+	Highlight      lipgloss.Style
 }
 
 // DefaultStyles ...
 func DefaultStyles() *Styles {
 	s := &Styles{}
-	s.Name = lipgloss.NewStyle().
-		Foreground(styles.TextColour).
-		Background(styles.PrimaryColour).
+
+	s.PrimaryLabel = lipgloss.NewStyle().
+		Background(theme.PrimaryColour).
+		Foreground(theme.TextColour).
+		Bold(true).
+		Padding(0, 3).
+		MarginRight(8)
+
+	s.SecondaryLabel = lipgloss.NewStyle().
+		Background(theme.SecondaryColour).
+		Foreground(theme.TextColour).
+		PaddingLeft(2).
+		Width(11).
 		Bold(true)
 
-	s.Description = lipgloss.NewStyle().
-		Foreground(styles.FeintColour)
+	s.Spacing = lipgloss.NewStyle().
+		Foreground(theme.VeryFeintColour).
+		Render(strings.Repeat(".", 12))
 
-	s.Version = lipgloss.NewStyle().
-		Foreground(styles.TextColour).
-		Background(styles.SecondaryColour)
+	s.PendingStatus = lipgloss.NewStyle().
+		Foreground(theme.AmberColour).
+		Bold(true)
 
-	s.Border = lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), false, false, true, false).
-		BorderForeground(styles.BorderColour)
+	s.ActiveStatus = lipgloss.NewStyle().
+		Foreground(theme.GreenColour).
+		Bold(true)
+
+	s.Highlight = lipgloss.NewStyle().Foreground(theme.HighlightColour).Bold(true)
 
 	return s
 }

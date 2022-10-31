@@ -20,42 +20,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package errorpanel
+package components
 
-import (
-	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/styles"
-)
+import tea "github.com/charmbracelet/bubbletea"
 
-var LabelColour = lipgloss.Color("#d00000")
+// Model ...
+type Model interface {
+	tea.Model
 
-// Styles ...
-type Styles struct {
-	Label  lipgloss.Style
-	Reason lipgloss.Style
-	Cause  lipgloss.Style
-	Border lipgloss.Style
-}
-
-// DefaultStyles ...
-func DefaultStyles() *Styles {
-	s := &Styles{}
-
-	s.Label = lipgloss.NewStyle().
-		Background(LabelColour).
-		Foreground(styles.TextColour).
-		Bold(true)
-
-	s.Reason = lipgloss.NewStyle().
-		Foreground(styles.TextColour).
-		Bold(true)
-
-	s.Cause = lipgloss.NewStyle().
-		Foreground(styles.TextColour)
-
-	s.Border = lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), false, false, false, true).
-		BorderForeground(styles.BorderColour)
-
-	return s
+	Resize(width, height int) Model
+	Width() int
+	Height() int
 }

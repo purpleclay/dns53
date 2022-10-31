@@ -27,13 +27,13 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 // Model ...
 type Model struct {
 	reason string
 	cause  string
-	raised bool
 	width  int
 	Styles *Styles
 }
@@ -41,7 +41,6 @@ type Model struct {
 // New ...
 func New() Model {
 	return Model{
-		raised: false,
 		Styles: DefaultStyles(),
 	}
 }
@@ -52,45 +51,55 @@ func (m Model) Init() tea.Cmd {
 }
 
 // Update ...
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = int(float32(msg.Width) * 0.75)
-	}
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
 // View ...
 func (m Model) View() string {
-	if m.raised {
-		var b strings.Builder
+	var b strings.Builder
 
-		reason := lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			m.Styles.Label.Padding(0, 2).Render("Error"),
-			m.Styles.Reason.Width(m.width).Render(": "+m.reason),
-		)
+	reason := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		m.Styles.Label.Padding(0, 2).Render("Error"),
+		m.Styles.Reason.Render(": "+m.reason),
+	)
 
-		desc := m.Styles.Cause.Width(m.width).MarginLeft(1).Render(m.cause)
+	desc := m.Styles.Cause.MarginLeft(1).Render(wordwrap.String(m.cause, m.width))
 
-		panel := lipgloss.JoinVertical(
-			lipgloss.Top,
-			lipgloss.NewStyle().Width(m.width).Margin(0, 0, 1, 1).Render(reason),
-			desc,
-		)
+	panel := lipgloss.JoinVertical(
+		lipgloss.Top,
+		lipgloss.NewStyle().Margin(0, 0, 1, 1).Render(wordwrap.String(reason, m.width)),
+		desc,
+	)
 
-		b.WriteString(m.Styles.Border.Render(panel))
-		return b.String()
-	}
-
-	return ""
+	b.WriteString(m.Styles.Border.Render(panel))
+	return b.String()
 }
 
 // RaiseError ...
-func (m *Model) RaiseError(reason string, cause error) {
-	m.raised = true
+func (m Model) RaiseError(reason string, cause error) Model {
 	m.reason = reason
 	if cause != nil {
 		m.cause = cause.Error()
 	}
+
+	return m
+}
+
+// Resize ...
+func (m Model) Resize(width, height int) Model {
+	// Restrict the error panel to be 3/4 the width of the containing component
+	m.width = int(float32(width) * 0.75)
+	return m
+}
+
+// Width ...
+func (m Model) Width() int {
+	return m.width
+}
+
+// Height ...
+func (m Model) Height() int {
+	return lipgloss.Height(m.View())
 }

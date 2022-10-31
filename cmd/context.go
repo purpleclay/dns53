@@ -43,7 +43,7 @@ type globalContext struct {
 	skipTea bool
 
 	// Capture the tea model for validation
-	teaModelOptions tui.DashboardOptions
+	teaModelOptions tui.Options
 
 	// Support overwriting the clients during within the
 	// PersistentPreRunE hook for testing

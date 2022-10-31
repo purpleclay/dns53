@@ -20,9 +20,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package page
+package pages
 
-// Dashboard ...
-type Dashboard struct {
-	// viewport
+import (
+	"github.com/charmbracelet/bubbles/help"
+	tea "github.com/charmbracelet/bubbletea"
+)
+
+// Model ...
+type Model interface {
+	tea.Model
+	help.KeyMap
+
+	Resize(width, height int) Model
+	Width() int
+	Height() int
 }

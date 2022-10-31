@@ -36,5 +36,6 @@ var (
 	AmberColour          = lipgloss.Color("#e68a35")
 	GreenColour          = lipgloss.Color("#26a621")
 
-	AppStyle = lipgloss.NewStyle().Margin(1)
+	AppStyle  = lipgloss.NewStyle().Margin(1)
+	TextStyle = lipgloss.NewStyle().Foreground(TextColour)
 )

@@ -20,35 +20,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package footer
+package wizard
 
 import (
-	"github.com/charmbracelet/bubbles/help"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// Model ...
-type Model struct {
-	help   help.Model
-	keymap help.KeyMap
+// Styles ...
+type Styles struct {
+	Spinner lipgloss.Style
 }
 
-// New ...
-func New() Model {
-	return Model{}
-}
+// DefaultStyles ...
+func DefaultStyles() *Styles {
+	s := &Styles{}
 
-// Init ...
-func (m Model) Init() tea.Cmd {
-	return nil
-}
+	s.Spinner = lipgloss.NewStyle().
+		Foreground(theme.HighlightColour).
+		Bold(true)
 
-// Update ...
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	return m, nil
-}
-
-// View ...
-func (m Model) View() string {
-	return ""
+	return s
 }

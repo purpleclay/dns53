@@ -20,14 +20,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package page
+package errorpanel
 
-// Model ...
-type Model struct {
-	Width  int
-	Height int
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/theme"
+)
+
+var LabelColour = lipgloss.Color("#d00000")
+
+// Styles ...
+type Styles struct {
+	Label  lipgloss.Style
+	Reason lipgloss.Style
+	Cause  lipgloss.Style
+	Border lipgloss.Style
 }
 
-// Resize ...
-func (m *Model) Resize(width, height int) {
+// DefaultStyles ...
+func DefaultStyles() *Styles {
+	s := &Styles{}
+
+	s.Label = lipgloss.NewStyle().
+		Background(LabelColour).
+		Foreground(theme.TextColour).
+		Bold(true)
+
+	s.Reason = lipgloss.NewStyle().
+		Foreground(theme.TextColour).
+		Bold(true)
+
+	s.Cause = lipgloss.NewStyle().
+		Foreground(theme.TextColour)
+
+	s.Border = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, false, true).
+		BorderForeground(theme.BorderColour)
+
+	return s
 }

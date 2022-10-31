@@ -22,9 +22,18 @@ SOFTWARE.
 
 package tui
 
+import (
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
+)
+
 // Options ...
 type Options struct {
-	About About
+	About        About
+	R53Client    *r53.Client
+	EC2Metadata  imds.Metadata
+	DomainName   string
+	HostedZoneID string
 }
 
 // About ...

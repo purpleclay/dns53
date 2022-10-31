@@ -20,9 +20,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package page
+package header
 
-// Wizard ...
-type Wizard struct {
-	//viewport
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/theme"
+)
+
+// Styles ...
+type Styles struct {
+	Name        lipgloss.Style
+	Description lipgloss.Style
+	Version     lipgloss.Style
+	Border      lipgloss.Style
+}
+
+// DefaultStyles ...
+func DefaultStyles() *Styles {
+	s := &Styles{}
+	s.Name = lipgloss.NewStyle().
+		Foreground(theme.TextColour).
+		Background(theme.PrimaryColour).
+		Bold(true)
+
+	s.Description = lipgloss.NewStyle().
+		Foreground(theme.FeintColour)
+
+	s.Version = lipgloss.NewStyle().
+		Foreground(theme.TextColour).
+		Background(theme.SecondaryColour)
+
+	s.Border = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, true, false).
+		BorderForeground(theme.BorderColour)
+
+	return s
 }

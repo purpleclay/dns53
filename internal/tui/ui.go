@@ -23,84 +23,123 @@ SOFTWARE.
 package tui
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/purpleclay/dns53/internal/tui/component"
-	"github.com/purpleclay/dns53/internal/tui/component/header"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/components"
+	"github.com/purpleclay/dns53/internal/tui/components/footer"
+	"github.com/purpleclay/dns53/internal/tui/components/header"
+	"github.com/purpleclay/dns53/internal/tui/message"
+	"github.com/purpleclay/dns53/internal/tui/pages"
+	"github.com/purpleclay/dns53/internal/tui/pages/dashboard"
+	"github.com/purpleclay/dns53/internal/tui/pages/wizard"
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// // Basic page management
-// type page int
+// Basic page management
+type page int
 
-// const (
-// 	wizardPage page = iota
-// 	dashboardPage
-// )
-
-/*
-AppDetails:{name, version, description} -> forwarded onto the header to render
-*/
+const (
+	wizardPage page = iota
+	dashboardPage
+)
 
 // UI ...
 type UI struct {
-	component.Model
-	header header.Model
-	//currentPage page
+	header      components.Model
+	pages       []pages.Model
+	currentPage page
+	footer      components.Model
 }
 
 // New ...
 func New(opts Options) UI {
-	hdr := header.New(opts.About.Name, opts.About.Version, opts.About.ShortDescription)
-
+	// TODO: figure out how to bind keymaps to footer
 	return UI{
-		header: hdr,
+		header: header.New(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
+		pages: []pages.Model{
+			wizard.New(wizard.Options{
+				Client:       opts.R53Client,
+				Metadata:     opts.EC2Metadata,
+				HostedZoneID: opts.HostedZoneID,
+				DomainName:   opts.DomainName,
+			}),
+			dashboard.New(dashboard.Options{
+				Client:     opts.R53Client,
+				Metadata:   opts.EC2Metadata,
+				DomainName: opts.DomainName,
+			}),
+		},
+		currentPage: wizardPage,
+		footer:      footer.New(),
 	}
-}
-
-// TODO: Get rid of pointer receivers
-func (u *UI) Resize(width, height int) {
-	u.Model.Resize(width, height)
-	wm, hm := u.getMargins()
-	u.header.Resize(width-wm, height-hm)
-	// TODO: resize the footer
-}
-
-func (ui *UI) getMargins() (int, int) {
-	style := theme.AppStyle.Copy()
-	wm := style.GetHorizontalFrameSize()
-	hm := style.GetVerticalFrameSize()
-	return wm, hm
 }
 
 // Init ...
 func (u UI) Init() tea.Cmd {
-	// create pages -> bundle their init commands
-	return nil
+	cmds := make([]tea.Cmd, 0)
+	cmds = append(cmds, u.header.Init(), u.footer.Init())
+
+	for i := range u.pages {
+		cmds = append(cmds, u.pages[i].Init())
+	}
+
+	return tea.Batch(cmds...)
 }
 
 // Update ...
 func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	cmds := make([]tea.Cmd, 0)
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		fmt.Println(msg.Width)
-		u.header.Resize(msg.Width, msg.Height)
-		//u.Resize(msg.Width, msg.Height)
-		// TODO: issue updates on the pages
+		x, y := u.margins()
+
+		// Only need to resize the width of both the header and footer
+		u.header = u.header.Resize(msg.Width-x, u.header.Height())
+		u.footer = u.footer.Resize(msg.Width-x, u.footer.Height())
+
+		// Pages need resizing in both axis within the available space
+		pageX := msg.Width - x
+		pageY := msg.Height - (y + u.header.Height() + u.footer.Height())
+
+		// TODO: manage a central viewport here, rather than on each page
+		for i := range u.pages {
+			u.pages[i] = u.pages[i].Resize(pageX, pageY)
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
 			return u, tea.Quit
 		}
+	case message.R53ZoneSelectedMsg:
+		u.currentPage += dashboardPage
 	}
 
+	var page tea.Model
+	page, cmd = u.pages[u.currentPage].Update(msg)
+	u.pages[u.currentPage] = page.(pages.Model)
+	cmds = append(cmds, cmd)
+
+	// TODO: if a Quit message has been sent (tea.Quit as the page will have handled the key msg)
 	return u, tea.Batch(cmds...)
 }
 
 // View ...
 func (u UI) View() string {
-	return u.header.View()
+	view := lipgloss.JoinVertical(
+		lipgloss.Left,
+		u.header.View(),
+		u.pages[u.currentPage].View(),
+		u.footer.View(),
+	)
+
+	return theme.AppStyle.Render(view)
+}
+
+func (u UI) margins() (int, int) {
+	s := theme.AppStyle.Copy()
+	return s.GetHorizontalFrameSize(), s.GetVerticalFrameSize()
 }
