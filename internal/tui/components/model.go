@@ -24,7 +24,6 @@ package components
 
 import tea "github.com/charmbracelet/bubbletea"
 
-// Model ...
 type Model interface {
 	tea.Model
 

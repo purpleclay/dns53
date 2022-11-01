@@ -30,7 +30,6 @@ import (
 	"github.com/muesli/reflow/wordwrap"
 )
 
-// Model ...
 type Model struct {
 	reason string
 	cause  string
@@ -38,24 +37,20 @@ type Model struct {
 	Styles *Styles
 }
 
-// New ...
 func New() Model {
 	return Model{
 		Styles: DefaultStyles(),
 	}
 }
 
-// Init ...
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update ...
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// View ...
 func (m Model) View() string {
 	var b strings.Builder
 
@@ -77,7 +72,6 @@ func (m Model) View() string {
 	return b.String()
 }
 
-// RaiseError ...
 func (m Model) RaiseError(reason string, cause error) Model {
 	m.reason = reason
 	if cause != nil {
@@ -87,19 +81,16 @@ func (m Model) RaiseError(reason string, cause error) Model {
 	return m
 }
 
-// Resize ...
 func (m Model) Resize(width, height int) Model {
 	// Restrict the error panel to be 3/4 the width of the containing component
 	m.width = int(float32(width) * 0.75)
 	return m
 }
 
-// Width ...
 func (m Model) Width() int {
 	return m.width
 }
 
-// Height ...
 func (m Model) Height() int {
 	return lipgloss.Height(m.View())
 }

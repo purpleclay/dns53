@@ -54,7 +54,6 @@ func (i hostedZoneItem) Title() string       { return i.name }
 func (i hostedZoneItem) Description() string { return i.id }
 func (i hostedZoneItem) FilterValue() string { return i.name }
 
-// Options ...
 type Options struct {
 	Client       *r53.Client
 	Metadata     imds.Metadata
@@ -62,7 +61,6 @@ type Options struct {
 	DomainName   string
 }
 
-// Model ...
 type Model struct {
 	viewport    viewport.Model
 	loading     spinner.Model
@@ -73,7 +71,6 @@ type Model struct {
 	styles      *Styles
 }
 
-// New ...
 func New(opts Options) Model {
 	styles := DefaultStyles()
 
@@ -92,7 +89,6 @@ func New(opts Options) Model {
 	}
 }
 
-// Init ...
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.viewport.Init(),
@@ -106,7 +102,6 @@ func (m Model) Init() tea.Cmd {
 	)
 }
 
-// Update ...
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -132,7 +127,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, func() tea.Msg {
 				return message.R53ZoneSelectedMsg{
 					HostedZone: r53.PrivateHostedZone{ID: selected.id, Name: selected.name},
-					EC2:        m.options.Metadata,
 				}
 			})
 		}
@@ -150,7 +144,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-// View ...
 func (m Model) View() string {
 	var page string
 	if len(m.selection.Items()) == 0 {
@@ -183,17 +176,14 @@ func (m Model) View() string {
 	return m.viewport.View()
 }
 
-// ShortHelp ...
 func (m Model) ShortHelp() []key.Binding {
 	return []key.Binding{}
 }
 
-// FullHelp ...
 func (m Model) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-// Resize ...
 func (m Model) Resize(width, height int) pages.Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
@@ -202,12 +192,10 @@ func (m Model) Resize(width, height int) pages.Model {
 	return m
 }
 
-// Width ...
 func (m Model) Width() int {
 	return m.viewport.Width
 }
 
-// Height ...
 func (m Model) Height() int {
 	return m.viewport.Height
 }
@@ -234,5 +222,5 @@ func (m Model) queryHostedZone() tea.Msg {
 		}
 	}
 
-	return message.R53ZoneSelectedMsg{HostedZone: phz, EC2: m.options.Metadata}
+	return message.R53ZoneSelectedMsg{HostedZone: phz}
 }

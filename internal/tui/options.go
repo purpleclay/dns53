@@ -27,7 +27,6 @@ import (
 	"github.com/purpleclay/dns53/internal/r53"
 )
 
-// Options ...
 type Options struct {
 	About        About
 	R53Client    *r53.Client
@@ -36,7 +35,6 @@ type Options struct {
 	HostedZoneID string
 }
 
-// About ...
 type About struct {
 	Name             string
 	Version          string

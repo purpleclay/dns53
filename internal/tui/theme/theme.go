@@ -35,7 +35,9 @@ var (
 	HighlightFeintColour = lipgloss.Color("#b769d6")
 	AmberColour          = lipgloss.Color("#e68a35")
 	GreenColour          = lipgloss.Color("#26a621")
+	RedColour            = lipgloss.Color("#a61414")
 
 	AppStyle  = lipgloss.NewStyle().Margin(1)
 	TextStyle = lipgloss.NewStyle().Foreground(TextColour)
+	// TODO: FeintText VeryFeintText?
 )

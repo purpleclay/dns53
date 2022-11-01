@@ -31,7 +31,6 @@ type Styles struct {
 	Border lipgloss.Style
 }
 
-// DefaultStyles ...
 func DefaultStyles() *Styles {
 	s := &Styles{}
 

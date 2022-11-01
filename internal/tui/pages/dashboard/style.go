@@ -29,7 +29,6 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// Styles ...
 type Styles struct {
 	PrimaryLabel   lipgloss.Style
 	SecondaryLabel lipgloss.Style
@@ -39,7 +38,6 @@ type Styles struct {
 	Highlight      lipgloss.Style
 }
 
-// DefaultStyles ...
 func DefaultStyles() *Styles {
 	s := &Styles{}
 

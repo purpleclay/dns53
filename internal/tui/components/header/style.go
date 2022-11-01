@@ -27,7 +27,6 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// Styles ...
 type Styles struct {
 	Name        lipgloss.Style
 	Description lipgloss.Style
@@ -35,7 +34,6 @@ type Styles struct {
 	Border      lipgloss.Style
 }
 
-// DefaultStyles ...
 func DefaultStyles() *Styles {
 	s := &Styles{}
 	s.Name = lipgloss.NewStyle().

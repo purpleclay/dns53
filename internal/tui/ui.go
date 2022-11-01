@@ -35,7 +35,6 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// Basic page management
 type page int
 
 const (
@@ -43,7 +42,6 @@ const (
 	dashboardPage
 )
 
-// UI ...
 type UI struct {
 	header      components.Model
 	pages       []pages.Model
@@ -51,7 +49,6 @@ type UI struct {
 	footer      components.Model
 }
 
-// New ...
 func New(opts Options) UI {
 	// TODO: figure out how to bind keymaps to footer
 	return UI{
@@ -74,7 +71,6 @@ func New(opts Options) UI {
 	}
 }
 
-// Init ...
 func (u UI) Init() tea.Cmd {
 	cmds := make([]tea.Cmd, 0)
 	cmds = append(cmds, u.header.Init(), u.footer.Init())
@@ -86,7 +82,6 @@ func (u UI) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-// Update ...
 func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
@@ -127,7 +122,6 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return u, tea.Batch(cmds...)
 }
 
-// View ...
 func (u UI) View() string {
 	view := lipgloss.JoinVertical(
 		lipgloss.Left,

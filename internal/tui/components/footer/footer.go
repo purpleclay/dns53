@@ -30,14 +30,12 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/components"
 )
 
-// Model ...
 type Model struct {
 	text   string
 	width  int
 	Styles *Styles
 }
 
-// New ...
 func New() Model {
 	return Model{
 		text:   "Made with 💜 at Purple Clay",
@@ -45,17 +43,14 @@ func New() Model {
 	}
 }
 
-// Init ...
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update ...
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// View ...
 func (m Model) View() string {
 	var b strings.Builder
 
@@ -72,18 +67,15 @@ func (m Model) View() string {
 	return b.String()
 }
 
-// Resize ...
 func (m Model) Resize(width, height int) components.Model {
 	m.width = width
 	return m
 }
 
-// Width ...
 func (m Model) Width() int {
 	return m.width
 }
 
-// Height ...
 func (m Model) Height() int {
 	return lipgloss.Height(m.View())
 }

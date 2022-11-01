@@ -23,21 +23,18 @@ SOFTWARE.
 package message
 
 import (
-	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
 )
 
-// R53ZoneSelectedMsg ...
+// R53ZoneSelectedMsg signals that a R53 Private Hosted Zone has
+// been selected and an association can now be made between it and
+// the EC2
 type R53ZoneSelectedMsg struct {
 	HostedZone r53.PrivateHostedZone
-	EC2        imds.Metadata
 }
 
-// ErrorMsg ...
+// ErrorMsg should be sent to notify a user of an unrecoverable error
 type ErrorMsg struct {
-	// Reason ...
 	Reason string
-
-	// Cause ...
-	Cause error
+	Cause  error
 }

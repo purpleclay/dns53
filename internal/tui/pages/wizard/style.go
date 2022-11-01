@@ -27,12 +27,10 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// Styles ...
 type Styles struct {
 	Spinner lipgloss.Style
 }
 
-// DefaultStyles ...
 func DefaultStyles() *Styles {
 	s := &Styles{}
 
