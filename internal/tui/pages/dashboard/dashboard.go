@@ -94,6 +94,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c":
+			if m.connected {
+				record := r53.ResourceRecord{
+					PhzID:    m.selected.ID,
+					Name:     m.domainName,
+					Resource: m.options.Metadata.IPv4,
+				}
+
+				m.options.Client.DisassociateRecord(context.Background(), record)
+			}
+		}
 	}
 
 	if m.connected {

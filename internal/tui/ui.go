@@ -109,13 +109,14 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for i := range u.pages {
 			u.pages[i] = u.pages[i].Resize(pageX, pageY)
 		}
+	case message.R53ZoneSelectedMsg:
+		u.currentPage += dashboardPage
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
+			u.pages[u.currentPage].Update(msg)
 			return u, tea.Quit
 		}
-	case message.R53ZoneSelectedMsg:
-		u.currentPage += dashboardPage
 	}
 
 	var page tea.Model
@@ -123,7 +124,6 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	u.pages[u.currentPage] = page.(pages.Model)
 	cmds = append(cmds, cmd)
 
-	// TODO: if a Quit message has been sent (tea.Quit as the page will have handled the key msg)
 	return u, tea.Batch(cmds...)
 }
 
