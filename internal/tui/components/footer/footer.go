@@ -25,21 +25,34 @@ package footer
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/tui/components"
+	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
 type Model struct {
+	help   help.Model
+	keymap help.KeyMap
 	text   string
 	width  int
 	Styles *Styles
 }
 
-func New() Model {
+func New(keymap help.KeyMap) Model {
+	styles := DefaultStyles()
+
+	help := help.New()
+	help.Styles.ShortSeparator = styles.Ellipsis
+	help.Styles.ShortKey = styles.HelpText
+	help.Styles.ShortDesc = styles.HelpFeintText
+
 	return Model{
+		help:   help,
+		keymap: keymap,
 		text:   "Made with 💜 at Purple Clay",
-		Styles: DefaultStyles(),
+		Styles: styles,
 	}
 }
 
@@ -54,15 +67,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var b strings.Builder
 
-	// Border
-	// Margin 1
-	// Help Keys
-	// Margin 1
-	// Text (full block of colour)
+	text := theme.VeryFeintTextStyle.Copy().MarginTop(2).Render(m.text)
+
+	panel := lipgloss.JoinVertical(lipgloss.Top, m.help.View(m.keymap), text)
 
 	b.WriteString(m.Styles.Border.
 		Width(m.width).
-		Render(m.text))
+		Render(panel))
 
 	return b.String()
 }
@@ -78,4 +89,9 @@ func (m Model) Width() int {
 
 func (m Model) Height() int {
 	return lipgloss.Height(m.View())
+}
+
+func (m Model) SetKeyMap(keymap help.KeyMap) Model {
+	m.keymap = keymap
+	return m
 }

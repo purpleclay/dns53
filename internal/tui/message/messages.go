@@ -38,3 +38,6 @@ type ErrorMsg struct {
 	Reason string
 	Cause  error
 }
+
+// RefreshKeymapMsg ...
+type RefreshKeymapMsg struct{}

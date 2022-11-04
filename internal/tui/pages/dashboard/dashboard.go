@@ -57,6 +57,7 @@ type Model struct {
 	errorPanel  errorpanel.Model
 	errorRaised bool
 	styles      *Styles
+	keymap      *KeyMap
 }
 
 func New(opts Options) Model {
@@ -66,6 +67,7 @@ func New(opts Options) Model {
 		elapsed:    stopwatch.New(),
 		errorPanel: errorpanel.New(),
 		styles:     DefaultStyles(),
+		keymap:     DefaultKeyMap(),
 	}
 }
 
@@ -178,7 +180,9 @@ func (m Model) View() string {
 }
 
 func (m Model) ShortHelp() []key.Binding {
-	return []key.Binding{}
+	return []key.Binding{
+		m.keymap.Quit,
+	}
 }
 
 func (m Model) FullHelp() [][]key.Binding {

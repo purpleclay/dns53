@@ -69,6 +69,7 @@ type Model struct {
 	errorRaised bool
 	options     Options
 	styles      *Styles
+	keymap      *KeyMap
 }
 
 func New(opts Options) Model {
@@ -86,6 +87,7 @@ func New(opts Options) Model {
 		errorPanel: errorpanel.New(),
 		options:    opts,
 		styles:     styles,
+		keymap:     DefaultKeyMap(),
 	}
 }
 
@@ -116,6 +118,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			items = append(items, hostedZoneItem{name: phz.Name, id: phz.ID})
 		}
 		m.selection.SetItems(items)
+
+		// Refresh the keymap based on the list being populated
+		cmds = append(cmds, func() tea.Msg {
+			return message.RefreshKeymapMsg{}
+		})
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
@@ -128,6 +135,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return message.R53ZoneSelectedMsg{
 					HostedZone: r53.PrivateHostedZone{ID: selected.id, Name: selected.name},
 				}
+			})
+		case "/":
+			fallthrough
+		case "esc":
+			// Refresh the keymap based on the list being populated
+			cmds = append(cmds, func() tea.Msg {
+				return message.RefreshKeymapMsg{}
 			})
 		}
 	}
@@ -177,7 +191,26 @@ func (m Model) View() string {
 }
 
 func (m Model) ShortHelp() []key.Binding {
-	return []key.Binding{}
+	kb := make([]key.Binding, 0)
+
+	kb = append(kb, m.keymap.Quit)
+
+	// Respond to the selection being populated with items
+	if len(m.selection.Items()) > 0 {
+		if m.selection.FilterState() == list.Filtering {
+			kb = append(kb, m.keymap.Enter, m.keymap.Escape)
+		} else {
+			kb = append(kb, m.keymap.UpDown)
+
+			if m.selection.Paginator.TotalPages > 1 {
+				kb = append(kb, m.keymap.LeftRight)
+			}
+
+			kb = append(kb, m.keymap.Enter, m.keymap.ForwardSlash)
+		}
+	}
+
+	return kb
 }
 
 func (m Model) FullHelp() [][]key.Binding {
@@ -201,14 +234,41 @@ func (m Model) Height() int {
 }
 
 func (m Model) queryHostedZones() tea.Msg {
-	metadata := m.options.Metadata
-	phzs, err := m.options.Client.ByVPC(context.Background(), metadata.VPC, metadata.Region)
-	if err != nil {
-		return message.ErrorMsg{
-			Reason: fmt.Sprintf("querying private hosted zones for VPC %s in region %s", metadata.VPC, metadata.Region),
-			Cause:  err,
-		}
+	phzs := []r53.PrivateHostedZone{
+		{
+			ID:   "Z0000000000000001",
+			Name: "testing1",
+		},
+		{
+			ID:   "Z0000000000000002",
+			Name: "testing2",
+		},
+		{
+			ID:   "Z0000000000000003",
+			Name: "testing3",
+		},
+		{
+			ID:   "Z0000000000000004",
+			Name: "testing4",
+		},
+		{
+			ID:   "Z0000000000000005",
+			Name: "testing5",
+		},
+		{
+			ID:   "Z0000000000000006",
+			Name: "testing6",
+		},
 	}
+
+	// metadata := m.options.Metadata
+	// phzs, err := m.options.Client.ByVPC(context.Background(), metadata.VPC, metadata.Region)
+	// if err != nil {
+	// 	return message.ErrorMsg{
+	// 		Reason: fmt.Sprintf("querying private hosted zones for VPC %s in region %s", metadata.VPC, metadata.Region),
+	// 		Cause:  err,
+	// 	}
+	// }
 
 	return zoneSelectionMsg{hostedZones: phzs}
 }

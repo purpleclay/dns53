@@ -50,24 +50,27 @@ type UI struct {
 }
 
 func New(opts Options) UI {
-	// TODO: figure out how to bind keymaps to footer
+	pages := []pages.Model{
+		wizard.New(wizard.Options{
+			Client:       opts.R53Client,
+			Metadata:     opts.EC2Metadata,
+			HostedZoneID: opts.HostedZoneID,
+			DomainName:   opts.DomainName,
+		}),
+		dashboard.New(dashboard.Options{
+			Client:     opts.R53Client,
+			Metadata:   opts.EC2Metadata,
+			DomainName: opts.DomainName,
+		}),
+	}
+
+	currentPage := wizardPage
+
 	return UI{
-		header: header.New(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
-		pages: []pages.Model{
-			wizard.New(wizard.Options{
-				Client:       opts.R53Client,
-				Metadata:     opts.EC2Metadata,
-				HostedZoneID: opts.HostedZoneID,
-				DomainName:   opts.DomainName,
-			}),
-			dashboard.New(dashboard.Options{
-				Client:     opts.R53Client,
-				Metadata:   opts.EC2Metadata,
-				DomainName: opts.DomainName,
-			}),
-		},
-		currentPage: wizardPage,
-		footer:      footer.New(),
+		header:      header.New(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
+		pages:       pages,
+		currentPage: currentPage,
+		footer:      footer.New(pages[currentPage]),
 	}
 }
 
@@ -106,6 +109,13 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case message.R53ZoneSelectedMsg:
 		u.currentPage += dashboardPage
+
+		// TODO: refactor into utility method
+		footer := u.footer.(footer.Model)
+		u.footer = footer.SetKeyMap(u.pages[u.currentPage])
+	case message.RefreshKeymapMsg:
+		footer := u.footer.(footer.Model)
+		u.footer = footer.SetKeyMap(u.pages[u.currentPage])
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":

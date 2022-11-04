@@ -20,27 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package theme
+package dashboard
 
-import (
-	"github.com/charmbracelet/lipgloss"
-)
+import "github.com/charmbracelet/bubbles/key"
 
-var (
-	PrimaryColour        = lipgloss.Color("#3a1577")
-	SecondaryColour      = lipgloss.Color("#5b1689")
-	BorderColour         = lipgloss.Color("#2b0940")
-	FeintColour          = lipgloss.Color("#807d8a")
-	VeryFeintColour      = lipgloss.Color("#5e5e5e")
-	TextColour           = lipgloss.Color("#f6f5fc")
-	HighlightColour      = lipgloss.Color("#bf31f7")
-	HighlightFeintColour = lipgloss.Color("#b769d6")
-	AmberColour          = lipgloss.Color("#e68a35")
-	GreenColour          = lipgloss.Color("#26a621")
-	RedColour            = lipgloss.Color("#a61414")
+type KeyMap struct {
+	Quit key.Binding
+}
 
-	AppStyle           = lipgloss.NewStyle().Margin(1)
-	TextStyle          = lipgloss.NewStyle().Foreground(TextColour)
-	FeintTextStyle     = lipgloss.NewStyle().Foreground(FeintColour)
-	VeryFeintTextStyle = lipgloss.NewStyle().Foreground(VeryFeintColour)
-)
+func DefaultKeyMap() *KeyMap {
+	km := &KeyMap{}
+
+	km.Quit = key.NewBinding(
+		key.WithKeys("ctrl+c"), key.WithHelp("ctrl+c", "quit"),
+	)
+
+	return km
+}

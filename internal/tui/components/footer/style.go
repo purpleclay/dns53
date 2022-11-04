@@ -28,7 +28,10 @@ import (
 )
 
 type Styles struct {
-	Border lipgloss.Style
+	Border        lipgloss.Style
+	Ellipsis      lipgloss.Style
+	HelpText      lipgloss.Style
+	HelpFeintText lipgloss.Style
 }
 
 func DefaultStyles() *Styles {
@@ -38,5 +41,9 @@ func DefaultStyles() *Styles {
 		Border(lipgloss.NormalBorder(), true, false, false, false).
 		BorderForeground(theme.BorderColour)
 
+	s.Ellipsis = lipgloss.NewStyle().Foreground(theme.HighlightFeintColour)
+
+	s.HelpText = theme.TextStyle.Copy()
+	s.HelpFeintText = theme.FeintTextStyle.Copy()
 	return s
 }
