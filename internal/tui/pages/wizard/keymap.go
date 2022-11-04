@@ -40,7 +40,7 @@ func DefaultKeyMap() *KeyMap {
 		key.WithKeys("up", "down"), key.WithHelp("↑↓", "up/down"),
 	)
 	km.LeftRight = key.NewBinding(
-		key.WithKeys("←", "→"), key.WithHelp("← →", "left/right"),
+		key.WithKeys("left", "right"), key.WithHelp("← →", "left/right"),
 	)
 	km.Enter = key.NewBinding(
 		key.WithKeys("↲"), key.WithHelp("↲", "select"),

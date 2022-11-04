@@ -23,12 +23,12 @@ SOFTWARE.
 package filteredlist
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-// New ...
 func New(tems []list.Item, width, height int) list.Model {
 	delegate := list.NewDefaultDelegate()
 
@@ -50,8 +50,6 @@ func New(tems []list.Item, width, height int) list.Model {
 
 	filteredList := list.New([]list.Item{}, delegate, width, height)
 
-	// TODO: provide a custom key map, this will be used when displaying the footer
-
 	// Override the colours within the existing styles
 	filteredList.Styles.FilterPrompt = filteredList.Styles.FilterPrompt.
 		Foreground(theme.HighlightColour)
@@ -65,6 +63,24 @@ func New(tems []list.Item, width, height int) list.Model {
 	filteredList.SetShowTitle(false)
 	filteredList.SetShowHelp(false)
 	filteredList.DisableQuitKeybindings()
+
+	// Override key bindings to force expected behaviour
+	filteredList.KeyMap.GoToEnd.SetEnabled(false)
+	filteredList.KeyMap.GoToStart.SetEnabled(false)
+
+	// TODO: make a global keymap
+	filteredList.KeyMap.CursorUp = key.NewBinding(
+		key.WithKeys("up"), key.WithHelp("↑", "up"),
+	)
+	filteredList.KeyMap.CursorDown = key.NewBinding(
+		key.WithKeys("down"), key.WithHelp("↓", "down"),
+	)
+	filteredList.KeyMap.NextPage = key.NewBinding(
+		key.WithKeys("right"), key.WithHelp("→", "right"),
+	)
+	filteredList.KeyMap.PrevPage = key.NewBinding(
+		key.WithKeys("left"), key.WithHelp("←", "left"),
+	)
 
 	return filteredList
 }

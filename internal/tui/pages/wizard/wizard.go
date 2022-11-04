@@ -79,7 +79,6 @@ func New(opts Options) Model {
 	loading.Spinner = spinner.Dot
 	loading.Style = styles.Spinner
 
-	// TODO: temporary placeholder for selection. This needs to be moved out to support key binding in the footer
 	return Model{
 		viewport:   viewport.New(0, 0),
 		loading:    loading,
@@ -119,7 +118,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.selection.SetItems(items)
 
-		// Refresh the keymap based on the list being populated
+		// TODO: this should be made into a function
 		cmds = append(cmds, func() tea.Msg {
 			return message.RefreshKeymapMsg{}
 		})
