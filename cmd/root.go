@@ -178,16 +178,20 @@ func (c *Command) Execute(args []string) error {
 			}
 
 			// At the moment there isn't a nicer way to capture this
-			c.ctx.teaModelOptions = tui.DashboardOptions{
-				R53Client:  c.ctx.r53Client,
-				Metadata:   metadata,
-				Version:    version,
-				PhzID:      opts.phzID,
-				DomainName: opts.domainName,
+			c.ctx.teaModelOptions = tui.Options{
+				About: tui.About{
+					Name:             "dns53",
+					Version:          version,
+					ShortDescription: "Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately.",
+				},
+				R53Client:    c.ctx.r53Client,
+				EC2Metadata:  metadata,
+				HostedZoneID: opts.phzID,
+				DomainName:   opts.domainName,
 			}
 
 			var err error
-			p := tea.NewProgram(tui.Dashboard(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
+			p := tea.NewProgram(tui.New(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
 
 			if !c.ctx.skipTea {
 				err = p.Start()

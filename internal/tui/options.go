@@ -23,53 +23,20 @@ SOFTWARE.
 package tui
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
 )
 
-var (
-	// Colours
+type Options struct {
+	About        About
+	R53Client    *r53.Client
+	EC2Metadata  imds.Metadata
+	DomainName   string
+	HostedZoneID string
+}
 
-	primary   = lipgloss.Color("#3A0CA3")
-	secondary = lipgloss.Color("#8333B7")
-	feint     = lipgloss.Color("#A2A0A0")
-	red       = lipgloss.Color("#d00000")
-	text      = lipgloss.Color("#FFFFFF")
-
-	// Common
-
-	br = "\n"
-
-	// Header
-
-	appNameStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(primary).
-			MarginLeft(1)
-
-	helpStyle = lipgloss.NewStyle().Foreground(feint).MarginLeft(1)
-
-	// Bubbles
-
-	spinnerStyle = lipgloss.NewStyle().
-			Foreground(secondary).
-			Bold(true).
-			MarginLeft(1)
-
-	// Error
-
-	errorLabelStyle = lipgloss.NewStyle().
-			Background(red).
-			Foreground(text).
-			Bold(true).
-			Padding(0, 1).
-			Render("Error:")
-
-	// Dashboard
-
-	dashboardLabel = lipgloss.NewStyle().
-			Background(secondary).
-			Foreground(text).
-			Bold(true).
-			MarginLeft(1).
-			Width(11)
-)
+type About struct {
+	Name             string
+	Version          string
+	ShortDescription string
+}
