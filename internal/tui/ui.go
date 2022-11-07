@@ -23,11 +23,13 @@ SOFTWARE.
 package tui
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/tui/components"
 	"github.com/purpleclay/dns53/internal/tui/components/footer"
 	"github.com/purpleclay/dns53/internal/tui/components/header"
+	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
 	"github.com/purpleclay/dns53/internal/tui/pages"
 	"github.com/purpleclay/dns53/internal/tui/pages/dashboard"
@@ -110,15 +112,12 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case message.R53ZoneSelectedMsg:
 		u.currentPage += dashboardPage
 
-		// TODO: refactor into utility method
-		footer := u.footer.(footer.Model)
-		u.footer = footer.SetKeyMap(u.pages[u.currentPage])
+		u = u.refreshFooterKeyMap()
 	case message.RefreshKeymapMsg:
-		footer := u.footer.(footer.Model)
-		u.footer = footer.SetKeyMap(u.pages[u.currentPage])
+		u = u.refreshFooterKeyMap()
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
+		switch {
+		case key.Matches(msg, keymap.Quit):
 			u.pages[u.currentPage].Update(msg)
 			return u, tea.Quit
 		}
@@ -146,4 +145,10 @@ func (u UI) View() string {
 func (u UI) margins() (int, int) {
 	s := theme.AppStyle.Copy()
 	return s.GetHorizontalFrameSize(), s.GetVerticalFrameSize()
+}
+
+func (u UI) refreshFooterKeyMap() UI {
+	footer := u.footer.(footer.Model)
+	u.footer = footer.SetKeyMap(u.pages[u.currentPage])
+	return u
 }

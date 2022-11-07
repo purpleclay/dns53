@@ -23,9 +23,9 @@ SOFTWARE.
 package filteredlist
 
 import (
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
@@ -68,19 +68,10 @@ func New(tems []list.Item, width, height int) list.Model {
 	filteredList.KeyMap.GoToEnd.SetEnabled(false)
 	filteredList.KeyMap.GoToStart.SetEnabled(false)
 
-	// TODO: make a global keymap
-	filteredList.KeyMap.CursorUp = key.NewBinding(
-		key.WithKeys("up"), key.WithHelp("↑", "up"),
-	)
-	filteredList.KeyMap.CursorDown = key.NewBinding(
-		key.WithKeys("down"), key.WithHelp("↓", "down"),
-	)
-	filteredList.KeyMap.NextPage = key.NewBinding(
-		key.WithKeys("right"), key.WithHelp("→", "right"),
-	)
-	filteredList.KeyMap.PrevPage = key.NewBinding(
-		key.WithKeys("left"), key.WithHelp("←", "left"),
-	)
+	filteredList.KeyMap.CursorUp = keymap.Up
+	filteredList.KeyMap.CursorDown = keymap.Down
+	filteredList.KeyMap.NextPage = keymap.Right
+	filteredList.KeyMap.PrevPage = keymap.Left
 
 	return filteredList
 }

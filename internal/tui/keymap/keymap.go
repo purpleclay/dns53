@@ -20,28 +20,57 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package theme
+package keymap
 
-import (
-	"github.com/charmbracelet/lipgloss"
-)
+import "github.com/charmbracelet/bubbles/key"
 
 var (
-	PrimaryColour        = lipgloss.Color("#3a1577")
-	SecondaryColour      = lipgloss.Color("#5b1689")
-	BorderColour         = lipgloss.Color("#2b0940")
-	FeintColour          = lipgloss.Color("#807d8a")
-	VeryFeintColour      = lipgloss.Color("#5e5e5e")
-	TextColour           = lipgloss.Color("#f6f5fc")
-	HighlightColour      = lipgloss.Color("#bf31f7")
-	HighlightFeintColour = lipgloss.Color("#b769d6")
-	AmberColour          = lipgloss.Color("#e68a35")
-	GreenColour          = lipgloss.Color("#26a621")
-	RedColour            = lipgloss.Color("#a61414")
+	Up = key.NewBinding(
+		key.WithKeys("up"),
+		key.WithHelp("↑", "up"),
+	)
 
-	// TODO: move more of the styles here, and reference from centralised theme
-	AppStyle           = lipgloss.NewStyle().Margin(1)
-	TextStyle          = lipgloss.NewStyle().Foreground(TextColour)
-	FeintTextStyle     = lipgloss.NewStyle().Foreground(FeintColour)
-	VeryFeintTextStyle = lipgloss.NewStyle().Foreground(VeryFeintColour)
+	Down = key.NewBinding(
+		key.WithKeys("down"),
+		key.WithHelp("↓", "down"),
+	)
+
+	UpDown = key.NewBinding(
+		key.WithKeys("up", "down"),
+		key.WithHelp("↑↓", "up/down"),
+	)
+
+	Left = key.NewBinding(
+		key.WithKeys("left"),
+		key.WithHelp("←", "left"),
+	)
+
+	Right = key.NewBinding(
+		key.WithKeys("right"),
+		key.WithHelp("→", "right"),
+	)
+
+	LeftRight = key.NewBinding(
+		key.WithKeys("left", "right"),
+		key.WithHelp("← →", "left/right"),
+	)
+
+	Enter = key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("↲", "select"),
+	)
+
+	ForwardSlash = key.NewBinding(
+		key.WithKeys("/"),
+		key.WithHelp("/", "filter"),
+	)
+	Escape = key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("esc", "back"),
+	)
+
+	Quit = key.NewBinding(
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
+	)
 )

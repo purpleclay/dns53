@@ -23,6 +23,7 @@ SOFTWARE.
 package message
 
 import (
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/purpleclay/dns53/internal/r53"
 )
 
@@ -39,5 +40,12 @@ type ErrorMsg struct {
 	Cause  error
 }
 
-// RefreshKeymapMsg ...
+// RefreshKeymapMsg should be sent when the keymap associated with the
+// help view needs updating
 type RefreshKeymapMsg struct{}
+
+// RefreshKeyMapCmd provides a utility method that wraps the RefreshKeymapMsg
+// message for use within a update method
+func RefreshKeyMapCmd() tea.Msg {
+	return RefreshKeymapMsg{}
+}

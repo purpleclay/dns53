@@ -36,6 +36,7 @@ import (
 	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui/components/errorpanel"
 	"github.com/purpleclay/dns53/internal/tui/components/filteredlist"
+	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
 	"github.com/purpleclay/dns53/internal/tui/pages"
 	"github.com/purpleclay/dns53/internal/tui/theme"
@@ -118,16 +119,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.selection.SetItems(items)
 
-		// TODO: this should be made into a function
-		cmds = append(cmds, func() tea.Msg {
-			return message.RefreshKeymapMsg{}
-		})
+		// Refresh the keymap based on the list being populated
+		cmds = append(cmds, message.RefreshKeyMapCmd)
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
+		switch {
+		case key.Matches(msg, keymap.Enter):
 			selected := m.selection.SelectedItem().(hostedZoneItem)
 
 			cmds = append(cmds, func() tea.Msg {
@@ -135,13 +134,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					HostedZone: r53.PrivateHostedZone{ID: selected.id, Name: selected.name},
 				}
 			})
-		case "/":
+		case key.Matches(msg, keymap.ForwardSlash):
 			fallthrough
-		case "esc":
+		case key.Matches(msg, keymap.Escape):
 			// Refresh the keymap based on the list being populated
-			cmds = append(cmds, func() tea.Msg {
-				return message.RefreshKeymapMsg{}
-			})
+			cmds = append(cmds, message.RefreshKeyMapCmd)
 		}
 	}
 
