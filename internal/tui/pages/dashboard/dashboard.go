@@ -40,6 +40,9 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/pages"
 )
 
+// Common layout for the dashboard
+const dashboardLine = "%s %s %s"
+
 type r53AssociatedMsg struct{}
 
 type Options struct {
@@ -118,8 +121,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	phzData := lipgloss.JoinVertical(
 		lipgloss.Top,
-		fmt.Sprintf("%s %s %s", m.styles.SecondaryLabel.Render("Name:"), m.styles.Spacing, m.selected.Name),
-		fmt.Sprintf("%s %s %s", m.styles.SecondaryLabel.Render("ID:"), m.styles.Spacing, m.selected.ID),
+		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Name:"), m.styles.Spacing, m.selected.Name),
+		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("ID:"), m.styles.Spacing, m.selected.ID),
 	)
 
 	phz := lipgloss.JoinHorizontal(
@@ -130,9 +133,9 @@ func (m Model) View() string {
 
 	ec2Data := lipgloss.JoinVertical(
 		lipgloss.Top,
-		fmt.Sprintf("%s %s %s", m.styles.SecondaryLabel.Render("IPv4:"), m.styles.Spacing, m.options.Metadata.IPv4),
-		fmt.Sprintf("%s %s %s", m.styles.SecondaryLabel.Render("Region:"), m.styles.Spacing, m.options.Metadata.Region),
-		fmt.Sprintf("%s %s %s", m.styles.SecondaryLabel.Render("VPC:"), m.styles.Spacing, m.options.Metadata.VPC),
+		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("IPv4:"), m.styles.Spacing, m.options.Metadata.IPv4),
+		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Region:"), m.styles.Spacing, m.options.Metadata.Region),
+		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("VPC:"), m.styles.Spacing, m.options.Metadata.VPC),
 	)
 
 	ec2 := lipgloss.JoinHorizontal(
@@ -148,8 +151,8 @@ func (m Model) View() string {
 
 	dnsData := lipgloss.JoinVertical(
 		lipgloss.Top,
-		fmt.Sprintf("%s %s %s [A]", m.styles.SecondaryLabel.Render("Record:"), m.styles.Spacing, m.styles.Highlight.Render(m.domainName)),
-		fmt.Sprintf("%s %s %s", m.styles.SecondaryLabel.Render("Status:"), m.styles.Spacing, status),
+		fmt.Sprintf(dashboardLine+" [A]", m.styles.SecondaryLabel.Render("Record:"), m.styles.Spacing, m.styles.Highlight.Render(m.domainName)),
+		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Status:"), m.styles.Spacing, status),
 	)
 
 	dns := lipgloss.JoinHorizontal(
