@@ -101,11 +101,10 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		u.header = u.header.Resize(msg.Width-x, u.header.Height())
 		u.footer = u.footer.Resize(msg.Width-x, u.footer.Height())
 
-		// Pages need resizing in both axis within the available space
+		// Viewport need resizing in both axis within the available space
 		pageX := msg.Width - x
 		pageY := msg.Height - (y + u.header.Height() + u.footer.Height())
 
-		// TODO: manage a central viewport here, rather than on each page
 		for i := range u.pages {
 			u.pages[i] = u.pages[i].Resize(pageX, pageY)
 		}

@@ -41,8 +41,7 @@ func DefaultStyles() *Styles {
 		Border(lipgloss.NormalBorder(), true, false, false, false).
 		BorderForeground(theme.BorderColour)
 
-	s.Ellipsis = lipgloss.NewStyle().Foreground(theme.HighlightFeintColour)
-
+	s.Ellipsis = theme.HightlightTextStyle.Copy()
 	s.HelpText = theme.TextStyle.Copy()
 	s.HelpFeintText = theme.FeintTextStyle.Copy()
 	return s

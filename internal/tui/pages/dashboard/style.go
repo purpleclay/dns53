@@ -55,8 +55,7 @@ func DefaultStyles() *Styles {
 		Width(11).
 		Bold(true)
 
-	s.Spacing = lipgloss.NewStyle().
-		Foreground(theme.VeryFeintColour).
+	s.Spacing = theme.VeryFeintTextStyle.Copy().
 		Render(strings.Repeat(".", 12))
 
 	s.PendingStatus = lipgloss.NewStyle().
@@ -67,7 +66,7 @@ func DefaultStyles() *Styles {
 		Foreground(theme.GreenColour).
 		Bold(true)
 
-	s.Highlight = lipgloss.NewStyle().Foreground(theme.HighlightColour).Bold(true)
+	s.Highlight = theme.HightlightTextStyle.Copy().Bold(true)
 
 	return s
 }

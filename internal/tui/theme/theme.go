@@ -39,9 +39,9 @@ var (
 	GreenColour          = lipgloss.Color("#26a621")
 	RedColour            = lipgloss.Color("#a61414")
 
-	// TODO: move more of the styles here, and reference from centralised theme
-	AppStyle           = lipgloss.NewStyle().Margin(1)
-	TextStyle          = lipgloss.NewStyle().Foreground(TextColour)
-	FeintTextStyle     = lipgloss.NewStyle().Foreground(FeintColour)
-	VeryFeintTextStyle = lipgloss.NewStyle().Foreground(VeryFeintColour)
+	AppStyle            = lipgloss.NewStyle().Margin(1)
+	TextStyle           = lipgloss.NewStyle().Foreground(TextColour)
+	FeintTextStyle      = lipgloss.NewStyle().Foreground(FeintColour)
+	VeryFeintTextStyle  = lipgloss.NewStyle().Foreground(VeryFeintColour)
+	HightlightTextStyle = lipgloss.NewStyle().Foreground(HighlightColour)
 )
