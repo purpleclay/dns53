@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.19
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.68.0
-	github.com/aws/aws-sdk-go-v2/service/route53 v1.22.4
+	github.com/aws/aws-sdk-go-v2/service/route53 v1.23.0
 	github.com/charmbracelet/bubbles v0.14.0
 	github.com/charmbracelet/bubbletea v0.22.1
 	github.com/charmbracelet/lipgloss v0.6.0
