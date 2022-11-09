@@ -42,17 +42,17 @@ var (
 
 	Left = key.NewBinding(
 		key.WithKeys("left"),
-		key.WithHelp("←", "left"),
+		key.WithHelp("←", "prev"),
 	)
 
 	Right = key.NewBinding(
 		key.WithKeys("right"),
-		key.WithHelp("→", "right"),
+		key.WithHelp("→", "next"),
 	)
 
 	LeftRight = key.NewBinding(
 		key.WithKeys("left", "right"),
-		key.WithHelp("← →", "left/right"),
+		key.WithHelp("← →", "prev/next page"),
 	)
 
 	Enter = key.NewBinding(
