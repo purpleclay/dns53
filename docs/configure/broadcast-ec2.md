@@ -24,5 +24,13 @@ It follows the format:
 If you have the ID of your Route53 PHZ handy, you can skip the wizard and immediately broadcast your EC2:
 
 ```sh
-dns53 --phz-id Z000000000ABCDEFGHIJK
+dns53 --phz-id Z05504861FO8RFR02KU72
 ```
+
+<div>
+    <video controls>
+        <source src="../../static/dns53-phzid.webm" type="video/webm">
+        <source src="../../static/dns53-phzid.mp4" type="video/mp4">
+    </video>
+    <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
+</div>
