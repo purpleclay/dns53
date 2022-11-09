@@ -6,4 +6,10 @@ Easily collaborate with a colleague by exposing your EC2 within a team VPC. You 
 
 Written in Go, `dns53` is incredibly small and easy to install.
 
-<script id="asciicast-509096" src="https://asciinema.org/a/509096.js" async></script>
+<div>
+    <video controls>
+        <source src="./static/dns53.webm" type="video/webm">
+        <source src="./static/dns53.mp4" type="video/mp4">
+    </video>
+    <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
+</div>

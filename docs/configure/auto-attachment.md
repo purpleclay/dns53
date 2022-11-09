@@ -14,6 +14,14 @@ dns53 --auto-attach
 
 For this to work as intended, `dns53` handles two attachment scenarios, removing the need for any PHZ management. 👍
 
+<div>
+    <video controls>
+        <source src="../../static/dns53-auto-attach.webm" type="video/webm">
+        <source src="../../static/dns53-auto-attach.mp4" type="video/mp4">
+    </video>
+    <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
+</div>
+
 ## You are the first Auto Attachment
 
 Congratulations, you beat everyone else in your team or organisation and auto-attached your EC2 to the default `dns53` PHZ. `dns53` will:

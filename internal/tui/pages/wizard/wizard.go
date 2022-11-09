@@ -82,7 +82,7 @@ func New(opts Options) Model {
 	return Model{
 		viewport:   viewport.New(0, 0),
 		loading:    loading,
-		selection:  filteredlist.New([]list.Item{}, 30, 20),
+		selection:  filteredlist.New([]list.Item{}, 40, 20),
 		errorPanel: errorpanel.New(),
 		options:    opts,
 		styles:     styles,
