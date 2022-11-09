@@ -6,11 +6,9 @@ Easily collaborate with a colleague by exposing your EC2 within a team VPC. You 
 
 Written in Go, dns53 is incredibly small and easy to install.
 
+https://user-images.githubusercontent.com/106762954/200760788-f0d78147-9e3f-4f7d-8606-1050895597dc.mp4
+
 <div>
-    <video controls>
-        <source src="./docs/static/dns53.webm" type="video/webm">
-        <source src="./docs/static/dns53.mp4" type="video/mp4">
-    </video>
     <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
 </div>
 
