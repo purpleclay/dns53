@@ -18,7 +18,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/purpleclay/testcontainers-imds v0.8.0
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
