@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.17.7
 	github.com/aws/aws-sdk-go-v2/config v1.18.19
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.1
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.92.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.92.1
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.27.5
 	github.com/charmbracelet/bubbles v0.15.0
 	github.com/charmbracelet/bubbletea v0.23.2
