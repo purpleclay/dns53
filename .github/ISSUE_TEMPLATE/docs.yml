@@ -18,8 +18,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-blank_issues_enabled: false
-contact_links:
-  - name: Ask a question
-    url: https://github.com/purpleclay/dns53/discussions
-    about: Please ask and answer questions here with other members of the community
+name: Documentation Edit
+description: Suggest an edit to the documentation
+title: "[Docs]: "
+labels: [documentation, triage]
+assignees:
+  - purpleclay
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this new documentation edit request. Please be as descriptive and concise as possible. We value all input from the community.
+  - type: textarea
+    id: describe-edit
+    attributes:
+      label: Describe your edit
+      description: A clear and concise description of the documentation edit you are requesting.
+      placeholder: Your edit?
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/purpleclay/dns53/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
