@@ -112,8 +112,9 @@ github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
 github.com/aws/aws-sdk-go v1.15.11/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/aws/aws-sdk-go-v2 v1.20.1/go.mod h1:NU06lETsFm8fUC6ZjhgDpVBcGZTFQ6XM+LZWZxMI4ac=
-github.com/aws/aws-sdk-go-v2 v1.20.2 h1:0Aok9u/HVTk7RtY6M1KDcthbaMKGhhS0eLPxIdSIzRI=
 github.com/aws/aws-sdk-go-v2 v1.20.2/go.mod h1:NU06lETsFm8fUC6ZjhgDpVBcGZTFQ6XM+LZWZxMI4ac=
+github.com/aws/aws-sdk-go-v2 v1.20.3 h1:lgeKmAZhlj1JqN43bogrM75spIvYnRxqTAh1iupu1yE=
+github.com/aws/aws-sdk-go-v2 v1.20.3/go.mod h1:/RfNgGmRxI+iFOB1OeJUyxiU+9s88k3pfHvDagGEp0M=
 github.com/aws/aws-sdk-go-v2/config v1.18.33 h1:JKcw5SFxFW/rpM4mOPjv0VQ11E2kxW13F3exWOy7VZU=
 github.com/aws/aws-sdk-go-v2/config v1.18.33/go.mod h1:hXO/l9pgY3K5oZJldamP0pbZHdPqqk+4/maa7DSD3cA=
 github.com/aws/aws-sdk-go-v2/credentials v1.13.32 h1:lIH1eKPcCY1ylR4B6PkBGRWMHO3aVenOKJHWiS4/G2w=
@@ -140,8 +141,9 @@ github.com/aws/aws-sdk-go-v2/service/ssooidc v1.15.2 h1:OJELEgyaT2kmaBGZ+myyZbTT
 github.com/aws/aws-sdk-go-v2/service/ssooidc v1.15.2/go.mod h1:ubDBBaDFs1GHijSOTi8ljppML15GLG0HxhILtbjNNYQ=
 github.com/aws/aws-sdk-go-v2/service/sts v1.21.2 h1:ympg1+Lnq33XLhcK/xTG4yZHPs1Oyxu+6DEWbl7qOzA=
 github.com/aws/aws-sdk-go-v2/service/sts v1.21.2/go.mod h1:FQ/DQcOfESELfJi5ED+IPPAjI5xC6nxtSolVVB773jM=
-github.com/aws/smithy-go v1.14.1 h1:EFKMUmH/iHMqLiwoEDx2rRjRQpI1YCn5jTysoaDujFs=
 github.com/aws/smithy-go v1.14.1/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
+github.com/aws/smithy-go v1.14.2 h1:MJU9hqBGbvWZdApzpvoF2WAIJDbtjK2NDJSiJP7HblQ=
+github.com/aws/smithy-go v1.14.2/go.mod h1:Tg+OJXh4MB2R/uN61Ko2f6hTZwB/ZYGOtib8J3gBHzA=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
