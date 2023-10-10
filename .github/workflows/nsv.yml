@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Purple Clay
+# Copyright (c) 2023 Purple Clay
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,23 +18,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-name: uplift
+name: nsv
 on:
   workflow_dispatch:
 
 jobs:
-  uplift:
+  nsv:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_UPLIFT }}
+          token: ${{ secrets.GH_NSV }}
 
-      - name: Release
-        uses: gembaadvantage/uplift-action@v2.0.1
+      - name: Tag
+        uses: purpleclay/nsv-action@v1
         with:
-          args: release --skip-changelog
+          token: ${{ secrets.GH_NSV }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_UPLIFT }}
+          GPG_PRIVATE_KEY: "${{ secrets.GPG_PRIVATE_KEY }}"
+          GPG_PASSPHRASE: "${{ secrets.GPG_PASSPHRASE }}"
+          GPG_TRUST_LEVEL: "${{ secrets.GPG_TRUST_LEVEL }}"
