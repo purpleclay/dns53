@@ -194,7 +194,7 @@ func (c *Command) Execute(args []string) error {
 			p := tea.NewProgram(tui.New(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
 
 			if !c.ctx.skipTea {
-				err = p.Start()
+				_, err = p.Run()
 			}
 
 			return err
@@ -221,7 +221,7 @@ func (c *Command) Execute(args []string) error {
 }
 
 func awsConfig(opts *globalOptions) (aws.Config, error) {
-	optsFn := []func(*config.LoadOptions) error{}
+	var optsFn []func(*config.LoadOptions) error
 	if opts.awsProfile != "" {
 		optsFn = append(optsFn, config.WithSharedConfigProfile(opts.awsProfile))
 	}

@@ -56,7 +56,7 @@ func New(keymap help.KeyMap) Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (Model) Init() tea.Cmd {
 	return nil
 }
 
