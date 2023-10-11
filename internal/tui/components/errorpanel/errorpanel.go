@@ -81,7 +81,7 @@ func (m Model) RaiseError(reason string, cause error) Model {
 	return m
 }
 
-func (m Model) Resize(width, height int) Model {
+func (m Model) Resize(width, _ int) Model {
 	// Restrict the error panel to be 3/4 the width of the containing component
 	m.width = int(float32(width) * 0.75)
 	return m

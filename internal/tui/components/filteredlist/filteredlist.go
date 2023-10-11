@@ -29,7 +29,7 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-func New(tems []list.Item, width, height int) list.Model {
+func New(items []list.Item, width, height int) list.Model {
 	delegate := list.NewDefaultDelegate()
 
 	// Override the colours within the existing styles
@@ -48,7 +48,7 @@ func New(tems []list.Item, width, height int) list.Model {
 		Underline(true).
 		Bold(true)
 
-	filteredList := list.New([]list.Item{}, delegate, width, height)
+	filteredList := list.New(items, delegate, width, height)
 
 	// Override the colours within the existing styles
 	filteredList.Styles.FilterPrompt = filteredList.Styles.FilterPrompt.

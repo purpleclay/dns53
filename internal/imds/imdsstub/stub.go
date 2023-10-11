@@ -46,16 +46,19 @@ var defaultMetadata = map[string]string{
 }
 
 type Client struct {
-	t        testing.TB
+	tb       testing.TB
 	metadata map[string]string
 	err      error
 }
 
-func New(t testing.TB) *Client {
-	return &Client{t: t, metadata: defaultMetadata}
+func New(tb testing.TB) *Client {
+	tb.Helper()
+	return &Client{tb: tb, metadata: defaultMetadata}
 }
 
-func NewWithoutTags(t testing.TB) *Client {
+func NewWithoutTags(tb testing.TB) *Client {
+	tb.Helper()
+
 	// Remove all traces of tags from the default metadata
 	noTags := defaultMetadata
 	noTags[""] = "local-ipv4\nmac\nplacement-region\nplacement/availability-zone\ninstance-id"
@@ -63,15 +66,16 @@ func NewWithoutTags(t testing.TB) *Client {
 	delete(noTags, "tags/instance/Name")
 	delete(noTags, "tags/instance/Environment")
 
-	return &Client{t: t, metadata: noTags}
+	return &Client{tb: tb, metadata: noTags}
 }
 
-func NewWithError(t testing.TB, err error) *Client {
-	return &Client{t: t, err: err}
+func NewWithError(tb testing.TB, err error) *Client {
+	tb.Helper()
+	return &Client{tb: tb, err: err}
 }
 
-func (c *Client) GetMetadata(ctx context.Context, params *imds.GetMetadataInput, optFns ...func(*imds.Options)) (*imds.GetMetadataOutput, error) {
-	c.t.Helper()
+func (c *Client) GetMetadata(_ context.Context, params *imds.GetMetadataInput, _ ...func(*imds.Options)) (*imds.GetMetadataOutput, error) {
+	c.tb.Helper()
 
 	if c.err != nil {
 		return &imds.GetMetadataOutput{}, c.err
