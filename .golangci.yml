@@ -35,6 +35,13 @@ linters:
     - unused
 
 linters-settings:
+  ireturn:
+    allow:
+      - tea.Msg
+      - pages.Model
+      - bubbletea.Model
+      - components.Model
+      - error
   forbidigo:
     forbid:
       - 'ioutil\.*'

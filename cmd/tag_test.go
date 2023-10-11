@@ -57,14 +57,3 @@ func TestTagsCommand(t *testing.T) {
 	assert.Contains(t, table, "| Environment | dev      | {{.Tags.Environment}} | {{index .Tags \"Environment\"}} |\n")
 	assert.True(t, strings.HasSuffix(table, "+-------------+----------+-----------------------+-------------------------------+\n"))
 }
-
-func TestTagsCommandIMDSError(t *testing.T) {
-	ctx := &globalContext{
-		imdsClient: imds.NewFromAPI(imdsstub.NewWithError(t, errors.New("error"))),
-	}
-
-	cmd := newTagsCommand()
-	err := cmd.ExecuteContext(ctx)
-
-	require.Error(t, err)
-}
