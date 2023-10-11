@@ -14,7 +14,7 @@ https://user-images.githubusercontent.com/106762954/200760788-f0d78147-9e3f-4f7d
 
 ## Badges
 
-[![Build status](https://img.shields.io/github/workflow/status/purpleclay/dns53/ci?style=flat-square&logo=go)](https://github.com/purpleclay/dns53/actions?workflow=ci)
+[![Build status](https://img.shields.io/github/actions/workflow/status/purpleclay/dns53/ci.yml?style=flat-square&logo=go)](https://github.com/purpleclay/dns53/actions?workflow=ci)
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/purpleclay/dns53?style=flat-square)](https://goreportcard.com/report/github.com/purpleclay/dns53)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/purpleclay/dns53.svg?style=flat-square)](go.mod)
