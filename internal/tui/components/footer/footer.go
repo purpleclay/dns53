@@ -56,11 +56,11 @@ func New(keymap help.KeyMap) Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
@@ -78,7 +78,7 @@ func (m Model) View() string {
 	return b.String()
 }
 
-func (m Model) Resize(width, height int) components.Model {
+func (m Model) Resize(width, _ int) components.Model {
 	m.width = width
 	return m
 }

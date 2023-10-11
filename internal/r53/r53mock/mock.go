@@ -74,14 +74,14 @@ func (m *ClientAPI) DisassociateVPCFromHostedZone(ctx context.Context, params *r
 	return args.Get(0).(*route53.DisassociateVPCFromHostedZoneOutput), args.Error(1)
 }
 
-func New(t testing.TB) *ClientAPI {
-	t.Helper()
+func New(tb testing.TB) *ClientAPI {
+	tb.Helper()
 
 	mock := &ClientAPI{}
-	mock.Mock.Test(t)
+	mock.Mock.Test(tb)
 
-	t.Cleanup(func() {
-		mock.AssertExpectations(t)
+	tb.Cleanup(func() {
+		mock.AssertExpectations(tb)
 	})
 
 	return mock

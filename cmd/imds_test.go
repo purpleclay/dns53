@@ -135,6 +135,7 @@ func TestIMDSCommandFlagIsRequired(t *testing.T) {
 	assert.Contains(t, err.Error(), `"instance-metadata-tags" not set`)
 }
 
+//nolint:goerr113
 func TestIMDSCommandIMDSClientError(t *testing.T) {
 	ctx := &globalContext{
 		imdsClient: imds.NewFromAPI(imdsstub.NewWithError(t, errors.New("error"))),
@@ -147,6 +148,7 @@ func TestIMDSCommandIMDSClientError(t *testing.T) {
 	require.Error(t, err)
 }
 
+//nolint:goerr113
 func TestIMDSCommandEC2ClientError(t *testing.T) {
 	mockEC2 := ec2mock.New(t)
 	mockEC2.On("ModifyInstanceMetadataOptions", mock.Anything, mock.Anything, mock.Anything).

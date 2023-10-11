@@ -42,6 +42,7 @@ func (t *toggleSetting) String() string {
 	return string(*t)
 }
 
+//nolint:goerr113
 func (t *toggleSetting) Set(v string) error {
 	setting := strings.ToLower(v)
 

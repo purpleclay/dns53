@@ -46,11 +46,11 @@ import (
 )
 
 const (
-	longDesc = `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately within a Route 
+	longDesc = `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately within a Route
 53 Private Hosted Zone (PHZ).
 
-Your EC2 will be exposed through a dynamically generated resource record that will automatically 
-be deleted when dns53 exits. Let dns53 name your resource record for you, or customise it to your needs. 
+Your EC2 will be exposed through a dynamically generated resource record that will automatically
+be deleted when dns53 exits. Let dns53 name your resource record for you, or customise it to your needs.
 
 Built using Bubbletea 🧋`
 	examples = `  # Launch the TUI and use the wizard to select a PHZ
@@ -128,7 +128,7 @@ func (c *Command) Execute(args []string) error {
 
 	rootCmd := &cobra.Command{
 		Use: "dns53",
-		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route 
+		Short: `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily and privately within a Route
 53 Private Hosted Zone (PHZ)`,
 		Long:          longDesc,
 		Example:       examples,
@@ -194,7 +194,7 @@ func (c *Command) Execute(args []string) error {
 			p := tea.NewProgram(tui.New(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
 
 			if !c.ctx.skipTea {
-				err = p.Start()
+				_, err = p.Run()
 			}
 
 			return err
@@ -221,7 +221,7 @@ func (c *Command) Execute(args []string) error {
 }
 
 func awsConfig(opts *globalOptions) (aws.Config, error) {
-	optsFn := []func(*config.LoadOptions) error{}
+	var optsFn []func(*config.LoadOptions) error
 	if opts.awsProfile != "" {
 		optsFn = append(optsFn, config.WithSharedConfigProfile(opts.awsProfile))
 	}
@@ -233,6 +233,7 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
 
+//nolint:goerr113
 func resolveDomainName(domain string, metadata imds.Metadata) (string, error) {
 	dmn := strings.ReplaceAll(domain, " ", "")
 
@@ -282,7 +283,7 @@ func autoAttachToZone(ctx *globalContext, name, vpc, region string) (autoAttachm
 		region: region,
 	}
 
-	zone, err := ctx.r53Client.ByName(ctx, "dns53")
+	zone, err := ctx.r53Client.ByName(ctx, name)
 	if err != nil {
 		return attachment, err
 	}

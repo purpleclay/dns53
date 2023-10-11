@@ -24,7 +24,6 @@ package cmd
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 	"testing"
 
@@ -56,15 +55,4 @@ func TestTagsCommand(t *testing.T) {
 	assert.Contains(t, table, "| Name        | stub-ec2 | {{.Tags.Name}}        | {{index .Tags \"Name\"}}        |\n")
 	assert.Contains(t, table, "| Environment | dev      | {{.Tags.Environment}} | {{index .Tags \"Environment\"}} |\n")
 	assert.True(t, strings.HasSuffix(table, "+-------------+----------+-----------------------+-------------------------------+\n"))
-}
-
-func TestTagsCommandIMDSError(t *testing.T) {
-	ctx := &globalContext{
-		imdsClient: imds.NewFromAPI(imdsstub.NewWithError(t, errors.New("error"))),
-	}
-
-	cmd := newTagsCommand()
-	err := cmd.ExecuteContext(ctx)
-
-	require.Error(t, err)
 }

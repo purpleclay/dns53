@@ -154,45 +154,45 @@ func TestCleanTagsAppendsToMap(t *testing.T) {
 }
 
 func TestRootCommand(t *testing.T) {
-	// options := []globalContextOption{
-	// 	withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-	// 	withSkipTea(),
-	// }
+	options := []globalContextOption{
+		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
+		withSkipTea(),
+	}
 
-	// cmd := newWithOptions(options...)
-	// err := cmd.Execute([]string{})
+	cmd := newWithOptions(options...)
+	err := cmd.Execute([]string{})
 
-	// require.NoError(t, err)
-	// assert.Equal(t, cmd.ctx.teaModelOptions.PhzID, "")
-	// assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
+	require.NoError(t, err)
+	assert.Equal(t, cmd.ctx.teaModelOptions.HostedZoneID, "")
+	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
 }
 
 func TestRootCommandWithPrivateHostedZoneID(t *testing.T) {
-	// options := []globalContextOption{
-	// 	withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-	// 	withSkipTea(),
-	// }
+	options := []globalContextOption{
+		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
+		withSkipTea(),
+	}
 
-	// cmd := newWithOptions(options...)
-	// err := cmd.Execute([]string{"--phz-id", "Z00000000001"})
+	cmd := newWithOptions(options...)
+	err := cmd.Execute([]string{"--phz-id", "Z00000000001"})
 
-	// require.NoError(t, err)
-	// assert.Equal(t, cmd.ctx.teaModelOptions.PhzID, "Z00000000001")
-	// assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
+	require.NoError(t, err)
+	assert.Equal(t, cmd.ctx.teaModelOptions.HostedZoneID, "Z00000000001")
+	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
 }
 
 func TestRootCommandWithCustomDomain(t *testing.T) {
-	// options := []globalContextOption{
-	// 	withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-	// 	withSkipTea(),
-	// }
+	options := []globalContextOption{
+		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
+		withSkipTea(),
+	}
 
-	// cmd := newWithOptions(options...)
-	// err := cmd.Execute([]string{"--domain-name", "custom.{{.Name}}"})
+	cmd := newWithOptions(options...)
+	err := cmd.Execute([]string{"--domain-name", "custom.{{.Name}}"})
 
-	// require.NoError(t, err)
-	// assert.Equal(t, cmd.ctx.teaModelOptions.PhzID, "")
-	// assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "custom.stub-ec2")
+	require.NoError(t, err)
+	assert.Equal(t, cmd.ctx.teaModelOptions.HostedZoneID, "")
+	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "custom.stub-ec2")
 }
 
 func TestRootCommandAutoAttachToZone(t *testing.T) {
@@ -260,6 +260,7 @@ func TestRootCommandAutoAttachToZoneExisting(t *testing.T) {
 	require.NoError(t, err)
 }
 
+//nolint:goerr113
 func TestRootCommandAutoAttachToZoneSearchError(t *testing.T) {
 	errMsg := "failed to search"
 
@@ -280,6 +281,7 @@ func TestRootCommandAutoAttachToZoneSearchError(t *testing.T) {
 	m.AssertNotCalled(t, "AssociateVPCWithHostedZone")
 }
 
+//nolint:goerr113
 func TestRootCommandAutoAttachToZoneCreationError(t *testing.T) {
 	errMsg := "failed to create"
 
@@ -300,6 +302,7 @@ func TestRootCommandAutoAttachToZoneCreationError(t *testing.T) {
 	require.EqualError(t, err, errMsg)
 }
 
+//nolint:goerr113
 func TestRootCommandAutoAttachToZoneAssociationError(t *testing.T) {
 	errMsg := "failed to associate"
 

@@ -45,9 +45,9 @@ var (
 // BuildInfo contains build time information about the application
 type BuildInfo struct {
 	Version   string    `json:"version,omitempty"`
-	GitBranch string    `json:"gitBranch,omitempty"`
-	GitCommit string    `json:"gitCommit,omitempty"`
-	BuildDate string    `json:"buildDate,omitempty"`
+	GitBranch string    `json:"git_branch,omitempty"`
+	GitCommit string    `json:"git_commit,omitempty"`
+	BuildDate string    `json:"build_date,omitempty"`
 	Go        GoDetails `json:"go,omitempty"`
 }
 

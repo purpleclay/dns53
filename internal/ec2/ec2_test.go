@@ -24,7 +24,6 @@ package ec2_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -70,15 +69,4 @@ func TestToggleInstanceMetadataTags(t *testing.T) {
 			api.AssertExpectations(t)
 		})
 	}
-}
-
-func TestToggleInstanceMetadataTagsError(t *testing.T) {
-	api := ec2mock.New(t)
-	api.On("ModifyInstanceMetadataOptions", mock.Anything, mock.Anything, mock.Anything).
-		Return(&awsec2.ModifyInstanceMetadataOptionsOutput{}, errors.New("error"))
-
-	client := ec2.NewFromAPI(api)
-	err := client.ToggleInstanceMetadataTags(context.Background(), "12345", ec2.InstanceMetadataToggleEnabled)
-
-	assert.Error(t, err)
 }

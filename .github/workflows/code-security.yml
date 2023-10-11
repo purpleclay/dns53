@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Purple Clay
+# Copyright (c) 2022 - 2023 Purple Clay
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -18,19 +18,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-name: dependency-review
+name: code-security
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.go"
+      - "*.go"
+      - "go.mod"
+      - "go.sum"
   pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.go"
+      - "*.go"
+      - "go.mod"
+      - "go.sum"
 
 permissions:
+  actions: read
   contents: read
+  security-events: write
 
 jobs:
-  dependency-review:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v3
+  security-checks:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    uses: purpleclay/github/.github/workflows/code-security.yml@main
+    with:
+      go-version: ${{ vars.GO_VERSION }}
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
