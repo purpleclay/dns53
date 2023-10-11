@@ -18,8 +18,6 @@ https://user-images.githubusercontent.com/106762954/200760788-f0d78147-9e3f-4f7d
 [![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/purpleclay/dns53?style=flat-square)](https://goreportcard.com/report/github.com/purpleclay/dns53)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/purpleclay/dns53.svg?style=flat-square)](go.mod)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=purpleclay_dns53&metric=coverage)](https://sonarcloud.io/summary/new_code?id=purpleclay_dns53)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=purpleclay_dns53&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=purpleclay_dns53)
 
 ## Documentation
 
