@@ -233,6 +233,7 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
 
+//nolint:goerr113
 func resolveDomainName(domain string, metadata imds.Metadata) (string, error) {
 	dmn := strings.ReplaceAll(domain, " ", "")
 

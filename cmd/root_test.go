@@ -260,6 +260,7 @@ func TestRootCommandAutoAttachToZoneExisting(t *testing.T) {
 	require.NoError(t, err)
 }
 
+//nolint:goerr113
 func TestRootCommandAutoAttachToZoneSearchError(t *testing.T) {
 	errMsg := "failed to search"
 
@@ -280,6 +281,7 @@ func TestRootCommandAutoAttachToZoneSearchError(t *testing.T) {
 	m.AssertNotCalled(t, "AssociateVPCWithHostedZone")
 }
 
+//nolint:goerr113
 func TestRootCommandAutoAttachToZoneCreationError(t *testing.T) {
 	errMsg := "failed to create"
 
@@ -300,6 +302,7 @@ func TestRootCommandAutoAttachToZoneCreationError(t *testing.T) {
 	require.EqualError(t, err, errMsg)
 }
 
+//nolint:goerr113
 func TestRootCommandAutoAttachToZoneAssociationError(t *testing.T) {
 	errMsg := "failed to associate"
 

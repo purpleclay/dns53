@@ -74,6 +74,7 @@ func NewWithError(tb testing.TB, err error) *Client {
 	return &Client{tb: tb, err: err}
 }
 
+//nolint:goerr113
 func (c *Client) GetMetadata(_ context.Context, params *imds.GetMetadataInput, _ ...func(*imds.Options)) (*imds.GetMetadataOutput, error) {
 	c.tb.Helper()
 

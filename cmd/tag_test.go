@@ -24,7 +24,6 @@ package cmd
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 	"testing"
 
