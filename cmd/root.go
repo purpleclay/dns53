@@ -217,6 +217,8 @@ func (c *Command) Execute(args []string) error {
 	rootCmd.AddCommand(newTagsCommand())
 
 	rootCmd.SetArgs(args)
+	rootCmd.SetUsageTemplate(customUsageTemplate)
+
 	return rootCmd.ExecuteContext(c.ctx)
 }
 
