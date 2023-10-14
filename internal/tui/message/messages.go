@@ -49,3 +49,9 @@ type RefreshKeymapMsg struct{}
 func RefreshKeyMapCmd() tea.Msg {
 	return RefreshKeymapMsg{}
 }
+
+// ClipboardStatusMsg should be sent to update the message within the
+// clipboard status panel
+type ClipboardStatusMsg struct {
+	Status string
+}

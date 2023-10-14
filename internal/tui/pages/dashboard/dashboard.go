@@ -26,12 +26,14 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
 	"github.com/purpleclay/dns53/internal/tui/components/errorpanel"
@@ -49,27 +51,31 @@ type Options struct {
 	Client     *r53.Client
 	Metadata   imds.Metadata
 	DomainName string
+	Output     *termenv.Output
 }
 
 type Model struct {
-	viewport    viewport.Model
-	options     Options
-	domainName  string
-	selected    r53.PrivateHostedZone
-	connected   bool
-	elapsed     stopwatch.Model
-	errorPanel  errorpanel.Model
-	errorRaised bool
-	styles      *Styles
+	viewport         viewport.Model
+	options          Options
+	domainName       string
+	clipboardStatus  string
+	clipboardTimeout stopwatch.Model
+	selected         r53.PrivateHostedZone
+	connected        bool
+	elapsed          stopwatch.Model
+	errorPanel       errorpanel.Model
+	errorRaised      bool
+	styles           *Styles
 }
 
 func New(opts Options) Model {
 	return Model{
-		viewport:   viewport.New(0, 0),
-		options:    opts,
-		elapsed:    stopwatch.New(),
-		errorPanel: errorpanel.New(),
-		styles:     DefaultStyles(),
+		clipboardTimeout: stopwatch.NewWithInterval(time.Second * 2),
+		viewport:         viewport.New(0, 0),
+		options:          opts,
+		elapsed:          stopwatch.New(),
+		errorPanel:       errorpanel.New(),
+		styles:           DefaultStyles(),
 	}
 }
 
@@ -92,9 +98,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case r53AssociatedMsg:
 		m.connected = true
 		cmds = append(cmds, m.elapsed.Start())
+
+		// Request the keymap to be refreshed, as the DNS is now resolved
+		cmds = append(cmds, message.RefreshKeyMapCmd)
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
+	case stopwatch.TickMsg:
+		if msg.ID == m.clipboardTimeout.ID() {
+			m.clipboardStatus = ""
+			cmds = append(cmds, m.clipboardTimeout.Stop())
+		}
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keymap.Quit):
@@ -107,12 +121,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				m.options.Client.DisassociateRecord(context.Background(), record)
 			}
+		case key.Matches(msg, keymap.Copy):
+			m.options.Output.Copy(m.domainName)
+			m.clipboardStatus = "(copied to clipboard)"
+
+			// Trigger the timer to clear the clipboard message
+			cmds = append(cmds, m.clipboardTimeout.Reset(), m.clipboardTimeout.Start())
 		}
 	}
 
 	if m.connected {
 		m.elapsed, cmd = m.elapsed.Update(msg)
 		cmds = append(cmds, cmd)
+
+		if m.clipboardTimeout.Running() {
+			m.clipboardTimeout, cmd = m.clipboardTimeout.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	return m, tea.Batch(cmds...)
@@ -151,7 +176,11 @@ func (m Model) View() string {
 
 	dnsData := lipgloss.JoinVertical(
 		lipgloss.Top,
-		fmt.Sprintf(dashboardLine+" [A]", m.styles.SecondaryLabel.Render("Record:"), m.styles.Spacing, m.styles.Highlight.Render(m.domainName)),
+		fmt.Sprintf(dashboardLine+" [A] %s",
+			m.styles.SecondaryLabel.Render("Record:"),
+			m.styles.Spacing,
+			m.styles.Highlight.Render(m.domainName),
+			m.styles.Feint.Render(m.clipboardStatus)),
 		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Status:"), m.styles.Spacing, status),
 	)
 
@@ -182,9 +211,12 @@ func (m Model) View() string {
 }
 
 func (m Model) ShortHelp() []key.Binding {
-	return []key.Binding{
-		keymap.Quit,
+	bindings := []key.Binding{keymap.Quit}
+	if m.connected {
+		bindings = append(bindings, keymap.Copy)
 	}
+
+	return bindings
 }
 
 func (m Model) FullHelp() [][]key.Binding {

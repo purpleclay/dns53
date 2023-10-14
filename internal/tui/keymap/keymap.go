@@ -64,13 +64,19 @@ var (
 		key.WithKeys("/"),
 		key.WithHelp("/", "filter"),
 	)
+
 	Escape = key.NewBinding(
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "back"),
 	)
 
 	Quit = key.NewBinding(
-		key.WithKeys("ctrl+c"),
-		key.WithHelp("ctrl+c", "quit"),
+		key.WithKeys("q", "ctrl+c"),
+		key.WithHelp("q / ctrl+c", "quit"),
+	)
+
+	Copy = key.NewBinding(
+		key.WithKeys("c"),
+		key.WithHelp("c", "copy dns"),
 	)
 )
