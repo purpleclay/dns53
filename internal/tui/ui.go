@@ -23,9 +23,12 @@ SOFTWARE.
 package tui
 
 import (
+	"os"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/purpleclay/dns53/internal/tui/components"
 	"github.com/purpleclay/dns53/internal/tui/components/footer"
 	"github.com/purpleclay/dns53/internal/tui/components/header"
@@ -52,6 +55,8 @@ type UI struct {
 }
 
 func New(opts Options) UI {
+	output := termenv.NewOutput(os.Stderr)
+
 	pages := []pages.Model{
 		wizard.New(wizard.Options{
 			Client:       opts.R53Client,
@@ -63,6 +68,7 @@ func New(opts Options) UI {
 			Client:     opts.R53Client,
 			Metadata:   opts.EC2Metadata,
 			DomainName: opts.DomainName,
+			Output:     output,
 		}),
 	}
 

@@ -36,6 +36,7 @@ type Styles struct {
 	PendingStatus  lipgloss.Style
 	ActiveStatus   lipgloss.Style
 	Highlight      lipgloss.Style
+	Feint          lipgloss.Style
 }
 
 func DefaultStyles() *Styles {
@@ -68,5 +69,6 @@ func DefaultStyles() *Styles {
 
 	s.Highlight = theme.HightlightTextStyle.Copy().Bold(true)
 
+	s.Feint = theme.VeryFeintTextStyle.Copy()
 	return s
 }
