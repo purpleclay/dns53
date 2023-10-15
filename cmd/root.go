@@ -231,8 +231,6 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 	if opts.awsRegion != "" {
 		optsFn = append(optsFn, config.WithRegion(opts.awsRegion))
 	}
-	optsFn = append(optsFn, config.WithEC2IMDSEndpoint("http://localhost:1338"))
-
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
 
