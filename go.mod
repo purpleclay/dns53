@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/aws/aws-sdk-go-v2 v1.21.2
 	github.com/aws/aws-sdk-go-v2/config v1.18.44
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.12
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.13
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.124.0
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.30.1
 	github.com/charmbracelet/bubbles v0.16.1
@@ -15,6 +15,7 @@ require (
 	github.com/muesli/mango-cobra v1.2.0
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/roff v0.1.0
+	github.com/muesli/termenv v0.15.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/purpleclay/testcontainers-imds v0.8.0
 	github.com/spf13/cobra v1.7.0
@@ -80,7 +81,6 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/mango v0.1.0 // indirect
 	github.com/muesli/mango-pflag v0.1.0 // indirect
-	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opencontainers/runc v1.1.5 // indirect
