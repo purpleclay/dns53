@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.30.1
 	github.com/charmbracelet/bubbles v0.16.1
 	github.com/charmbracelet/bubbletea v0.24.2
-	github.com/charmbracelet/lipgloss v0.9.0
+	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/gobeam/stringy v0.0.6
 	github.com/muesli/mango-cobra v1.2.0
 	github.com/muesli/reflow v0.3.0
