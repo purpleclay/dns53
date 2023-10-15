@@ -26,6 +26,7 @@ dist/
 # Mkdocs
 .cache/
 site/
+*.DS_Store
 
 # VSCode
 .vscode/

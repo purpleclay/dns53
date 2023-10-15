@@ -1,6 +1,8 @@
 ---
 description: "Learn how to use the DNS 53 command line to list available EC2 instance tags"
 icon: material/console
+social:
+  cards: false
 ---
 
 # Command Line

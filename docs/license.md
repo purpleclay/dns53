@@ -1,5 +1,7 @@
 ---
 icon: material/file-key-outline
+social:
+  cards: false
 ---
 
 MIT License

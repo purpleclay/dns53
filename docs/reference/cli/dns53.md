@@ -1,6 +1,8 @@
 ---
 description: "Learn how to use the DNS 53 command line for privately broadcasting your EC2 instance"
 icon: material/console
+social:
+  cards: false
 ---
 
 # Command Line
