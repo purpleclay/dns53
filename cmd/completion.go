@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Purple Clay
+Copyright (c) 2022 - 2023 Purple Clay
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	bashDesc = `Generate a dns53 completion script for the bash shell. 
+	bashDesc = `Generate a dns53 completion script for the bash shell.
 To use bash completions ensure you have them installed and enabled
 
 To load completions in your current shell session:
