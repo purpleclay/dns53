@@ -1,6 +1,26 @@
+# Copyright (c) 2022 - 2023 Purple Clay
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# in the Software without restriction, including without limitation the rights
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 site_name: DNS 53
 site_description: Dynamic DNS within Amazon Route53. Expose your EC2 quickly, easily and privately
-copyright: Always thinking. Forever learning. 💡
+copyright: Building tools to make developers' lives easier
 repo_name: purpleclay/dns53
 repo_url: https://github.com/purpleclay/dns53
 # Only set during a release to ensure htmltest doesn't break due to non existent directories
@@ -10,11 +30,16 @@ edit_uri: ""
 theme:
   name: material
   custom_dir: docs/overrides
+  logo: static/logo.png
+  favicon: static/favicon.ico
   palette:
     primary: deep purple
     accent: purple
   features:
+    - announce.dismiss
     - content.code.annotate
+    - content.code.copy
+    - content.code.select
     - content.tooltips
     - navigation.indexes
     - navigation.sections
@@ -24,11 +49,15 @@ theme:
     - search.highlight
     - search.share
     - search.suggest
+    - toc.follow
   icon:
     repo: fontawesome/brands/github
   font:
     text: Roboto
     code: Roboto Mono
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Home: index.md
@@ -39,10 +68,11 @@ nav:
       - Expose EC2 Tags: configure/exposing-tags.md
       - List EC2 Tags: configure/list-tags.md
       - IAM: configure/iam.md
-      - License: license.md
       - Installation:
           - Binary: install/binary.md
           - From Source: install/source.md
+      - Other Bits:
+          - License: license.md
   - Reference:
       - Templating: reference/templating.md
       - CLI:
@@ -58,54 +88,56 @@ extra:
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/purpleclaydev
       name: Purple Clay on Twitter
+    - icon: fontawesome/brands/mastodon
+      link: https://fosstodon.org/@purpleclaydev
+      name: Purple Clay on Fosstodon
     - icon: fontawesome/brands/docker
       link: https://hub.docker.com/u/purpleclay
       name: Purple Clay on Docker Hub
-  analytics:
-    feedback:
-      title: Was this page helpful?
-      ratings:
-        - icon: material/emoticon-happy-outline
-          name: This page was helpful
-          data: 1
-          note: >-
-            Thanks for your feedback!
-        - icon: material/emoticon-sad-outline
-          name: This page could be improved
-          data: 0
-          note: >-
-            Thanks for your feedback! Help us improve this page by
-            using our <a href="https://forms.gle/LfBReL2MUPnwUve6A" target=_blank>feedback form</a>.
   status:
-    new: New Feature
+    new: New Features Added
     deprecated: No Longer Supported
 
 plugins:
   - git-revision-date-localized:
+      enabled: !ENV [CI, false]
       enable_creation_date: true
       type: timeago
   - git-committers:
-      repository: purpleclay/dns53
-      token: !ENV GH_TOKEN
+      enabled: !ENV [CI, false]
+      repository: purpleclay/nsv
+      branch: main
   - minify:
-      minify_html: true
+      minify_html: !ENV [CI, false]
   - search
   - social
+  - typeset
 
 markdown_extensions:
+  - abbr
   - admonition
   - attr_list
+  - def_list
   - footnotes
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
+  - pymdownx.mark
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tilde
   - md_in_html
   - meta
   - toc:
