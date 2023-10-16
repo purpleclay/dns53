@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # Copyright (c) 2022 - 2023 Purple Clay
 #
@@ -22,11 +22,12 @@
 
 # Install script is heavily based on: https://github.com/Masterminds/glide.sh/blob/master/get
 
-: ${USE_SUDO:="true"}
-: ${DNS53_INSTALL_DIR:="/usr/local/bin"}
+: "${USE_SUDO:=true}"
+: "${INSTALL_DIR:=/usr/local/bin}"
 
-HAS_CURL="$(type "curl" &> /dev/null && echo true || echo false)"
-HAS_WGET="$(type "wget" &> /dev/null && echo true || echo false)"
+APP_NAME="dns53"
+HAS_CURL="$(type curl >/dev/null && echo true || echo false)"
+HAS_WGET="$(type wget >/dev/null && echo true || echo false)"
 
 initArch() {
   ARCH=$(uname -m)
@@ -44,8 +45,7 @@ initArch() {
 }
 
 initOS() {
-  OS=$(echo `uname`|tr '[:upper:]' '[:lower:]')
-
+  OS=$(uname|tr '[:upper:]' '[:lower:]')
   case "$OS" in
     # Minimalist GNU for Windows
     mingw*) OS='windows';;
@@ -54,62 +54,63 @@ initOS() {
 }
 
 canDownload() {
-    local supported="darwin-amd64\ndarwin-x86_64\nlinux-arm\nlinux-arm64\nlinux-arm386\nlinux-i386\nlinux-ppc64le\nlinux-x86_64\nwindows-arm\nwindows-i386\nwindows-x86_64"
-    if ! echo "${supported}" | grep -q "${OS}-${ARCH}"; then
-      echo "No prebuilt binary currently exists for ${OS}-${ARCH}."
-      exit 1
-    fi
+  _supported="darwin-amd64\ndarwin-x86_64\nlinux-arm\nlinux-arm64\nlinux-arm386\nlinux-i386\nlinux-ppc64le\nlinux-x86_64\nwindows-arm\nwindows-i386\nwindows-x86_64"
+  if ! echo "${_supported}" | grep -q "${OS}-${ARCH}"; then
+    echo "No prebuilt binary currently exists for ${OS}-${ARCH}."
+    exit 1
+  fi
 
-    if [ "${HAS_CURL}" != "true" ] && [ "${HAS_WGET}" != "true" ]; then
-      echo "Either curl or wget is required to download binary. Please install and try again"
-      exit 1
-    fi
+  if [ "${HAS_CURL}" != "true" ] && [ "${HAS_WGET}" != "true" ]; then
+    echo "Either curl or wget is required to download binary. Please install and try again"
+    exit 1
+  fi
 }
 
 download() {
   if [ -z "$DESIRED_VERSION" ]; then
-    if [ "${HAS_CURL}" == "true" ]; then
-      TAG="v$(curl -s https://api.github.com/repos/purpleclay/dns53/releases/latest | grep "tag_name" | cut -d'v' -f2 | cut -d'"' -f1)"
-    elif [ "${HAS_WGET}" == "true" ]; then
-      TAG="v$(wget -q https://api.github.com/repos/purpleclay/dns53/releases/latest -O - 2>&1 | grep "tag_name" | cut -d'v' -f2 | cut -d'"' -f1)"
+    if [ "${HAS_CURL}" = "true" ]; then
+      TAG="v$(curl -s https://api.github.com/repos/purpleclay/$APP_NAME/releases/latest | grep "tag_name" | cut -d'v' -f2 | cut -d'"' -f1)"
+    elif [ "${HAS_WGET}" = "true" ]; then
+      TAG="v$(wget -q https://api.github.com/repos/purpleclay/$APP_NAME/releases/latest -O - 2>&1 | grep "tag_name" | cut -d'v' -f2 | cut -d'"' -f1)"
     fi
   else
     TAG=${DESIRED_VERSION}
   fi
 
-  echo "Attempting to download dns53 ${TAG}..."
+  echo "Attempting to download ${APP_NAME} version ${TAG}..."
 
   PACKAGE_TYPE="tar.gz"
-  if [ "${OS}" == "windows" ]; then
+  if [ "${OS}" = "windows" ]; then
     PACKAGE_TYPE="zip"
   fi
 
-  local archive="dns53_${TAG#v}_${OS}-${ARCH}.${PACKAGE_TYPE}"
+  _archive="${APP_NAME}_${TAG#v}_${OS}-${ARCH}.${PACKAGE_TYPE}"
 
-  DOWNLOAD_URL="https://github.com/purpleclay/dns53/releases/download/${TAG}/${archive}"
-  DOWNLOAD_DIR="$(mktemp -dt dns53-install-XXXXXXX)"
-  DNS53_FILE="${DOWNLOAD_DIR}/${archive}"
+  DOWNLOAD_URL="https://github.com/purpleclay/${APP_NAME}/releases/download/${TAG}/${_archive}"
+  DOWNLOAD_DIR="$(mktemp -dt ${APP_NAME}-install-XXXXXXX)"
+  DOWNLOAD_FILE="${DOWNLOAD_DIR}/${_archive}"
 
-  if [ "${HAS_CURL}" == "true" ]; then
-    curl -L "$DOWNLOAD_URL" -o "$DNS53_FILE"
-  elif [ "${HAS_WGET}" == "true" ]; then
-    wget -q -O "$DNS53_FILE" "$DOWNLOAD_URL"
+  if [ "${HAS_CURL}" = "true" ]; then
+    curl -L "$DOWNLOAD_URL" -o "$DOWNLOAD_FILE"
+  elif [ "${HAS_WGET}" = "true" ]; then
+    wget -q -O "$DOWNLOAD_FILE" "$DOWNLOAD_URL"
   fi
 }
 
 install() {
-  echo "Installing dns53..."
+  echo "Installing ${APP_NAME}..."
+  test ! -d "$INSTALL_DIR" && mkdir -p "$INSTALL_DIR"
 
-  local extract_dir="$DOWNLOAD_DIR/dns53-$TAG"
-  mkdir -p $extract_dir
-  tar xf "$DNS53_FILE" -C "${extract_dir}"
-  runAsRoot cp "${extract_dir}/dns53" "${DNS53_INSTALL_DIR}/dns53"
+  _extract_dir="$DOWNLOAD_DIR/${APP_NAME}-${TAG}"
+  mkdir -p "$_extract_dir"
+  tar xf "$DOWNLOAD_FILE" -C "${_extract_dir}"
+  runAsRoot cp "${_extract_dir}/${APP_NAME}" "${INSTALL_DIR}/${APP_NAME}"
 
-  echo "Installed dns53 to ${DNS53_INSTALL_DIR}"
+  echo "Installed ${APP_NAME} to ${INSTALL_DIR}"
 }
 
 runAsRoot() {
-  if [ $EUID -ne 0 -a "$USE_SUDO" = "true" ]; then
+  if [ "$(id -u)" -ne 0 ] && [ "$USE_SUDO" = "true" ]; then
     sudo "${@}"
   else
     "${@}"
@@ -117,62 +118,70 @@ runAsRoot() {
 }
 
 tidy() {
-
-  if [[ -d "${DOWNLOAD_DIR:-}" ]]; then
+  if [ -d "${DOWNLOAD_DIR:-}" ]; then
     rm -rf "$DOWNLOAD_DIR"
   fi
 }
 
 verify() {
   set +e
-  DNS53="$(command -v dns53)"
+  type "$APP_NAME" >/dev/null
   if [ "$?" = "1" ]; then
-    echo "dns53 not found. Is ${DNS53_INSTALL_DIR} on your "'$PATH?'
+    echo "${APP_NAME} not found. Is ${INSTALL_DIR} on your PATH?"
     exit 1
   fi
 
   # Test version
-  INSTALLED_VERSION="$(dns53 version --short)"
+  INSTALLED_VERSION="$($APP_NAME version --short)"
   if [ "${INSTALLED_VERSION}" != "${TAG}" ]; then
-    echo "Found version ${INSTALLED_VERSION} of dns53 and not expected installed version of $TAG"
+    echo "Found version ${INSTALLED_VERSION} of ${APP_NAME} and not expected installed version of $TAG"
     exit 1
   fi
   set -e
 }
 
 bye() {
-  local result=$?
-	if [ "$result" != "0" ]; then
-		echo "Failed to install dns53"
+  _result=$?
+	if [ "$_result" != "0" ]; then
+		echo "Failed to install ${APP_NAME}"
 	fi
   tidy
-	exit $result
+	exit $_result
 }
 
 help () {
-  echo "dns53 install"
+  echo "${APP_NAME} installer"
   echo
   echo "Flags:"
-  echo -e "  -h, --help     print help for the installer"
-  echo -e "  -v, --version  download and install a specific version (default 'latest')"
-  echo -e "      --no-sudo  install without using sudo"
+  echo "  -d, --dir      a directory where the binary will be installed (default '$INSTALL_DIR')"
+  echo "      --no-sudo  install without using sudo"
+  echo "  -v, --version  download and install a specific version (default 'latest')"
+  echo "  -h, --help     Print help for the installer"
 }
 
 trap "bye" EXIT
 set -e
 
 # Parsing input arguments (if any)
-export INPUT_ARGUMENTS="${@}"
 set -u
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
   case $1 in
     '--version'|-v)
        shift
-       if [[ $# -ne 0 ]]; then
-           export DESIRED_VERSION="${1}"
+       if [ $# -ne 0 ]; then
+         export DESIRED_VERSION="${1}"
        else
-           echo -e "Please provide a valid version: e.g. --version v0.1.0 or -v v0.1.0"
-           exit 0
+         echo "Please provide a valid version: e.g. --version v0.1.0 or -v v0.1.0"
+         exit 0
+       fi
+       ;;
+    '--dir'|-d)
+       shift
+       if [ $# -ne 0 ]; then
+         INSTALL_DIR="${1}"
+       else
+         echo "Please provide a valid location for the install directory"
+         exit 0
        fi
        ;;
     '--no-sudo')
@@ -182,7 +191,9 @@ while [[ $# -gt 0 ]]; do
        help
        exit 0
        ;;
-    *) exit 1
+    *) help
+       echo
+       exit 1
        ;;
   esac
   shift
