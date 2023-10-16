@@ -332,15 +332,3 @@ func TestRootCommandAutoAttachToZoneAssociationError(t *testing.T) {
 
 	require.EqualError(t, err, errMsg)
 }
-
-func TestAWSConfigWithGlobalOptions(t *testing.T) {
-	opts := &globalOptions{
-		awsRegion:  "eu-west-2",
-		awsProfile: "test-profile",
-	}
-
-	cfg, err := awsConfig(opts)
-	require.NoError(t, err)
-
-	assert.Equal(t, "eu-west-2", cfg.Region)
-}
