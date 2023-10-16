@@ -97,10 +97,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.initAssociation)
 	case r53AssociatedMsg:
 		m.connected = true
-		cmds = append(cmds, m.elapsed.Start())
-
-		// Request the keymap to be refreshed, as the DNS is now resolved
-		cmds = append(cmds, message.RefreshKeyMapCmd)
+		cmds = append(cmds, m.elapsed.Start(), message.RefreshKeyMapCmd)
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
@@ -248,11 +245,9 @@ func (m Model) resolveDomainName() string {
 		if strings.Count(name, "dns53") > 1 {
 			name = strings.TrimSuffix(name, ".dns53")
 		}
-	} else {
+	} else if !strings.HasSuffix(name, "."+m.selected.Name) {
 		// Ensure root domain is appended as a suffix
-		if !strings.HasSuffix(name, "."+m.selected.Name) {
-			name = fmt.Sprintf("%s.%s", name, m.selected.Name)
-		}
+		name = fmt.Sprintf("%s.%s", name, m.selected.Name)
 	}
 
 	return name

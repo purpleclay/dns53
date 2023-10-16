@@ -121,8 +121,7 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case message.RefreshKeymapMsg:
 		u = u.refreshFooterKeyMap()
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, keymap.Quit):
+		if key.Matches(msg, keymap.Quit) {
 			u.pages[u.currentPage].Update(msg)
 			return u, tea.Quit
 		}
