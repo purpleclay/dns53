@@ -68,19 +68,12 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: GitLab Login
-        uses: docker/login-action@v3
-        with:
-          registry: registry.gitlab.com
-          username: ${{ secrets.GL_DOCKER_USERNAME }}
-          password: ${{ secrets.GL_DOCKER_PASSWORD }}
-
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_GORELEASER }}
-          FURY_TOKEN: ${{ secrets.GH_FURY_TOKEN }}
-          AUR_KEY: ${{ secrets.GH_AUR_KEY }}
+          GITHUB_TOKEN: "${{ secrets.GH_GORELEASER }}"
+          FURY_TOKEN: "${{ secrets.GH_FURY_TOKEN }}"
+          AUR_KEY: "${{ secrets.GH_AUR_KEY }}"

@@ -50,14 +50,16 @@ builds:
 
 archives:
   - id: dns53-archive
-    format: tar.gz
-    name_template: |-
-      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}-{{ .Arch }}
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
     builds:
       - dns53
-    replacements:
-      386: i386
-      amd64: x86_64
+    rlcp: true
     format_overrides:
       - goos: windows
         format: zip
@@ -97,11 +99,8 @@ changelog:
 sboms:
   - artifacts: archive
 
-# Use Keyless experimental signing with cosign, see: https://github.com/sigstore/cosign/blob/main/KEYLESS.md
 signs:
   - cmd: cosign
-    env:
-      - COSIGN_EXPERIMENTAL=1
     certificate: "${artifact}.pem"
     output: true
     artifacts: checksum
@@ -110,6 +109,7 @@ signs:
       - "--output-certificate=${certificate}"
       - "--output-signature=${signature}"
       - "${artifact}"
+      - --yes
 
 brews:
   - name: dns53
@@ -226,4 +226,5 @@ release:
     ## What to do next?
 
     - Read the [documentation](https://purpleclay.github.io/dns53/)
-    - Follow us on [Twitter](https://twitter.com/purpleclaydev)
+    - Follow me on [Twitter](https://twitter.com/purpleclaydev)
+    - Follow me on [Fosstodon](https://fosstodon.org/@purpleclaydev)
