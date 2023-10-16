@@ -117,14 +117,13 @@ func get(ctx context.Context, api ClientAPI, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer out.Content.Close()
 
 	data, err := io.ReadAll(out.Content)
 	if err != nil {
 		return "", err
 	}
 
-	return string(data), nil
+	return string(data), out.Content.Close()
 }
 
 func vpc(ctx context.Context, api ClientAPI) string {
