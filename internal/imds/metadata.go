@@ -119,7 +119,11 @@ func get(ctx context.Context, api ClientAPI, path string) (string, error) {
 	}
 	defer out.Content.Close()
 
-	data, _ := io.ReadAll(out.Content)
+	data, err := io.ReadAll(out.Content)
+	if err != nil {
+		return "", err
+	}
+
 	return string(data), nil
 }
 

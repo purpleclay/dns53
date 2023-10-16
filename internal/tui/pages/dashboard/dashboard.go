@@ -68,8 +68,8 @@ type Model struct {
 	styles           *Styles
 }
 
-func New(opts Options) Model {
-	return Model{
+func New(opts Options) *Model {
+	return &Model{
 		clipboardTimeout: stopwatch.NewWithInterval(time.Second * 2),
 		viewport:         viewport.New(0, 0),
 		options:          opts,
@@ -79,11 +79,11 @@ func New(opts Options) Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -97,10 +97,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.initAssociation)
 	case r53AssociatedMsg:
 		m.connected = true
-		cmds = append(cmds, m.elapsed.Start())
-
-		// Request the keymap to be refreshed, as the DNS is now resolved
-		cmds = append(cmds, message.RefreshKeyMapCmd)
+		cmds = append(cmds, m.elapsed.Start(), message.RefreshKeyMapCmd)
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
@@ -143,7 +140,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	phzData := lipgloss.JoinVertical(
 		lipgloss.Top,
 		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Name:"), m.styles.Spacing, m.selected.Name),
@@ -210,7 +207,7 @@ func (m Model) View() string {
 	return m.viewport.View()
 }
 
-func (m Model) ShortHelp() []key.Binding {
+func (m *Model) ShortHelp() []key.Binding {
 	bindings := []key.Binding{keymap.Quit}
 	if m.connected {
 		bindings = append(bindings, keymap.Copy)
@@ -219,11 +216,11 @@ func (m Model) ShortHelp() []key.Binding {
 	return bindings
 }
 
-func (m Model) FullHelp() [][]key.Binding {
+func (m *Model) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-func (m Model) Resize(width, height int) pages.Model {
+func (m *Model) Resize(width, height int) pages.Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
@@ -231,15 +228,15 @@ func (m Model) Resize(width, height int) pages.Model {
 	return m
 }
 
-func (m Model) Width() int {
+func (m *Model) Width() int {
 	return m.viewport.Width
 }
 
-func (m Model) Height() int {
+func (m *Model) Height() int {
 	return m.viewport.Height
 }
 
-func (m Model) resolveDomainName() string {
+func (m *Model) resolveDomainName() string {
 	name := m.options.DomainName
 	if name == "" {
 		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.options.Metadata.IPv4, ".", "-"), m.selected.Name)
@@ -248,17 +245,15 @@ func (m Model) resolveDomainName() string {
 		if strings.Count(name, "dns53") > 1 {
 			name = strings.TrimSuffix(name, ".dns53")
 		}
-	} else {
+	} else if !strings.HasSuffix(name, "."+m.selected.Name) {
 		// Ensure root domain is appended as a suffix
-		if !strings.HasSuffix(name, "."+m.selected.Name) {
-			name = fmt.Sprintf("%s.%s", name, m.selected.Name)
-		}
+		name = fmt.Sprintf("%s.%s", name, m.selected.Name)
 	}
 
 	return name
 }
 
-func (m Model) initAssociation() tea.Msg {
+func (m *Model) initAssociation() tea.Msg {
 	record := r53.ResourceRecord{
 		PhzID:    m.selected.ID,
 		Name:     m.domainName,

@@ -54,7 +54,7 @@ func newTagsCommand() *cobra.Command {
 					k,
 					cleanedValue,
 					fmt.Sprintf("{{.Tags.%s}}", cleanedTag),
-					fmt.Sprintf("{{index .Tags \"%s\"}}", k),
+					fmt.Sprintf("{{index .Tags %q}}", k),
 				})
 			}
 

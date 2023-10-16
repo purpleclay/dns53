@@ -72,14 +72,14 @@ type Model struct {
 	styles      *Styles
 }
 
-func New(opts Options) Model {
+func New(opts Options) *Model {
 	styles := DefaultStyles()
 
 	loading := spinner.New()
 	loading.Spinner = spinner.Dot
 	loading.Style = styles.Spinner
 
-	return Model{
+	return &Model{
 		viewport:   viewport.New(0, 0),
 		loading:    loading,
 		selection:  filteredlist.New([]list.Item{}, 40, 20),
@@ -89,7 +89,7 @@ func New(opts Options) Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.viewport.Init(),
 		m.loading.Tick,
@@ -102,7 +102,7 @@ func (m Model) Init() tea.Cmd {
 	)
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -152,7 +152,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	var page string
 	if len(m.selection.Items()) == 0 {
 		zoneLabel := "Zones"
@@ -184,7 +184,7 @@ func (m Model) View() string {
 	return m.viewport.View()
 }
 
-func (m Model) ShortHelp() []key.Binding {
+func (m *Model) ShortHelp() []key.Binding {
 	kb := make([]key.Binding, 0)
 
 	kb = append(kb, keymap.Quit)
@@ -207,11 +207,11 @@ func (m Model) ShortHelp() []key.Binding {
 	return kb
 }
 
-func (m Model) FullHelp() [][]key.Binding {
+func (m *Model) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-func (m Model) Resize(width, height int) pages.Model {
+func (m *Model) Resize(width, height int) pages.Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
@@ -219,15 +219,15 @@ func (m Model) Resize(width, height int) pages.Model {
 	return m
 }
 
-func (m Model) Width() int {
+func (m *Model) Width() int {
 	return m.viewport.Width
 }
 
-func (m Model) Height() int {
+func (m *Model) Height() int {
 	return m.viewport.Height
 }
 
-func (m Model) queryHostedZones() tea.Msg {
+func (m *Model) queryHostedZones() tea.Msg {
 	metadata := m.options.Metadata
 	phzs, err := m.options.Client.ByVPC(context.Background(), metadata.VPC, metadata.Region)
 	if err != nil {
@@ -240,7 +240,7 @@ func (m Model) queryHostedZones() tea.Msg {
 	return zoneSelectionMsg{hostedZones: phzs}
 }
 
-func (m Model) queryHostedZone() tea.Msg {
+func (m *Model) queryHostedZone() tea.Msg {
 	phz, err := m.options.Client.ByID(context.Background(), m.options.HostedZoneID)
 	if err != nil {
 		return message.ErrorMsg{
