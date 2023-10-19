@@ -38,14 +38,6 @@ body:
     validations:
       required: true
   - type: textarea
-    id: potential-solution
-    attributes:
-      label: Your potential solution
-      description: A clear and concise description of your potential solution.
-      placeholder: Your potential solution?
-    validations:
-      required: true
-  - type: textarea
     id: additional-info
     attributes:
       label: Any additional information?

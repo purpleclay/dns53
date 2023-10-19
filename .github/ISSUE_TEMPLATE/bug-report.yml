@@ -53,7 +53,7 @@ body:
     id: version
     attributes:
       label: Which version?
-      description: Which version of dns53 are you using? `dns53 version --short`
+      description: Which version of dns53 are you using?
       placeholder: dns53 version
     validations:
       required: true
