@@ -29,9 +29,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
-	"github.com/purpleclay/dns53/internal/tui/components"
-	"github.com/purpleclay/dns53/internal/tui/components/footer"
-	"github.com/purpleclay/dns53/internal/tui/components/header"
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
+	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
 	"github.com/purpleclay/dns53/internal/tui/pages"
@@ -47,11 +47,25 @@ const (
 	dashboardPage
 )
 
+type Options struct {
+	About        About
+	R53Client    *r53.Client
+	EC2Metadata  imds.Metadata
+	DomainName   string
+	HostedZoneID string
+}
+
+type About struct {
+	Name             string
+	Version          string
+	ShortDescription string
+}
+
 type UI struct {
-	header      components.Model
+	header      component.Model
 	pages       []pages.Model
 	currentPage page
-	footer      components.Model
+	footer      component.Model
 }
 
 func New(opts Options) UI {
@@ -75,10 +89,10 @@ func New(opts Options) UI {
 	currentPage := wizardPage
 
 	return UI{
-		header:      header.New(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
+		header:      component.NewHeader(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
 		pages:       pages,
 		currentPage: currentPage,
-		footer:      footer.New(pages[currentPage]),
+		footer:      component.NewFooter(pages[currentPage]),
 	}
 }
 
@@ -152,7 +166,7 @@ func (u UI) margins() (int, int) {
 }
 
 func (u UI) refreshFooterKeyMap() UI {
-	footer := u.footer.(footer.Model)
+	footer := u.footer.(component.Footer)
 	u.footer = footer.SetKeyMap(u.pages[u.currentPage])
 	return u
 }

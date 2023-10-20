@@ -36,7 +36,7 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
-	"github.com/purpleclay/dns53/internal/tui/components/errorpanel"
+	"github.com/purpleclay/dns53/internal/tui/component/errorpanel"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
 	"github.com/purpleclay/dns53/internal/tui/pages"

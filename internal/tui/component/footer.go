@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package footer
+package component
 
 import (
 	"strings"
@@ -28,70 +28,64 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/components"
-	"github.com/purpleclay/dns53/internal/tui/theme"
+	theme "github.com/purpleclay/lipgloss-theme"
 )
 
-type Model struct {
+var (
+	faint     = lipgloss.NewStyle().Faint(true)
+	borderTop = lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder(), true, false, false, false).
+			BorderForeground(theme.S600)
+)
+
+type Footer struct {
 	help   help.Model
 	keymap help.KeyMap
-	text   string
 	width  int
-	Styles *Styles
 }
 
-func New(keymap help.KeyMap) Model {
-	styles := DefaultStyles()
-
+func NewFooter(keymap help.KeyMap) Footer {
 	help := help.New()
-	help.Styles.ShortSeparator = styles.Ellipsis
-	help.Styles.ShortKey = styles.HelpText
-	help.Styles.ShortDesc = styles.HelpFeintText
+	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(theme.S100)
+	help.Styles.ShortKey = lipgloss.NewStyle()
+	help.Styles.ShortDesc = faint.Copy()
 
-	return Model{
+	return Footer{
 		help:   help,
 		keymap: keymap,
-		text:   "Made with 💜 at Purple Clay",
-		Styles: styles,
 	}
 }
 
-func (Model) Init() tea.Cmd {
+func (Footer) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m Footer) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m Footer) View() string {
 	var b strings.Builder
+	panel := lipgloss.JoinVertical(lipgloss.Top, m.help.View(m.keymap))
 
-	text := theme.VeryFeintTextStyle.Copy().MarginTop(2).Render(m.text)
-
-	panel := lipgloss.JoinVertical(lipgloss.Top, m.help.View(m.keymap), text)
-
-	b.WriteString(m.Styles.Border.
-		Width(m.width).
-		Render(panel))
-
+	b.WriteString(borderTop.Width(m.width).Render(panel))
 	return b.String()
 }
 
-func (m Model) Resize(width, _ int) components.Model {
+func (m Footer) Resize(width, _ int) Model {
 	m.width = width
 	return m
 }
 
-func (m Model) Width() int {
+func (m Footer) Width() int {
 	return m.width
 }
 
-func (m Model) Height() int {
+func (m Footer) Height() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m Model) SetKeyMap(keymap help.KeyMap) Model {
+func (m Footer) SetKeyMap(keymap help.KeyMap) Footer {
 	m.keymap = keymap
 	return m
 }

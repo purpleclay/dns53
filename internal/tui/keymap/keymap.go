@@ -71,8 +71,8 @@ var (
 	)
 
 	Quit = key.NewBinding(
-		key.WithKeys("q", "ctrl+c"),
-		key.WithHelp("q / ctrl+c", "quit"),
+		key.WithKeys("ctrl+c"),
+		key.WithHelp("ctrl+c", "quit"),
 	)
 
 	Copy = key.NewBinding(

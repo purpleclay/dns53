@@ -20,75 +20,75 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package header
+package component
 
 import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/components"
+	theme "github.com/purpleclay/lipgloss-theme"
 )
 
-type Model struct {
+var (
+	borderBottom = lipgloss.NewStyle().
+		Border(lipgloss.NormalBorder(), false, false, true, false).
+		BorderForeground(theme.S600).
+		MarginBottom(1)
+)
+
+type Header struct {
 	name        string
 	version     string
 	description string
 	width       int
-	Styles      *Styles
 }
 
-func New(name, version, description string) Model {
-	return Model{
+func NewHeader(name, version, description string) Header {
+	return Header{
 		name:        name,
 		description: description,
 		version:     version,
-		Styles:      DefaultStyles(),
 	}
 }
 
-func (Model) Init() tea.Cmd {
+func (Header) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m Header) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m Header) View() string {
 	var b strings.Builder
 
 	nameVersion := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.Styles.Name.Padding(0, 2).Render(m.name),
-		m.Styles.Version.Padding(0, 2).Render(m.version),
+		theme.H2.Render(m.name),
+		theme.H4.Render(m.version),
 	)
-
-	desc := m.Styles.Description.Render(m.description)
 
 	banner := lipgloss.JoinVertical(
 		lipgloss.Top,
-		lipgloss.NewStyle().MarginBottom(1).Render(nameVersion),
-		desc,
+		nameVersion,
+		"",
+		faint.Render(m.description),
 	)
 
-	b.WriteString(m.Styles.Border.
-		MarginBottom(1).
-		Width(m.width).
-		Render(banner))
-
+	b.WriteString(borderBottom.Width(m.width).Render(banner))
 	return b.String()
 }
 
-func (m Model) Resize(width, _ int) components.Model {
+func (m Header) Resize(width, _ int) Model {
 	m.width = width
 	return m
 }
 
-func (m Model) Width() int {
+func (m Header) Width() int {
 	return m.width
 }
 
-func (m Model) Height() int {
+func (m Header) Height() int {
 	return lipgloss.Height(m.View())
 }
