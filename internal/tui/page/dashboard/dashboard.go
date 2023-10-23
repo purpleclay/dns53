@@ -36,10 +36,10 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
-	"github.com/purpleclay/dns53/internal/tui/component/errorpanel"
+	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/dns53/internal/tui/pages"
+	"github.com/purpleclay/dns53/internal/tui/page"
 )
 
 // Common layout for the dashboard
@@ -63,7 +63,7 @@ type Model struct {
 	selected         r53.PrivateHostedZone
 	connected        bool
 	elapsed          stopwatch.Model
-	errorPanel       errorpanel.Model
+	errorPanel       component.ErrorPanel
 	errorRaised      bool
 	styles           *Styles
 }
@@ -74,7 +74,7 @@ func New(opts Options) *Model {
 		viewport:         viewport.New(0, 0),
 		options:          opts,
 		elapsed:          stopwatch.New(),
-		errorPanel:       errorpanel.New(),
+		errorPanel:       component.NewErrorPanel(),
 		styles:           DefaultStyles(),
 	}
 }
@@ -220,11 +220,11 @@ func (m *Model) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-func (m *Model) Resize(width, height int) pages.Model {
+func (m *Model) Resize(width, height int) page.Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
-	m.errorPanel = m.errorPanel.Resize(width, height)
+	m.errorPanel = m.errorPanel.Resize(width, height).(component.ErrorPanel)
 	return m
 }
 

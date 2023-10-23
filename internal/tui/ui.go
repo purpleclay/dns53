@@ -34,16 +34,16 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/dns53/internal/tui/pages"
-	"github.com/purpleclay/dns53/internal/tui/pages/dashboard"
-	"github.com/purpleclay/dns53/internal/tui/pages/wizard"
+	"github.com/purpleclay/dns53/internal/tui/page"
+	"github.com/purpleclay/dns53/internal/tui/page/dashboard"
+	"github.com/purpleclay/dns53/internal/tui/page/wizard"
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
-type page int
+type pageIndex int
 
 const (
-	wizardPage page = iota
+	wizardPage pageIndex = iota
 	dashboardPage
 )
 
@@ -62,16 +62,16 @@ type About struct {
 }
 
 type UI struct {
-	header      component.Model
-	pages       []pages.Model
-	currentPage page
-	footer      component.Model
+	header    component.Model
+	pages     []page.Model
+	pageIndex pageIndex
+	footer    component.Model
 }
 
 func New(opts Options) UI {
 	output := termenv.NewOutput(os.Stderr)
 
-	pages := []pages.Model{
+	pages := []page.Model{
 		wizard.New(wizard.Options{
 			Client:       opts.R53Client,
 			Metadata:     opts.EC2Metadata,
@@ -86,13 +86,13 @@ func New(opts Options) UI {
 		}),
 	}
 
-	currentPage := wizardPage
+	index := wizardPage
 
 	return UI{
-		header:      component.NewHeader(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
-		pages:       pages,
-		currentPage: currentPage,
-		footer:      component.NewFooter(pages[currentPage]),
+		header:    component.NewHeader(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
+		pages:     pages,
+		pageIndex: index,
+		footer:    component.NewFooter(pages[index]),
 	}
 }
 
@@ -129,21 +129,21 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			u.pages[i] = u.pages[i].Resize(pageX, pageY)
 		}
 	case message.R53ZoneSelectedMsg:
-		u.currentPage += dashboardPage
+		u.pageIndex += dashboardPage
 
 		u = u.refreshFooterKeyMap()
 	case message.RefreshKeymapMsg:
 		u = u.refreshFooterKeyMap()
 	case tea.KeyMsg:
 		if key.Matches(msg, keymap.Quit) {
-			u.pages[u.currentPage].Update(msg)
+			u.pages[u.pageIndex].Update(msg)
 			return u, tea.Quit
 		}
 	}
 
-	var page tea.Model
-	page, cmd = u.pages[u.currentPage].Update(msg)
-	u.pages[u.currentPage] = page.(pages.Model)
+	var currentPage tea.Model
+	currentPage, cmd = u.pages[u.pageIndex].Update(msg)
+	u.pages[u.pageIndex] = currentPage.(page.Model)
 	cmds = append(cmds, cmd)
 
 	return u, tea.Batch(cmds...)
@@ -153,7 +153,7 @@ func (u UI) View() string {
 	view := lipgloss.JoinVertical(
 		lipgloss.Left,
 		u.header.View(),
-		u.pages[u.currentPage].View(),
+		u.pages[u.pageIndex].View(),
 		u.footer.View(),
 	)
 
@@ -167,6 +167,6 @@ func (u UI) margins() (int, int) {
 
 func (u UI) refreshFooterKeyMap() UI {
 	footer := u.footer.(component.Footer)
-	u.footer = footer.SetKeyMap(u.pages[u.currentPage])
+	u.footer = footer.SetKeyMap(u.pages[u.pageIndex])
 	return u
 }

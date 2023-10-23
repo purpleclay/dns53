@@ -34,11 +34,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
-	"github.com/purpleclay/dns53/internal/tui/component/errorpanel"
-	"github.com/purpleclay/dns53/internal/tui/component/filteredlist"
+	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/dns53/internal/tui/pages"
+	"github.com/purpleclay/dns53/internal/tui/page"
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
@@ -66,7 +65,7 @@ type Model struct {
 	viewport    viewport.Model
 	loading     spinner.Model
 	selection   list.Model
-	errorPanel  errorpanel.Model
+	errorPanel  component.ErrorPanel
 	errorRaised bool
 	options     Options
 	styles      *Styles
@@ -82,8 +81,8 @@ func New(opts Options) *Model {
 	return &Model{
 		viewport:   viewport.New(0, 0),
 		loading:    loading,
-		selection:  filteredlist.New([]list.Item{}, 40, 20),
-		errorPanel: errorpanel.New(),
+		selection:  component.NewFilteredList([]list.Item{}, 40, 20),
+		errorPanel: component.NewErrorPanel(),
 		options:    opts,
 		styles:     styles,
 	}
@@ -211,11 +210,11 @@ func (m *Model) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-func (m *Model) Resize(width, height int) pages.Model {
+func (m *Model) Resize(width, height int) page.Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
-	m.errorPanel = m.errorPanel.Resize(width, height)
+	m.errorPanel = m.errorPanel.Resize(width, height).(component.ErrorPanel)
 	return m
 }
 

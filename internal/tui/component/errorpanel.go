@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package errorpanel
+package component
 
 import (
 	"strings"
@@ -28,51 +28,64 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/wordwrap"
+	theme "github.com/purpleclay/lipgloss-theme"
 )
 
-type Model struct {
+var (
+	label = lipgloss.NewStyle().
+		Background(lipgloss.Color("#a61414")).
+		Padding(0, 2).
+		Bold(true).
+		Render("Error")
+
+	borderLeft = lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder(), false, false, false, true).
+			BorderForeground(theme.S600)
+
+	marginLeft  = lipgloss.NewStyle().MarginLeft(1)
+	panelMargin = lipgloss.NewStyle().Margin(0, 0, 1, 1)
+)
+
+type ErrorPanel struct {
 	reason string
 	cause  string
 	width  int
-	Styles *Styles
 }
 
-func New() Model {
-	return Model{
-		Styles: DefaultStyles(),
-	}
+func NewErrorPanel() ErrorPanel {
+	return ErrorPanel{}
 }
 
-func (Model) Init() tea.Cmd {
+func (ErrorPanel) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m ErrorPanel) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m ErrorPanel) View() string {
 	var b strings.Builder
 
 	reason := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.Styles.Label.Padding(0, 2).Render("Error"),
-		m.Styles.Reason.Render(": "+m.reason),
+		label,
+		theme.B.Render(": "+m.reason),
 	)
 
-	desc := m.Styles.Cause.MarginLeft(1).Render(wordwrap.String(m.cause, m.width))
+	desc := marginLeft.Render(wordwrap.String(m.cause, m.width))
 
 	panel := lipgloss.JoinVertical(
 		lipgloss.Top,
-		lipgloss.NewStyle().Margin(0, 0, 1, 1).Render(wordwrap.String(reason, m.width)),
+		panelMargin.Render(wordwrap.String(reason, m.width)),
 		desc,
 	)
 
-	b.WriteString(m.Styles.Border.Render(panel))
+	b.WriteString(borderLeft.Render(panel))
 	return b.String()
 }
 
-func (m Model) RaiseError(reason string, cause error) Model {
+func (m ErrorPanel) RaiseError(reason string, cause error) ErrorPanel {
 	m.reason = reason
 	if cause != nil {
 		m.cause = cause.Error()
@@ -81,16 +94,16 @@ func (m Model) RaiseError(reason string, cause error) Model {
 	return m
 }
 
-func (m Model) Resize(width, _ int) Model {
+func (m ErrorPanel) Resize(width, _ int) Model {
 	// Restrict the error panel to be 3/4 the width of the containing component
 	m.width = int(float32(width) * 0.75)
 	return m
 }
 
-func (m Model) Width() int {
+func (m ErrorPanel) Width() int {
 	return m.width
 }
 
-func (m Model) Height() int {
+func (m ErrorPanel) Height() int {
 	return lipgloss.Height(m.View())
 }

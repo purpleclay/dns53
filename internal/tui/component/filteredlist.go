@@ -20,29 +20,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package filteredlist
+package component
 
 import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
-	"github.com/purpleclay/dns53/internal/tui/theme"
+	theme "github.com/purpleclay/lipgloss-theme"
 )
 
-func New(items []list.Item, width, height int) list.Model {
+func NewFilteredList(items []list.Item, width, height int) list.Model {
 	delegate := list.NewDefaultDelegate()
 
 	// Override the colours within the existing styles
 	delegate.Styles.SelectedTitle = delegate.Styles.SelectedTitle.
-		BorderForeground(theme.HighlightColour).
-		Foreground(theme.HighlightColour).
+		BorderForeground(theme.S100).
+		Foreground(theme.S100).
 		Bold(true)
 
 	delegate.Styles.SelectedDesc = delegate.Styles.SelectedDesc.
-		Foreground(theme.HighlightFeintColour)
-
-	delegate.Styles.DimmedDesc = delegate.Styles.DimmedDesc.
-		Foreground(theme.FeintColour)
+		BorderForeground(theme.S100).
+		Foreground(theme.S50).
+		Faint(true)
 
 	delegate.Styles.FilterMatch = lipgloss.NewStyle().
 		Underline(true).
@@ -52,13 +51,10 @@ func New(items []list.Item, width, height int) list.Model {
 
 	// Override the colours within the existing styles
 	filteredList.Styles.FilterPrompt = filteredList.Styles.FilterPrompt.
-		Foreground(theme.HighlightColour)
+		Foreground(theme.S100)
 
 	filteredList.Styles.FilterCursor = filteredList.Styles.FilterCursor.
-		Foreground(theme.HighlightColour)
-
-	filteredList.Styles.StatusBarFilterCount = filteredList.Styles.StatusBarFilterCount.
-		Foreground(theme.FeintColour)
+		Foreground(theme.S100)
 
 	filteredList.SetShowTitle(false)
 	filteredList.SetShowHelp(false)
