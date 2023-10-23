@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package wizard
+package page
 
 import (
 	"context"
@@ -37,8 +37,7 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/dns53/internal/tui/page"
-	"github.com/purpleclay/dns53/internal/tui/theme"
+	theme "github.com/purpleclay/lipgloss-theme"
 )
 
 type zoneSelectionMsg struct {
@@ -54,41 +53,39 @@ func (i hostedZoneItem) Title() string       { return i.name }
 func (i hostedZoneItem) Description() string { return i.id }
 func (i hostedZoneItem) FilterValue() string { return i.name }
 
-type Options struct {
+type WizardOptions struct {
 	Client       *r53.Client
 	Metadata     imds.Metadata
 	HostedZoneID string
 	DomainName   string
 }
 
-type Model struct {
+type Wizard struct {
 	viewport    viewport.Model
 	loading     spinner.Model
 	selection   list.Model
 	errorPanel  component.ErrorPanel
 	errorRaised bool
-	options     Options
-	styles      *Styles
+	options     WizardOptions
 }
 
-func New(opts Options) *Model {
-	styles := DefaultStyles()
-
+func NewWizard(opts WizardOptions) *Wizard {
 	loading := spinner.New()
 	loading.Spinner = spinner.Dot
-	loading.Style = styles.Spinner
+	loading.Style = lipgloss.NewStyle().
+		Foreground(theme.S100).
+		Bold(true)
 
-	return &Model{
+	return &Wizard{
 		viewport:   viewport.New(0, 0),
 		loading:    loading,
 		selection:  component.NewFilteredList([]list.Item{}, 40, 20),
 		errorPanel: component.NewErrorPanel(),
 		options:    opts,
-		styles:     styles,
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *Wizard) Init() tea.Cmd {
 	return tea.Batch(
 		m.viewport.Init(),
 		m.loading.Tick,
@@ -101,7 +98,7 @@ func (m *Model) Init() tea.Cmd {
 	)
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Wizard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -151,7 +148,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) View() string {
+func (m *Wizard) View() string {
 	var page string
 	if len(m.selection.Items()) == 0 {
 		zoneLabel := "Zones"
@@ -162,12 +159,13 @@ func (m *Model) View() string {
 		page = lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			m.loading.View(),
-			theme.TextStyle.MarginBottom(1).Render(fmt.Sprintf(" Retrieving Private Hosted %s from AWS...", zoneLabel)),
+			//theme.TextStyle.MarginBottom(1).Render(fmt.Sprintf(" Retrieving Private Hosted %s from AWS...", zoneLabel)),
+			fmt.Sprintf(" Retrieving Private Hosted %s from AWS...", zoneLabel),
 		)
 	} else {
 		page = lipgloss.JoinVertical(
 			lipgloss.Top,
-			theme.TextStyle.Render("Please select a Private Hosted Zone:"),
+			"Please select a Private Hosted Zone:",
 			m.selection.View(),
 		)
 	}
@@ -183,7 +181,7 @@ func (m *Model) View() string {
 	return m.viewport.View()
 }
 
-func (m *Model) ShortHelp() []key.Binding {
+func (m *Wizard) ShortHelp() []key.Binding {
 	kb := make([]key.Binding, 0)
 
 	kb = append(kb, keymap.Quit)
@@ -206,11 +204,11 @@ func (m *Model) ShortHelp() []key.Binding {
 	return kb
 }
 
-func (m *Model) FullHelp() [][]key.Binding {
+func (m *Wizard) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-func (m *Model) Resize(width, height int) page.Model {
+func (m *Wizard) Resize(width, height int) Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
@@ -218,15 +216,15 @@ func (m *Model) Resize(width, height int) page.Model {
 	return m
 }
 
-func (m *Model) Width() int {
+func (m *Wizard) Width() int {
 	return m.viewport.Width
 }
 
-func (m *Model) Height() int {
+func (m *Wizard) Height() int {
 	return m.viewport.Height
 }
 
-func (m *Model) queryHostedZones() tea.Msg {
+func (m *Wizard) queryHostedZones() tea.Msg {
 	metadata := m.options.Metadata
 	phzs, err := m.options.Client.ByVPC(context.Background(), metadata.VPC, metadata.Region)
 	if err != nil {
@@ -239,7 +237,7 @@ func (m *Model) queryHostedZones() tea.Msg {
 	return zoneSelectionMsg{hostedZones: phzs}
 }
 
-func (m *Model) queryHostedZone() tea.Msg {
+func (m *Wizard) queryHostedZone() tea.Msg {
 	phz, err := m.options.Client.ByID(context.Background(), m.options.HostedZoneID)
 	if err != nil {
 		return message.ErrorMsg{

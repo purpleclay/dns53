@@ -36,7 +36,6 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/message"
 	"github.com/purpleclay/dns53/internal/tui/page"
 	"github.com/purpleclay/dns53/internal/tui/page/dashboard"
-	"github.com/purpleclay/dns53/internal/tui/page/wizard"
 	"github.com/purpleclay/dns53/internal/tui/theme"
 )
 
@@ -72,7 +71,7 @@ func New(opts Options) UI {
 	output := termenv.NewOutput(os.Stderr)
 
 	pages := []page.Model{
-		wizard.New(wizard.Options{
+		page.NewWizard(page.WizardOptions{
 			Client:       opts.R53Client,
 			Metadata:     opts.EC2Metadata,
 			HostedZoneID: opts.HostedZoneID,
