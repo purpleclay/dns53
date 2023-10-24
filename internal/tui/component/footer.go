@@ -20,75 +20,72 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package header
+package component
 
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/components"
+	"github.com/purpleclay/lipgloss-theme"
 )
 
-type Model struct {
-	name        string
-	version     string
-	description string
-	width       int
-	Styles      *Styles
+var (
+	faint     = lipgloss.NewStyle().Faint(true)
+	borderTop = lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder(), true, false, false, false).
+			BorderForeground(theme.S600)
+)
+
+type Footer struct {
+	help   help.Model
+	keymap help.KeyMap
+	width  int
 }
 
-func New(name, version, description string) Model {
-	return Model{
-		name:        name,
-		description: description,
-		version:     version,
-		Styles:      DefaultStyles(),
+func NewFooter(keymap help.KeyMap) *Footer {
+	help := help.New()
+	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(theme.S100)
+	help.Styles.ShortKey = lipgloss.NewStyle()
+	help.Styles.ShortDesc = faint.Copy()
+
+	return &Footer{
+		help:   help,
+		keymap: keymap,
 	}
 }
 
-func (Model) Init() tea.Cmd {
+func (*Footer) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Footer) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) View() string {
+func (m *Footer) View() string {
 	var b strings.Builder
+	panel := lipgloss.JoinVertical(lipgloss.Top, m.help.View(m.keymap))
 
-	nameVersion := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		m.Styles.Name.Padding(0, 2).Render(m.name),
-		m.Styles.Version.Padding(0, 2).Render(m.version),
-	)
-
-	desc := m.Styles.Description.Render(m.description)
-
-	banner := lipgloss.JoinVertical(
-		lipgloss.Top,
-		lipgloss.NewStyle().MarginBottom(1).Render(nameVersion),
-		desc,
-	)
-
-	b.WriteString(m.Styles.Border.
-		MarginBottom(1).
-		Width(m.width).
-		Render(banner))
-
+	b.WriteString(borderTop.Width(m.width).Render(panel))
 	return b.String()
 }
 
-func (m Model) Resize(width, _ int) components.Model {
+func (m *Footer) Resize(width, _ int) Model {
 	m.width = width
 	return m
 }
 
-func (m Model) Width() int {
+func (m *Footer) Width() int {
 	return m.width
 }
 
-func (m Model) Height() int {
+func (m *Footer) Height() int {
 	return lipgloss.Height(m.View())
+}
+
+func (m *Footer) SetKeyMap(keymap help.KeyMap) *Footer {
+	m.keymap = keymap
+	return m
 }

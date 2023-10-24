@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package dashboard
+package page
 
 import (
 	"context"
@@ -36,10 +36,20 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
-	"github.com/purpleclay/dns53/internal/tui/components/errorpanel"
+	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/dns53/internal/tui/pages"
+	"github.com/purpleclay/lipgloss-theme"
+)
+
+var (
+	spacing        = lipgloss.NewStyle().Faint(true).Render(strings.Repeat(".", 12))
+	faint          = lipgloss.NewStyle().Faint(true)
+	highlight      = lipgloss.NewStyle().Foreground(theme.S50).Bold(true)
+	primaryLabel   = theme.H6.Copy().Padding(0, 3).MarginRight(8)
+	secondaryLabel = theme.H2.Copy().PaddingLeft(2).Width(11)
+	pending        = lipgloss.NewStyle().Foreground(lipgloss.Color("#e68a35")).Bold(true)
+	active         = lipgloss.NewStyle().Foreground(lipgloss.Color("#26a621")).Bold(true)
 )
 
 // Common layout for the dashboard
@@ -47,43 +57,41 @@ const dashboardLine = "%s %s %s"
 
 type r53AssociatedMsg struct{}
 
-type Options struct {
+type DashboardOptions struct {
 	Client     *r53.Client
 	Metadata   imds.Metadata
 	DomainName string
 	Output     *termenv.Output
 }
 
-type Model struct {
+type Dashboard struct {
 	viewport         viewport.Model
-	options          Options
+	options          DashboardOptions
 	domainName       string
 	clipboardStatus  string
 	clipboardTimeout stopwatch.Model
 	selected         r53.PrivateHostedZone
 	connected        bool
 	elapsed          stopwatch.Model
-	errorPanel       errorpanel.Model
+	errorPanel       *component.ErrorPanel
 	errorRaised      bool
-	styles           *Styles
 }
 
-func New(opts Options) *Model {
-	return &Model{
+func NewDashboard(opts DashboardOptions) *Dashboard {
+	return &Dashboard{
 		clipboardTimeout: stopwatch.NewWithInterval(time.Second * 2),
 		viewport:         viewport.New(0, 0),
 		options:          opts,
 		elapsed:          stopwatch.New(),
-		errorPanel:       errorpanel.New(),
-		styles:           DefaultStyles(),
+		errorPanel:       component.NewErrorPanel(),
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
+func (*Dashboard) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -140,50 +148,50 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) View() string {
+func (m *Dashboard) View() string {
 	phzData := lipgloss.JoinVertical(
 		lipgloss.Top,
-		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Name:"), m.styles.Spacing, m.selected.Name),
-		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("ID:"), m.styles.Spacing, m.selected.ID),
+		fmt.Sprintf(dashboardLine, secondaryLabel.Render("Name:"), spacing, m.selected.Name),
+		fmt.Sprintf(dashboardLine, secondaryLabel.Render("ID:"), spacing, m.selected.ID),
 	)
 
 	phz := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.styles.PrimaryLabel.Copy().Render("PHZ:"),
+		primaryLabel.Render("PHZ:"),
 		phzData,
 	)
 
 	ec2Data := lipgloss.JoinVertical(
 		lipgloss.Top,
-		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("IPv4:"), m.styles.Spacing, m.options.Metadata.IPv4),
-		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Region:"), m.styles.Spacing, m.options.Metadata.Region),
-		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("VPC:"), m.styles.Spacing, m.options.Metadata.VPC),
+		fmt.Sprintf(dashboardLine, secondaryLabel.Render("IPv4:"), spacing, m.options.Metadata.IPv4),
+		fmt.Sprintf(dashboardLine, secondaryLabel.Render("Region:"), spacing, m.options.Metadata.Region),
+		fmt.Sprintf(dashboardLine, secondaryLabel.Render("VPC:"), spacing, m.options.Metadata.VPC),
 	)
 
 	ec2 := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.styles.PrimaryLabel.Copy().Render("EC2:"),
+		primaryLabel.Render("EC2:"),
 		ec2Data,
 	)
 
-	status := m.styles.PendingStatus.Render("pending")
+	status := pending.Render("pending")
 	if m.connected {
-		status = lipgloss.JoinHorizontal(lipgloss.Left, m.styles.ActiveStatus.Render("active"), fmt.Sprintf(" (%s)", m.elapsed.View()))
+		status = lipgloss.JoinHorizontal(lipgloss.Left, active.Render("active"), fmt.Sprintf(" (%s)", m.elapsed.View()))
 	}
 
 	dnsData := lipgloss.JoinVertical(
 		lipgloss.Top,
 		fmt.Sprintf(dashboardLine+" [A] %s",
-			m.styles.SecondaryLabel.Render("Record:"),
-			m.styles.Spacing,
-			m.styles.Highlight.Render(m.domainName),
-			m.styles.Feint.Render(m.clipboardStatus)),
-		fmt.Sprintf(dashboardLine, m.styles.SecondaryLabel.Render("Status:"), m.styles.Spacing, status),
+			secondaryLabel.Render("Record:"),
+			spacing,
+			highlight.Render(m.domainName),
+			faint.Render(m.clipboardStatus)),
+		fmt.Sprintf(dashboardLine, secondaryLabel.Render("Status:"), spacing, status),
 	)
 
 	dns := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.styles.PrimaryLabel.Copy().Render("DNS:"),
+		primaryLabel.Render("DNS:"),
 		dnsData,
 	)
 
@@ -207,7 +215,7 @@ func (m *Model) View() string {
 	return m.viewport.View()
 }
 
-func (m *Model) ShortHelp() []key.Binding {
+func (m *Dashboard) ShortHelp() []key.Binding {
 	bindings := []key.Binding{keymap.Quit}
 	if m.connected {
 		bindings = append(bindings, keymap.Copy)
@@ -216,27 +224,27 @@ func (m *Model) ShortHelp() []key.Binding {
 	return bindings
 }
 
-func (m *Model) FullHelp() [][]key.Binding {
+func (*Dashboard) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
-func (m *Model) Resize(width, height int) pages.Model {
+func (m *Dashboard) Resize(width, height int) Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
-	m.errorPanel = m.errorPanel.Resize(width, height)
+	m.errorPanel = m.errorPanel.Resize(width, height).(*component.ErrorPanel)
 	return m
 }
 
-func (m *Model) Width() int {
+func (m *Dashboard) Width() int {
 	return m.viewport.Width
 }
 
-func (m *Model) Height() int {
+func (m *Dashboard) Height() int {
 	return m.viewport.Height
 }
 
-func (m *Model) resolveDomainName() string {
+func (m *Dashboard) resolveDomainName() string {
 	name := m.options.DomainName
 	if name == "" {
 		name = fmt.Sprintf("%s.dns53.%s", strings.ReplaceAll(m.options.Metadata.IPv4, ".", "-"), m.selected.Name)
@@ -253,7 +261,7 @@ func (m *Model) resolveDomainName() string {
 	return name
 }
 
-func (m *Model) initAssociation() tea.Msg {
+func (m *Dashboard) initAssociation() tea.Msg {
 	record := r53.ResourceRecord{
 		PhzID:    m.selected.ID,
 		Name:     m.domainName,

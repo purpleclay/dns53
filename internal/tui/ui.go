@@ -29,42 +29,55 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
-	"github.com/purpleclay/dns53/internal/tui/components"
-	"github.com/purpleclay/dns53/internal/tui/components/footer"
-	"github.com/purpleclay/dns53/internal/tui/components/header"
+	"github.com/purpleclay/dns53/internal/imds"
+	"github.com/purpleclay/dns53/internal/r53"
+	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/dns53/internal/tui/pages"
-	"github.com/purpleclay/dns53/internal/tui/pages/dashboard"
-	"github.com/purpleclay/dns53/internal/tui/pages/wizard"
-	"github.com/purpleclay/dns53/internal/tui/theme"
+	"github.com/purpleclay/dns53/internal/tui/page"
 )
 
-type page int
+var framed = lipgloss.NewStyle().Margin(1)
+
+type pageIndex int
 
 const (
-	wizardPage page = iota
+	wizardPage pageIndex = iota
 	dashboardPage
 )
 
+type Options struct {
+	About        About
+	R53Client    *r53.Client
+	EC2Metadata  imds.Metadata
+	DomainName   string
+	HostedZoneID string
+}
+
+type About struct {
+	Name             string
+	Version          string
+	ShortDescription string
+}
+
 type UI struct {
-	header      components.Model
-	pages       []pages.Model
-	currentPage page
-	footer      components.Model
+	header    component.Model
+	pages     []page.Model
+	pageIndex pageIndex
+	footer    component.Model
 }
 
 func New(opts Options) UI {
 	output := termenv.NewOutput(os.Stderr)
 
-	pages := []pages.Model{
-		wizard.New(wizard.Options{
+	pages := []page.Model{
+		page.NewWizard(page.WizardOptions{
 			Client:       opts.R53Client,
 			Metadata:     opts.EC2Metadata,
 			HostedZoneID: opts.HostedZoneID,
 			DomainName:   opts.DomainName,
 		}),
-		dashboard.New(dashboard.Options{
+		page.NewDashboard(page.DashboardOptions{
 			Client:     opts.R53Client,
 			Metadata:   opts.EC2Metadata,
 			DomainName: opts.DomainName,
@@ -72,13 +85,13 @@ func New(opts Options) UI {
 		}),
 	}
 
-	currentPage := wizardPage
+	index := wizardPage
 
 	return UI{
-		header:      header.New(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
-		pages:       pages,
-		currentPage: currentPage,
-		footer:      footer.New(pages[currentPage]),
+		header:    component.NewHeader(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
+		pages:     pages,
+		pageIndex: index,
+		footer:    component.NewFooter(pages[index]),
 	}
 }
 
@@ -115,21 +128,21 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			u.pages[i] = u.pages[i].Resize(pageX, pageY)
 		}
 	case message.R53ZoneSelectedMsg:
-		u.currentPage += dashboardPage
+		u.pageIndex += dashboardPage
 
 		u = u.refreshFooterKeyMap()
 	case message.RefreshKeymapMsg:
 		u = u.refreshFooterKeyMap()
 	case tea.KeyMsg:
 		if key.Matches(msg, keymap.Quit) {
-			u.pages[u.currentPage].Update(msg)
+			u.pages[u.pageIndex].Update(msg)
 			return u, tea.Quit
 		}
 	}
 
-	var page tea.Model
-	page, cmd = u.pages[u.currentPage].Update(msg)
-	u.pages[u.currentPage] = page.(pages.Model)
+	var currentPage tea.Model
+	currentPage, cmd = u.pages[u.pageIndex].Update(msg)
+	u.pages[u.pageIndex] = currentPage.(page.Model)
 	cmds = append(cmds, cmd)
 
 	return u, tea.Batch(cmds...)
@@ -139,20 +152,20 @@ func (u UI) View() string {
 	view := lipgloss.JoinVertical(
 		lipgloss.Left,
 		u.header.View(),
-		u.pages[u.currentPage].View(),
+		u.pages[u.pageIndex].View(),
 		u.footer.View(),
 	)
 
-	return theme.AppStyle.Render(view)
+	return framed.Render(view)
 }
 
 func (u UI) margins() (int, int) {
-	s := theme.AppStyle.Copy()
+	s := framed.Copy()
 	return s.GetHorizontalFrameSize(), s.GetVerticalFrameSize()
 }
 
 func (u UI) refreshFooterKeyMap() UI {
-	footer := u.footer.(footer.Model)
-	u.footer = footer.SetKeyMap(u.pages[u.currentPage])
+	footer := u.footer.(*component.Footer)
+	u.footer = footer.SetKeyMap(u.pages[u.pageIndex])
 	return u
 }

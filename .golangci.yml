@@ -38,9 +38,9 @@ linters-settings:
   ireturn:
     allow:
       - tea.Msg
-      - pages.Model
+      - page.Model
       - bubbletea.Model
-      - components.Model
+      - component.Model
       - error
   forbidigo:
     forbid:

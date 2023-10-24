@@ -20,55 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package dashboard
+package page
 
 import (
-	"strings"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/purpleclay/dns53/internal/tui/theme"
+	"github.com/charmbracelet/bubbles/help"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Styles struct {
-	PrimaryLabel   lipgloss.Style
-	SecondaryLabel lipgloss.Style
-	Spacing        string
-	PendingStatus  lipgloss.Style
-	ActiveStatus   lipgloss.Style
-	Highlight      lipgloss.Style
-	Feint          lipgloss.Style
-}
+type Model interface {
+	tea.Model
+	help.KeyMap
 
-func DefaultStyles() *Styles {
-	s := &Styles{}
-
-	s.PrimaryLabel = lipgloss.NewStyle().
-		Background(theme.PrimaryColour).
-		Foreground(theme.TextColour).
-		Bold(true).
-		Padding(0, 3).
-		MarginRight(8)
-
-	s.SecondaryLabel = lipgloss.NewStyle().
-		Background(theme.SecondaryColour).
-		Foreground(theme.TextColour).
-		PaddingLeft(2).
-		Width(11).
-		Bold(true)
-
-	s.Spacing = theme.VeryFeintTextStyle.Copy().
-		Render(strings.Repeat(".", 12))
-
-	s.PendingStatus = lipgloss.NewStyle().
-		Foreground(theme.AmberColour).
-		Bold(true)
-
-	s.ActiveStatus = lipgloss.NewStyle().
-		Foreground(theme.GreenColour).
-		Bold(true)
-
-	s.Highlight = theme.HightlightTextStyle.Copy().Bold(true)
-
-	s.Feint = theme.VeryFeintTextStyle.Copy()
-	return s
+	Resize(width, height int) Model
+	Width() int
+	Height() int
 }

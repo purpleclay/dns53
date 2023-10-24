@@ -20,23 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package tui
+package component
 
-import (
-	"github.com/purpleclay/dns53/internal/imds"
-	"github.com/purpleclay/dns53/internal/r53"
-)
+import tea "github.com/charmbracelet/bubbletea"
 
-type Options struct {
-	About        About
-	R53Client    *r53.Client
-	EC2Metadata  imds.Metadata
-	DomainName   string
-	HostedZoneID string
-}
+type Model interface {
+	tea.Model
 
-type About struct {
-	Name             string
-	Version          string
-	ShortDescription string
+	Resize(width, height int) Model
+	Width() int
+	Height() int
 }
