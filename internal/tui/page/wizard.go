@@ -64,7 +64,7 @@ type Wizard struct {
 	viewport    viewport.Model
 	loading     spinner.Model
 	selection   list.Model
-	errorPanel  component.ErrorPanel
+	errorPanel  *component.ErrorPanel
 	errorRaised bool
 	options     WizardOptions
 }
@@ -203,7 +203,7 @@ func (m *Wizard) ShortHelp() []key.Binding {
 	return kb
 }
 
-func (m *Wizard) FullHelp() [][]key.Binding {
+func (*Wizard) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
@@ -211,7 +211,7 @@ func (m *Wizard) Resize(width, height int) Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
-	m.errorPanel = m.errorPanel.Resize(width, height).(component.ErrorPanel)
+	m.errorPanel = m.errorPanel.Resize(width, height).(*component.ErrorPanel)
 	return m
 }
 

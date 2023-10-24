@@ -73,7 +73,7 @@ type Dashboard struct {
 	selected         r53.PrivateHostedZone
 	connected        bool
 	elapsed          stopwatch.Model
-	errorPanel       component.ErrorPanel
+	errorPanel       *component.ErrorPanel
 	errorRaised      bool
 }
 
@@ -87,7 +87,7 @@ func NewDashboard(opts DashboardOptions) *Dashboard {
 	}
 }
 
-func (m *Dashboard) Init() tea.Cmd {
+func (*Dashboard) Init() tea.Cmd {
 	return nil
 }
 
@@ -224,7 +224,7 @@ func (m *Dashboard) ShortHelp() []key.Binding {
 	return bindings
 }
 
-func (m *Dashboard) FullHelp() [][]key.Binding {
+func (*Dashboard) FullHelp() [][]key.Binding {
 	return [][]key.Binding{}
 }
 
@@ -232,7 +232,7 @@ func (m *Dashboard) Resize(width, height int) Model {
 	m.viewport.Width = width
 	m.viewport.Height = height
 
-	m.errorPanel = m.errorPanel.Resize(width, height).(component.ErrorPanel)
+	m.errorPanel = m.errorPanel.Resize(width, height).(*component.ErrorPanel)
 	return m
 }
 

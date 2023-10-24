@@ -52,19 +52,19 @@ type ErrorPanel struct {
 	width  int
 }
 
-func NewErrorPanel() ErrorPanel {
-	return ErrorPanel{}
+func NewErrorPanel() *ErrorPanel {
+	return &ErrorPanel{}
 }
 
-func (ErrorPanel) Init() tea.Cmd {
+func (*ErrorPanel) Init() tea.Cmd {
 	return nil
 }
 
-func (m ErrorPanel) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m *ErrorPanel) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m ErrorPanel) View() string {
+func (m *ErrorPanel) View() string {
 	var b strings.Builder
 
 	reason := lipgloss.JoinHorizontal(
@@ -85,7 +85,7 @@ func (m ErrorPanel) View() string {
 	return b.String()
 }
 
-func (m ErrorPanel) RaiseError(reason string, cause error) ErrorPanel {
+func (m *ErrorPanel) RaiseError(reason string, cause error) *ErrorPanel {
 	m.reason = reason
 	if cause != nil {
 		m.cause = cause.Error()
@@ -94,16 +94,16 @@ func (m ErrorPanel) RaiseError(reason string, cause error) ErrorPanel {
 	return m
 }
 
-func (m ErrorPanel) Resize(width, _ int) Model {
+func (m *ErrorPanel) Resize(width, _ int) Model {
 	// Restrict the error panel to be 3/4 the width of the containing component
 	m.width = int(float32(width) * 0.75)
 	return m
 }
 
-func (m ErrorPanel) Width() int {
+func (m *ErrorPanel) Width() int {
 	return m.width
 }
 
-func (m ErrorPanel) Height() int {
+func (m *ErrorPanel) Height() int {
 	return lipgloss.Height(m.View())
 }

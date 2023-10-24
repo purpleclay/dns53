@@ -165,7 +165,7 @@ func (u UI) margins() (int, int) {
 }
 
 func (u UI) refreshFooterKeyMap() UI {
-	footer := u.footer.(component.Footer)
+	footer := u.footer.(*component.Footer)
 	u.footer = footer.SetKeyMap(u.pages[u.pageIndex])
 	return u
 }

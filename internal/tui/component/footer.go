@@ -44,27 +44,27 @@ type Footer struct {
 	width  int
 }
 
-func NewFooter(keymap help.KeyMap) Footer {
+func NewFooter(keymap help.KeyMap) *Footer {
 	help := help.New()
 	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(theme.S100)
 	help.Styles.ShortKey = lipgloss.NewStyle()
 	help.Styles.ShortDesc = faint.Copy()
 
-	return Footer{
+	return &Footer{
 		help:   help,
 		keymap: keymap,
 	}
 }
 
-func (Footer) Init() tea.Cmd {
+func (*Footer) Init() tea.Cmd {
 	return nil
 }
 
-func (m Footer) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Footer) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Footer) View() string {
+func (m *Footer) View() string {
 	var b strings.Builder
 	panel := lipgloss.JoinVertical(lipgloss.Top, m.help.View(m.keymap))
 
@@ -72,20 +72,20 @@ func (m Footer) View() string {
 	return b.String()
 }
 
-func (m Footer) Resize(width, _ int) Model {
+func (m *Footer) Resize(width, _ int) Model {
 	m.width = width
 	return m
 }
 
-func (m Footer) Width() int {
+func (m *Footer) Width() int {
 	return m.width
 }
 
-func (m Footer) Height() int {
+func (m *Footer) Height() int {
 	return lipgloss.Height(m.View())
 }
 
-func (m Footer) SetKeyMap(keymap help.KeyMap) Footer {
+func (m *Footer) SetKeyMap(keymap help.KeyMap) *Footer {
 	m.keymap = keymap
 	return m
 }

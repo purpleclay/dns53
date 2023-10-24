@@ -42,23 +42,23 @@ type Header struct {
 	width       int
 }
 
-func NewHeader(name, version, description string) Header {
-	return Header{
+func NewHeader(name, version, description string) *Header {
+	return &Header{
 		name:        name,
 		description: description,
 		version:     version,
 	}
 }
 
-func (Header) Init() tea.Cmd {
+func (*Header) Init() tea.Cmd {
 	return nil
 }
 
-func (m Header) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Header) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Header) View() string {
+func (m *Header) View() string {
 	var b strings.Builder
 
 	nameVersion := lipgloss.JoinHorizontal(
@@ -78,15 +78,15 @@ func (m Header) View() string {
 	return b.String()
 }
 
-func (m Header) Resize(width, _ int) Model {
+func (m *Header) Resize(width, _ int) Model {
 	m.width = width
 	return m
 }
 
-func (m Header) Width() int {
+func (m *Header) Width() int {
 	return m.width
 }
 
-func (m Header) Height() int {
+func (m *Header) Height() int {
 	return lipgloss.Height(m.View())
 }
