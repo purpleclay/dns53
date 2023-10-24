@@ -26,7 +26,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
-	theme "github.com/purpleclay/lipgloss-theme"
+	"github.com/purpleclay/lipgloss-theme"
 )
 
 func NewFilteredList(items []list.Item, width, height int) list.Model {

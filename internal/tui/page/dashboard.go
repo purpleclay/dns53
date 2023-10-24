@@ -39,7 +39,7 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	theme "github.com/purpleclay/lipgloss-theme"
+	"github.com/purpleclay/lipgloss-theme"
 )
 
 var (

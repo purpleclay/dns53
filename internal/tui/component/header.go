@@ -27,7 +27,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	theme "github.com/purpleclay/lipgloss-theme"
+	"github.com/purpleclay/lipgloss-theme"
 )
 
 var borderBottom = lipgloss.NewStyle().
