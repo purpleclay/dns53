@@ -35,9 +35,9 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
 	"github.com/purpleclay/dns53/internal/tui/page"
-	"github.com/purpleclay/dns53/internal/tui/page/dashboard"
-	"github.com/purpleclay/dns53/internal/tui/theme"
 )
+
+var framed = lipgloss.NewStyle().Margin(1)
 
 type pageIndex int
 
@@ -77,7 +77,7 @@ func New(opts Options) UI {
 			HostedZoneID: opts.HostedZoneID,
 			DomainName:   opts.DomainName,
 		}),
-		dashboard.New(dashboard.Options{
+		page.NewDashboard(page.DashboardOptions{
 			Client:     opts.R53Client,
 			Metadata:   opts.EC2Metadata,
 			DomainName: opts.DomainName,
@@ -156,11 +156,11 @@ func (u UI) View() string {
 		u.footer.View(),
 	)
 
-	return theme.AppStyle.Render(view)
+	return framed.Render(view)
 }
 
 func (u UI) margins() (int, int) {
-	s := theme.AppStyle.Copy()
+	s := framed.Copy()
 	return s.GetHorizontalFrameSize(), s.GetVerticalFrameSize()
 }
 

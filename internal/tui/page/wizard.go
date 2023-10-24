@@ -159,7 +159,6 @@ func (m *Wizard) View() string {
 		page = lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			m.loading.View(),
-			//theme.TextStyle.MarginBottom(1).Render(fmt.Sprintf(" Retrieving Private Hosted %s from AWS...", zoneLabel)),
 			fmt.Sprintf(" Retrieving Private Hosted %s from AWS...", zoneLabel),
 		)
 	} else {

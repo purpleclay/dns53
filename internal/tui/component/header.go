@@ -30,12 +30,10 @@ import (
 	theme "github.com/purpleclay/lipgloss-theme"
 )
 
-var (
-	borderBottom = lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder(), false, false, true, false).
-		BorderForeground(theme.S600).
-		MarginBottom(1)
-)
+var borderBottom = lipgloss.NewStyle().
+	Border(lipgloss.NormalBorder(), false, false, true, false).
+	BorderForeground(theme.S600).
+	MarginBottom(1)
 
 type Header struct {
 	name        string
