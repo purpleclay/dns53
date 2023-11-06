@@ -52,6 +52,8 @@ type Options struct {
 	EC2Metadata  imds.Metadata
 	DomainName   string
 	HostedZoneID string
+	Proxy        bool
+	ProxyPort    int
 }
 
 type About struct {
@@ -81,6 +83,8 @@ func New(opts Options) UI {
 			Client:     opts.R53Client,
 			Metadata:   opts.EC2Metadata,
 			DomainName: opts.DomainName,
+			Proxy:      opts.Proxy,
+			ProxyPort:  opts.ProxyPort,
 			Output:     output,
 		}),
 	}

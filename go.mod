@@ -21,6 +21,7 @@ require (
 	github.com/purpleclay/testcontainers-imds v0.8.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
+	gopkg.in/elazarl/goproxy.v1 v1.0.0-20180725130230-947c36da3153
 )
 
 require (

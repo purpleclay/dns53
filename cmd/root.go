@@ -73,14 +73,17 @@ Built using Bubbletea 🧋`
 var domainRegex = regexp.MustCompile("[^a-zA-Z0-9-.]+")
 
 type globalOptions struct {
-	awsRegion  string
-	awsProfile string
+	awsRegion    string
+	awsProfile   string
+	imdsBindAddr string
 }
 
 type options struct {
 	phzID      string
 	domainName string
 	autoAttach bool
+	proxy      bool
+	proxyPort  int
 }
 
 type autoAttachment struct {
@@ -188,10 +191,17 @@ func (c *Command) Execute(args []string) error {
 				EC2Metadata:  metadata,
 				HostedZoneID: opts.phzID,
 				DomainName:   opts.domainName,
+				Proxy:        opts.proxy,
+				ProxyPort:    opts.proxyPort,
 			}
 
 			var err error
-			p := tea.NewProgram(tui.New(c.ctx.teaModelOptions), tea.WithOutput(c.ctx.out), tea.WithAltScreen())
+			p := tea.NewProgram(
+				tui.New(c.ctx.teaModelOptions),
+				tea.WithMouseCellMotion(),
+				tea.WithOutput(c.ctx.out),
+				tea.WithAltScreen(),
+			)
 
 			if !c.ctx.skipTea {
 				_, err = p.Run()
@@ -202,13 +212,19 @@ func (c *Command) Execute(args []string) error {
 	}
 
 	pf := rootCmd.PersistentFlags()
+	pf.StringVar(&globalOpts.imdsBindAddr, "imds-bind-addr", "", "the endpoint for all AWS IMDS requests")
 	pf.StringVar(&globalOpts.awsProfile, "profile", "", "the AWS named profile to use when loading credentials")
 	pf.StringVar(&globalOpts.awsRegion, "region", "", "the AWS region to use when querying AWS")
+
+	// Allow the imds address to be changed at runtime through a hidden flag
+	rootCmd.PersistentFlags().MarkHidden("imds-bind-addr")
 
 	f := rootCmd.Flags()
 	f.BoolVar(&opts.autoAttach, "auto-attach", false, "automatically create and attach a record set to a default private hosted zone")
 	f.StringVar(&opts.domainName, "domain-name", "", "assign a custom domain name when generating a record set")
 	f.StringVar(&opts.phzID, "phz-id", "", "an ID of a Route53 private hosted zone to use when generating a record set")
+	f.BoolVar(&opts.proxy, "proxy", false, "enable a reverse proxy for tracing requests to this ec2")
+	f.IntVar(&opts.proxyPort, "proxy-port", 10080, "the port assigned to the proxy when enabled")
 
 	rootCmd.AddCommand(newVersionCmd())
 	rootCmd.AddCommand(newManPagesCmd())
@@ -230,6 +246,10 @@ func awsConfig(opts *globalOptions) (aws.Config, error) {
 
 	if opts.awsRegion != "" {
 		optsFn = append(optsFn, config.WithRegion(opts.awsRegion))
+	}
+
+	if opts.imdsBindAddr != "" {
+		optsFn = append(optsFn, config.WithEC2IMDSEndpoint(opts.imdsBindAddr))
 	}
 	return config.LoadDefaultConfig(context.Background(), optsFn...)
 }
