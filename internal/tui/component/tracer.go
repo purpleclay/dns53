@@ -29,6 +29,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -102,8 +103,9 @@ func (m *RequestTracer) Init() tea.Cmd {
 				return resp
 			})
 			m.server = &http.Server{
-				Addr:    ":" + strconv.Itoa(m.proxyPort),
-				Handler: proxy,
+				Addr:              ":" + strconv.Itoa(m.proxyPort),
+				Handler:           proxy,
+				ReadHeaderTimeout: 3 * time.Second,
 			}
 			if err := m.server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 				return message.ErrorMsg{
@@ -129,8 +131,7 @@ func (m *RequestTracer) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.GotoBottom()
 		cmds = append(cmds, m.waitForTrace())
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, keymap.Quit):
+		if key.Matches(msg, keymap.Quit) {
 			if m.server != nil {
 				m.server.Shutdown(context.Background())
 			}
