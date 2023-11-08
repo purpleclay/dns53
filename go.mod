@@ -21,6 +21,7 @@ require (
 	github.com/purpleclay/testcontainers-imds v0.9.0
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
+	gopkg.in/elazarl/goproxy.v1 v1.0.0-20180725130230-947c36da3153
 )
 
 require (
@@ -52,6 +53,8 @@ require (
 	github.com/docker/docker v24.0.7+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/elazarl/goproxy v0.0.0-20231031074852-3ec07828be7a // indirect
+	github.com/elazarl/goproxy/ext v0.0.0-20231031074852-3ec07828be7a // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

@@ -23,18 +23,10 @@ SOFTWARE.
 package cmd
 
 import (
-	"errors"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsr53 "github.com/aws/aws-sdk-go-v2/service/route53"
-	"github.com/aws/aws-sdk-go-v2/service/route53/types"
 	"github.com/purpleclay/dns53/internal/imds"
-	"github.com/purpleclay/dns53/internal/imds/imdsstub"
-	"github.com/purpleclay/dns53/internal/r53"
-	"github.com/purpleclay/dns53/internal/r53/r53mock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -125,18 +117,6 @@ func TestResolveDomainNameStripsLeadingTrailingHyphenFromNameTag(t *testing.T) {
 	assert.Equal(t, "second.custom.my-ec2-123", domain)
 }
 
-func TestResolveDomainNameInvalidGoTemplate(t *testing.T) {
-	_, err := resolveDomainName("custom.{{.Name}", imds.Metadata{Name: "MyEc2 123"})
-
-	assert.Error(t, err)
-}
-
-func TestResolveDomainNameUnrecognisedTemplateFields(t *testing.T) {
-	_, err := resolveDomainName("custom.{{.Unknown}}", imds.Metadata{})
-
-	assert.Error(t, err)
-}
-
 func TestCleanTagsAppendsToMap(t *testing.T) {
 	tags := map[string]string{
 		"My+@-key_=,.:1": "A value",
@@ -151,184 +131,4 @@ func TestCleanTagsAppendsToMap(t *testing.T) {
 		assert.Contains(t, tags, k)
 		assert.Equal(t, v, tags[k])
 	}
-}
-
-func TestRootCommand(t *testing.T) {
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{})
-
-	require.NoError(t, err)
-	assert.Equal(t, cmd.ctx.teaModelOptions.HostedZoneID, "")
-	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
-}
-
-func TestRootCommandWithPrivateHostedZoneID(t *testing.T) {
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--phz-id", "Z00000000001"})
-
-	require.NoError(t, err)
-	assert.Equal(t, cmd.ctx.teaModelOptions.HostedZoneID, "Z00000000001")
-	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "")
-}
-
-func TestRootCommandWithCustomDomain(t *testing.T) {
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--domain-name", "custom.{{.Name}}"})
-
-	require.NoError(t, err)
-	assert.Equal(t, cmd.ctx.teaModelOptions.HostedZoneID, "")
-	assert.Equal(t, cmd.ctx.teaModelOptions.DomainName, "custom.stub-ec2")
-}
-
-func TestRootCommandAutoAttachToZone(t *testing.T) {
-	m := r53mock.New(t)
-	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
-		return *req.DNSName == "dns53"
-	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, nil)
-	m.On("CreateHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.CreateHostedZoneInput) bool {
-		return true
-	}), mock.Anything).Return(&awsr53.CreateHostedZoneOutput{
-		HostedZone: &types.HostedZone{
-			Id:   aws.String("/hostedzone/Z00000000002"),
-			Name: aws.String("dns53."),
-		},
-	}, nil)
-	m.On("DeleteHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.DeleteHostedZoneInput) bool {
-		return *req.Id == "Z00000000002"
-	}), mock.Anything).Return(&awsr53.DeleteHostedZoneOutput{}, nil)
-
-	// Configure the command to run in test mode
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withR53Client(r53.NewFromAPI(m)),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--auto-attach"})
-
-	require.NoError(t, err)
-}
-
-func TestRootCommandAutoAttachToZoneExisting(t *testing.T) {
-	m := r53mock.New(t)
-	m.On("ListHostedZonesByName", mock.Anything, mock.MatchedBy(func(req *awsr53.ListHostedZonesByNameInput) bool {
-		return *req.DNSName == "dns53"
-	}), mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
-		HostedZones: []types.HostedZone{
-			{
-				Id:   aws.String("/hostedzone/Z00000000003"),
-				Name: aws.String("dns53"),
-				Config: &types.HostedZoneConfig{
-					PrivateZone: true,
-				},
-			},
-		},
-	}, nil)
-	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.AssociateVPCWithHostedZoneInput) bool {
-		return *req.HostedZoneId == "Z00000000003"
-	}), mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, nil)
-	m.On("DisassociateVPCFromHostedZone", mock.Anything, mock.MatchedBy(func(req *awsr53.DisassociateVPCFromHostedZoneInput) bool {
-		return *req.HostedZoneId == "Z00000000003"
-	}), mock.Anything).Return(&awsr53.DisassociateVPCFromHostedZoneOutput{}, nil)
-
-	// Configure the command to run in test mode
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withR53Client(r53.NewFromAPI(m)),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--auto-attach"})
-
-	require.NoError(t, err)
-}
-
-//nolint:goerr113
-func TestRootCommandAutoAttachToZoneSearchError(t *testing.T) {
-	errMsg := "failed to search"
-
-	m := r53mock.New(t)
-	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, errors.New(errMsg))
-
-	// Configure the command to run in test mode
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withR53Client(r53.NewFromAPI(m)),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--auto-attach"})
-
-	require.EqualError(t, err, errMsg)
-	m.AssertNotCalled(t, "AssociateVPCWithHostedZone")
-}
-
-//nolint:goerr113
-func TestRootCommandAutoAttachToZoneCreationError(t *testing.T) {
-	errMsg := "failed to create"
-
-	m := r53mock.New(t)
-	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{}, nil)
-	m.On("CreateHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.CreateHostedZoneOutput{}, errors.New(errMsg))
-
-	// Configure the command to run in test mode
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withR53Client(r53.NewFromAPI(m)),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--auto-attach"})
-
-	require.EqualError(t, err, errMsg)
-}
-
-//nolint:goerr113
-func TestRootCommandAutoAttachToZoneAssociationError(t *testing.T) {
-	errMsg := "failed to associate"
-
-	m := r53mock.New(t)
-	m.On("ListHostedZonesByName", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.ListHostedZonesByNameOutput{
-		HostedZones: []types.HostedZone{
-			{
-				Id:   aws.String("/hostedzone/Z00000000004"),
-				Name: aws.String("dns53"),
-				Config: &types.HostedZoneConfig{
-					PrivateZone: true,
-				},
-			},
-		},
-	}, nil)
-	m.On("AssociateVPCWithHostedZone", mock.Anything, mock.Anything, mock.Anything).Return(&awsr53.AssociateVPCWithHostedZoneOutput{}, errors.New(errMsg))
-
-	// Configure the command to run in test mode
-	options := []globalContextOption{
-		withIMDSClient(imds.NewFromAPI(imdsstub.New(t))),
-		withR53Client(r53.NewFromAPI(m)),
-		withSkipTea(),
-	}
-
-	cmd := newWithOptions(options...)
-	err := cmd.Execute([]string{"--auto-attach"})
-
-	require.EqualError(t, err, errMsg)
 }

@@ -39,7 +39,7 @@ import (
 	"github.com/purpleclay/dns53/internal/tui/component"
 	"github.com/purpleclay/dns53/internal/tui/keymap"
 	"github.com/purpleclay/dns53/internal/tui/message"
-	"github.com/purpleclay/lipgloss-theme"
+	theme "github.com/purpleclay/lipgloss-theme"
 )
 
 var (
@@ -62,10 +62,13 @@ type DashboardOptions struct {
 	Metadata   imds.Metadata
 	DomainName string
 	Output     *termenv.Output
+	Proxy      bool
+	ProxyPort  int
 }
 
 type Dashboard struct {
-	viewport         viewport.Model
+	info             viewport.Model
+	details          viewport.Model
 	options          DashboardOptions
 	domainName       string
 	clipboardStatus  string
@@ -75,12 +78,20 @@ type Dashboard struct {
 	elapsed          stopwatch.Model
 	errorPanel       *component.ErrorPanel
 	errorRaised      bool
+	requestTracer    *component.RequestTracer
 }
 
 func NewDashboard(opts DashboardOptions) *Dashboard {
+	info := viewport.New(0, 12)
+	info.MouseWheelEnabled = false
+
+	details := viewport.New(0, 0)
+	details.MouseWheelEnabled = false
+
 	return &Dashboard{
 		clipboardTimeout: stopwatch.NewWithInterval(time.Second * 2),
-		viewport:         viewport.New(0, 0),
+		info:             info,
+		details:          details,
 		options:          opts,
 		elapsed:          stopwatch.New(),
 		errorPanel:       component.NewErrorPanel(),
@@ -106,6 +117,12 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case r53AssociatedMsg:
 		m.connected = true
 		cmds = append(cmds, m.elapsed.Start(), message.RefreshKeyMapCmd)
+
+		if m.options.Proxy {
+			m.requestTracer = component.NewRequestTracer(m.options.ProxyPort)
+			m.requestTracer = m.requestTracer.Resize(m.details.Width, m.details.Height).(*component.RequestTracer)
+			cmds = append(cmds, m.requestTracer.Init())
+		}
 	case message.ErrorMsg:
 		m.errorPanel = m.errorPanel.RaiseError(msg.Reason, msg.Cause)
 		m.errorRaised = true
@@ -145,10 +162,20 @@ func (m *Dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	if m.requestTracer != nil {
+		model, cmd := m.requestTracer.Update(msg)
+		m.requestTracer = model.(*component.RequestTracer)
+		cmds = append(cmds, cmd)
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
 func (m *Dashboard) View() string {
+	if m.errorRaised {
+		m.details.SetContent(m.errorPanel.View())
+	}
+
 	phzData := lipgloss.JoinVertical(
 		lipgloss.Top,
 		fmt.Sprintf(dashboardLine, secondaryLabel.Render("Name:"), spacing, m.selected.Name),
@@ -195,24 +222,19 @@ func (m *Dashboard) View() string {
 		dnsData,
 	)
 
+	if m.requestTracer != nil {
+		m.details.SetContent(m.requestTracer.View())
+	}
+
 	dashboard := lipgloss.JoinVertical(
 		lipgloss.Top,
 		lipgloss.NewStyle().MarginBottom(2).Render(phz),
 		lipgloss.NewStyle().MarginBottom(2).Render(ec2),
 		dns,
 	)
+	m.info.SetContent(dashboard)
 
-	page := lipgloss.NewStyle().Render(dashboard)
-
-	var err string
-	if m.errorRaised {
-		err = "\n\n" + m.errorPanel.View()
-	}
-
-	view := lipgloss.JoinVertical(lipgloss.Top, page, err)
-
-	m.viewport.SetContent(view)
-	return m.viewport.View()
+	return lipgloss.JoinVertical(lipgloss.Top, m.info.View(), m.details.View())
 }
 
 func (m *Dashboard) ShortHelp() []key.Binding {
@@ -229,19 +251,24 @@ func (*Dashboard) FullHelp() [][]key.Binding {
 }
 
 func (m *Dashboard) Resize(width, height int) Model {
-	m.viewport.Width = width
-	m.viewport.Height = height
+	m.info.Width = width
+	m.details.Width = width
+	m.details.Height = height - m.info.Height
+
+	if m.requestTracer != nil {
+		m.requestTracer = m.requestTracer.Resize(width, m.details.Height).(*component.RequestTracer)
+	}
 
 	m.errorPanel = m.errorPanel.Resize(width, height).(*component.ErrorPanel)
 	return m
 }
 
 func (m *Dashboard) Width() int {
-	return m.viewport.Width
+	return m.info.Width
 }
 
 func (m *Dashboard) Height() int {
-	return m.viewport.Height
+	return m.info.Height + m.details.Height
 }
 
 func (m *Dashboard) resolveDomainName() string {

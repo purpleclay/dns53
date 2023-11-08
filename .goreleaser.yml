@@ -27,10 +27,10 @@ builds:
   - id: dns53
     ldflags:
       - -s -w
-      - -X github.com/purpleclay/dns53/cmd.version={{.Tag}}
-      - -X github.com/purpleclay/dns53/cmd.gitCommit={{.Commit}}
-      - -X github.com/purpleclay/dns53/cmd.gitBranch=main
-      - -X github.com/purpleclay/dns53/cmd.buildDate={{.Date}}
+      - -X main.version={{.Tag}}
+      - -X main.gitCommit={{.Commit}}
+      - -X main.gitBranch=main
+      - -X main.buildDate={{.Date}}
     env:
       - CGO_ENABLED=0
     goos:

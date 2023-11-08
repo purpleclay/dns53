@@ -24,12 +24,13 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
-func newTagsCommand() *cobra.Command {
+func tagsCommand(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "tags",
 		Short:         "Lists all available EC2 instance tags and how to use them with Go templating",
@@ -44,7 +45,7 @@ func newTagsCommand() *cobra.Command {
 				return err
 			}
 
-			table := tablewriter.NewWriter(ctx.out)
+			table := tablewriter.NewWriter(out)
 			table.SetHeader([]string{"Tag", "Value", "Property Chaining", "Indexed"})
 
 			for k, v := range metadata.Tags {

@@ -36,11 +36,10 @@ import (
 func TestTagsCommand(t *testing.T) {
 	var buf bytes.Buffer
 	ctx := &globalContext{
-		out:        &buf,
 		imdsClient: imds.NewFromAPI(imdsstub.New(t)),
 	}
 
-	cmd := newTagsCommand()
+	cmd := tagsCommand(&buf)
 	err := cmd.ExecuteContext(ctx)
 
 	require.NoError(t, err)
