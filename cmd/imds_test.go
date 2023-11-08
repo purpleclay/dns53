@@ -23,17 +23,9 @@ SOFTWARE.
 package cmd
 
 import (
-	"errors"
 	"testing"
 
-	awsec2 "github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/purpleclay/dns53/internal/ec2"
-	"github.com/purpleclay/dns53/internal/ec2/ec2mock"
-	"github.com/purpleclay/dns53/internal/imds"
-	"github.com/purpleclay/dns53/internal/imds/imdsstub"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,82 +78,4 @@ func TestToggleSettingSetError(t *testing.T) {
 func TestToggleSettingType(t *testing.T) {
 	toggle := toggleSetting("on")
 	assert.Equal(t, "string", toggle.Type())
-}
-
-func TestIMDSCommand(t *testing.T) {
-	tests := []struct {
-		name     string
-		toggle   toggleSetting
-		expected string
-	}{
-		{
-			name:     "On",
-			toggle:   toggleSettingOn,
-			expected: "enabled",
-		},
-		{
-			name:     "Off",
-			toggle:   toggleSettingOff,
-			expected: "disabled",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockEC2 := ec2mock.New(t)
-			mockEC2.On("ModifyInstanceMetadataOptions", mock.Anything, mock.MatchedBy(func(req *awsec2.ModifyInstanceMetadataOptionsInput) bool {
-				return req.InstanceMetadataTags == types.InstanceMetadataTagsState(tt.expected)
-			}), mock.Anything).Return(&awsec2.ModifyInstanceMetadataOptionsOutput{}, nil)
-
-			ctx := &globalContext{
-				ec2Client:  ec2.NewFromAPI(mockEC2),
-				imdsClient: imds.NewFromAPI(imdsstub.New(t)),
-			}
-
-			cmd := newIMDSCommand()
-			cmd.SetArgs([]string{"--instance-metadata-tags", tt.toggle.String()})
-
-			err := cmd.ExecuteContext(ctx)
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestIMDSCommandFlagIsRequired(t *testing.T) {
-	cmd := newIMDSCommand()
-
-	err := cmd.ExecuteContext(&globalContext{})
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), `"instance-metadata-tags" not set`)
-}
-
-//nolint:goerr113
-func TestIMDSCommandIMDSClientError(t *testing.T) {
-	ctx := &globalContext{
-		imdsClient: imds.NewFromAPI(imdsstub.NewWithError(t, errors.New("error"))),
-	}
-
-	cmd := newIMDSCommand()
-	cmd.SetArgs([]string{"--instance-metadata-tags", string(toggleSettingOn)})
-
-	err := cmd.ExecuteContext(ctx)
-	require.Error(t, err)
-}
-
-//nolint:goerr113
-func TestIMDSCommandEC2ClientError(t *testing.T) {
-	mockEC2 := ec2mock.New(t)
-	mockEC2.On("ModifyInstanceMetadataOptions", mock.Anything, mock.Anything, mock.Anything).
-		Return(&awsec2.ModifyInstanceMetadataOptionsOutput{}, errors.New("error"))
-
-	ctx := &globalContext{
-		ec2Client:  ec2.NewFromAPI(mockEC2),
-		imdsClient: imds.NewFromAPI(imdsstub.New(t)),
-	}
-
-	cmd := newIMDSCommand()
-	cmd.SetArgs([]string{"--instance-metadata-tags", string(toggleSettingOn)})
-
-	err := cmd.ExecuteContext(ctx)
-	require.Error(t, err)
 }

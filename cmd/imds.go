@@ -63,7 +63,7 @@ type imdsOptions struct {
 	InstanceMetadataTags toggleSetting
 }
 
-func newIMDSCommand() *cobra.Command {
+func imdsCommand() *cobra.Command {
 	opt := imdsOptions{}
 
 	cmd := &cobra.Command{

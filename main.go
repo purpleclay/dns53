@@ -29,9 +29,26 @@ import (
 	"github.com/purpleclay/dns53/cmd"
 )
 
+var (
+	// The current built version
+	version = ""
+	// The git branch associated with the current built version
+	gitBranch = ""
+	// The git SHA1 of the commit
+	gitCommit = ""
+	// The date associated with the current built version
+	buildDate = ""
+)
+
 func main() {
-	if err := cmd.New().Execute(os.Args[1:]); err != nil {
-		fmt.Println(err)
+	err := cmd.New().Execute(os.Stdout, cmd.BuildDetails{
+		Version:   version,
+		GitBranch: gitBranch,
+		GitCommit: gitCommit,
+		Date:      buildDate,
+	})
+	if err != nil {
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 }

@@ -24,52 +24,19 @@ package cmd
 
 import (
 	"context"
-	"io"
 
 	"github.com/purpleclay/dns53/internal/ec2"
 	"github.com/purpleclay/dns53/internal/imds"
 	"github.com/purpleclay/dns53/internal/r53"
-	"github.com/purpleclay/dns53/internal/tui"
 )
 
 // Can be used to share internal state between cobra commands
 type globalContext struct {
 	context.Context
 
-	out io.Writer
-
-	// Only here to prevent the starting of bubbletea, useful when
-	// testing just the cobra command
-	skipTea bool
-
-	// Capture the tea model for validation
-	teaModelOptions tui.Options
-
 	// Support overwriting the clients during within the
 	// PersistentPreRunE hook for testing
 	imdsClient *imds.Client
 	ec2Client  *ec2.Client
 	r53Client  *r53.Client
-}
-
-// Options provide a way of overriding parts of the context during
-// execution, especially useful when configuring mocks during testing
-type globalContextOption func(*globalContext)
-
-func withIMDSClient(client *imds.Client) globalContextOption {
-	return func(c *globalContext) {
-		c.imdsClient = client
-	}
-}
-
-func withR53Client(client *r53.Client) globalContextOption {
-	return func(c *globalContext) {
-		c.r53Client = client
-	}
-}
-
-func withSkipTea() globalContextOption {
-	return func(c *globalContext) {
-		c.skipTea = true
-	}
 }

@@ -25,9 +25,12 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
-	"os"
+	"fmt"
+	"io"
 	"regexp"
+	"runtime"
 	"strings"
 	"text/template"
 
@@ -44,6 +47,13 @@ import (
 	"github.com/purpleclay/dns53/internal/tui"
 	"github.com/spf13/cobra"
 )
+
+type BuildDetails struct {
+	Version   string `json:"version,omitempty"`
+	GitBranch string `json:"git_branch,omitempty"`
+	GitCommit string `json:"git_commit,omitempty"`
+	Date      string `json:"build_date,omitempty"`
+}
 
 const (
 	longDesc = `Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately within a Route
@@ -96,33 +106,20 @@ type autoAttachment struct {
 
 // Command defines the root DNS 53 cobra command
 type Command struct {
-	ctx     *globalContext
-	ctxOpts []globalContextOption
+	ctx *globalContext
 }
 
 // New initialises the root DNS 53 command
 func New() *Command {
 	return &Command{
 		ctx: &globalContext{
-			out:     os.Stdout,
 			Context: context.Background(),
 		},
-	}
-}
-
-// This is deliberately unexported and is used for testing only
-func newWithOptions(options ...globalContextOption) *Command {
-	return &Command{
-		ctx: &globalContext{
-			out:     os.Stdout,
-			Context: context.Background(),
-		},
-		ctxOpts: options,
 	}
 }
 
 // Execute the DNS 53 command
-func (c *Command) Execute(args []string) error {
+func (c *Command) Execute(out io.Writer, buildInfo BuildDetails) error {
 	globalOpts := &globalOptions{}
 	opts := options{}
 
@@ -147,11 +144,6 @@ func (c *Command) Execute(args []string) error {
 			c.ctx.ec2Client = ec2.NewFromAPI(awsec2.NewFromConfig(cfg))
 			c.ctx.imdsClient = imds.NewFromAPI(awsimds.NewFromConfig(cfg))
 			c.ctx.r53Client = r53.NewFromAPI(awsr53.NewFromConfig(cfg))
-
-			// Overwrite any options within the GlobalContext. Especially useful with testing
-			for _, opt := range c.ctxOpts {
-				opt(c.ctx)
-			}
 
 			return nil
 		},
@@ -181,10 +173,10 @@ func (c *Command) Execute(args []string) error {
 			}
 
 			// At the moment there isn't a nicer way to capture this
-			c.ctx.teaModelOptions = tui.Options{
+			options := tui.Options{
 				About: tui.About{
 					Name:             "dns53",
-					Version:          version,
+					Version:          buildInfo.Version,
 					ShortDescription: "Dynamic DNS within Amazon Route 53. Expose your EC2 quickly, easily, and privately.",
 				},
 				R53Client:    c.ctx.r53Client,
@@ -197,16 +189,12 @@ func (c *Command) Execute(args []string) error {
 
 			var err error
 			p := tea.NewProgram(
-				tui.New(c.ctx.teaModelOptions),
+				tui.New(options),
 				tea.WithMouseCellMotion(),
-				tea.WithOutput(c.ctx.out),
+				tea.WithOutput(out),
 				tea.WithAltScreen(),
 			)
-
-			if !c.ctx.skipTea {
-				_, err = p.Run()
-			}
-
+			_, err = p.Run()
 			return err
 		},
 	}
@@ -226,15 +214,12 @@ func (c *Command) Execute(args []string) error {
 	f.BoolVar(&opts.proxy, "proxy", false, "enable a reverse proxy for tracing requests to this ec2")
 	f.IntVar(&opts.proxyPort, "proxy-port", 10080, "the port assigned to the proxy when enabled")
 
-	rootCmd.AddCommand(newVersionCmd())
-	rootCmd.AddCommand(newManPagesCmd())
-	rootCmd.AddCommand(newCompletionCmd())
-	rootCmd.AddCommand(newIMDSCommand())
-	rootCmd.AddCommand(newTagsCommand())
+	rootCmd.AddCommand(versionCmd(out, buildInfo))
+	rootCmd.AddCommand(manPagesCmd(out))
+	rootCmd.AddCommand(imdsCommand())
+	rootCmd.AddCommand(tagsCommand(out))
 
-	rootCmd.SetArgs(args)
 	rootCmd.SetUsageTemplate(customUsageTemplate)
-
 	return rootCmd.ExecuteContext(c.ctx)
 }
 
@@ -338,4 +323,36 @@ func removeAttachmentToZone(ctx *globalContext, attach autoAttachment) error {
 	}
 
 	return ctx.r53Client.DisassociateVPCWithZone(ctx, attach.phzID, attach.vpc, attach.region)
+}
+
+func versionCmd(out io.Writer, buildInfo BuildDetails) *cobra.Command {
+	var short bool
+	cmd := &cobra.Command{
+		Use:   "version",
+		Short: "Print build time version information",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if short {
+				fmt.Fprintf(out, buildInfo.Version)
+				return nil
+			}
+
+			ver := struct {
+				Go     string `json:"go"`
+				GoArch string `json:"go_arch"`
+				GoOS   string `json:"go_os"`
+				BuildDetails
+			}{
+				Go:           runtime.Version(),
+				GoArch:       runtime.GOARCH,
+				GoOS:         runtime.GOOS,
+				BuildDetails: buildInfo,
+			}
+			return json.NewEncoder(out).Encode(&ver)
+		},
+	}
+
+	flags := cmd.Flags()
+	flags.BoolVar(&short, "short", false, "only print the version number")
+
+	return cmd
 }
