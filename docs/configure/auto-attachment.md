@@ -1,7 +1,6 @@
 ---
 description: "Automatically attach your EC2 to a default Route53 Private Hosted Zone"
 icon: material/connection
-status: new
 ---
 
 # Auto Attachment of your EC2
@@ -19,7 +18,6 @@ For this to work as intended, `dns53` handles two attachment scenarios, removing
         <source src="../../static/dns53-auto-attach.webm" type="video/webm">
         <source src="../../static/dns53-auto-attach.mp4" type="video/mp4">
     </video>
-    <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
 </div>
 
 ## You are the first Auto Attachment

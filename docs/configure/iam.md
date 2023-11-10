@@ -1,7 +1,6 @@
 ---
 description: "Understand what Identity Access Management (IAM) permissions are needed for dns53 to run"
 icon: material/shield-lock-outline
-status: new
 ---
 
 # IAM Permissions

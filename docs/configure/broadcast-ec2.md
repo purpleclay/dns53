@@ -32,5 +32,4 @@ dns53 --phz-id Z05504861FO8RFR02KU72
         <source src="../../static/dns53-phzid.webm" type="video/webm">
         <source src="../../static/dns53-phzid.mp4" type="video/mp4">
     </video>
-    <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
 </div>

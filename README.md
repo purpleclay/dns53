@@ -8,10 +8,6 @@ Written in Go, dns53 is incredibly small and easy to install.
 
 https://user-images.githubusercontent.com/106762954/200760788-f0d78147-9e3f-4f7d-8606-1050895597dc.mp4
 
-<div>
-    <sub>recorded using <a href="https://github.com/charmbracelet/vhs" target="_blank">VHS</a> 💜</sub>
-</div>
-
 ## Badges
 
 [![Build status](https://img.shields.io/github/actions/workflow/status/purpleclay/dns53/ci.yml?style=flat-square&logo=go)](https://github.com/purpleclay/dns53/actions?workflow=ci)
