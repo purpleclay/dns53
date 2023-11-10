@@ -68,6 +68,7 @@ nav:
       - Expose EC2 Tags: configure/exposing-tags.md
       - List EC2 Tags: configure/list-tags.md
       - IAM: configure/iam.md
+      - Tracing Requests: configure/tracing-requests.md
       - Installation:
           - Binary: install/binary.md
           - From Source: install/source.md
