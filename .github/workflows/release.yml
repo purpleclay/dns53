@@ -51,23 +51,6 @@ jobs:
       - name: Download Syft
         uses: anchore/sbom-action/download-syft@v0
 
-      - uses: docker/setup-qemu-action@v3
-
-      - uses: docker/setup-buildx-action@v3
-
-      - name: DockerHub Login
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.GH_DOCKER_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_PASSWORD }}
-
-      - name: GHCR Login
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
