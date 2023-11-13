@@ -55,7 +55,7 @@ func (t *toggleSetting) Set(v string) error {
 	}
 }
 
-func (t *toggleSetting) Type() string {
+func (*toggleSetting) Type() string {
 	return "string"
 }
 

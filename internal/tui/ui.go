@@ -69,7 +69,7 @@ type UI struct {
 	footer    component.Model
 }
 
-func New(opts Options) UI {
+func New(opts Options) *UI {
 	output := termenv.NewOutput(os.Stderr)
 
 	pages := []page.Model{
@@ -91,7 +91,7 @@ func New(opts Options) UI {
 
 	index := wizardPage
 
-	return UI{
+	return &UI{
 		header:    component.NewHeader(opts.About.Name, opts.About.Version, opts.About.ShortDescription),
 		pages:     pages,
 		pageIndex: index,
@@ -99,7 +99,7 @@ func New(opts Options) UI {
 	}
 }
 
-func (u UI) Init() tea.Cmd {
+func (u *UI) Init() tea.Cmd {
 	cmds := make([]tea.Cmd, 0)
 	cmds = append(cmds, u.header.Init(), u.footer.Init())
 
@@ -110,7 +110,7 @@ func (u UI) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (u *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -152,7 +152,7 @@ func (u UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return u, tea.Batch(cmds...)
 }
 
-func (u UI) View() string {
+func (u *UI) View() string {
 	view := lipgloss.JoinVertical(
 		lipgloss.Left,
 		u.header.View(),
@@ -163,12 +163,12 @@ func (u UI) View() string {
 	return framed.Render(view)
 }
 
-func (u UI) margins() (int, int) {
+func (*UI) margins() (int, int) {
 	s := framed.Copy()
 	return s.GetHorizontalFrameSize(), s.GetVerticalFrameSize()
 }
 
-func (u UI) refreshFooterKeyMap() UI {
+func (u *UI) refreshFooterKeyMap() *UI {
 	footer := u.footer.(*component.Footer)
 	u.footer = footer.SetKeyMap(u.pages[u.pageIndex])
 	return u
