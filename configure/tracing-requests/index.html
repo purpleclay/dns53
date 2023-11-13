@@ -6,35 +6,35 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Learn how to use the DNS 53 command line to toggle IMDS features">
+        <meta name="description" content="Launch a reverse proxy for tracing requests in to your EC2">
       
       
       
-        <link rel="canonical" href="https://docs.purpleclay.dev/dns53/reference/cli/dns53-imds/">
+        <link rel="canonical" href="https://docs.purpleclay.dev/dns53/configure/tracing-requests/">
       
       
-        <link rel="prev" href="../dns53/">
+        <link rel="prev" href="../iam/">
       
       
-        <link rel="next" href="../dns53-tags/">
+        <link rel="next" href="../../install/binary/">
       
       
         
       
       
-      <link rel="icon" href="../../../static/favicon.ico">
+      <link rel="icon" href="../../static/favicon.ico">
       <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.3+insiders-4.42.0">
     
     
       
-        <title>dns53 imds - DNS 53</title>
+        <title>Tracing Requests - DNS 53</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.cbde490e.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.cbde490e.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +53,9 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -66,7 +66,20 @@
     posthog.init('phc_Ncp9ZlYYmwQtHRU1t2qwW1JeIduVO1wmWEYiG25oSfN', { api_host: 'https://app.posthog.com' })
 </script>
 
-  </head>
+  
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Tracing Requests - DNS 53" />
+<meta property="og:description" content="Launch a reverse proxy for tracing requests in to your EC2" />
+<meta property="og:image" content="https://docs.purpleclay.dev/dns53/assets/images/social/configure/tracing-requests.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://docs.purpleclay.dev/dns53/configure/tracing-requests/" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter.title" content="Tracing Requests - DNS 53" />
+<meta property="twitter:description" content="Launch a reverse proxy for tracing requests in to your EC2" />
+<meta property="twitter:image" content="https://docs.purpleclay.dev/dns53/assets/images/social/configure/tracing-requests.png" />
+</head>
   
   
     
@@ -83,7 +96,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#command-line" class="md-skip">
+        <a href="#tracing-requests-with-a-reverse-proxy" class="md-skip">
           Skip to content
         </a>
       
@@ -127,9 +140,9 @@ and
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="DNS 53" class="md-header__button md-logo" aria-label="DNS 53" data-md-component="logo">
+    <a href="../.." title="DNS 53" class="md-header__button md-logo" aria-label="DNS 53" data-md-component="logo">
       
-  <img src="../../../static/logo.png" alt="logo">
+  <img src="../../static/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -146,7 +159,7 @@ and
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              dns53 imds
+              Tracing Requests
             
           </span>
         </div>
@@ -234,7 +247,7 @@ and
   
   
     <li class="md-tabs__item">
-      <a href="../../.." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
     
@@ -249,11 +262,13 @@ and
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../../configure/broadcast-ec2/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../broadcast-ec2/" class="md-tabs__link">
           
   
     
@@ -269,13 +284,11 @@ and
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../templating/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../reference/templating/" class="md-tabs__link">
           
   
     
@@ -310,9 +323,9 @@ and
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="DNS 53" class="md-nav__button md-logo" aria-label="DNS 53" data-md-component="logo">
+    <a href="../.." title="DNS 53" class="md-nav__button md-logo" aria-label="DNS 53" data-md-component="logo">
       
-  <img src="../../../static/logo.png" alt="logo">
+  <img src="../../static/logo.png" alt="logo">
 
     </a>
     DNS 53
@@ -338,7 +351,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -361,6 +374,8 @@ and
       
   
   
+    
+  
   
     
     
@@ -390,12 +405,12 @@ and
       
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -415,7 +430,7 @@ and
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -432,7 +447,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../configure/broadcast-ec2/" class="md-nav__link">
+      <a href="../broadcast-ec2/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 2v2L4 8V6H2v12h2v-2l2 .5v2C6 20.4 7.6 22 9.5 22s3.5-1.6 3.5-3.5v-.2l7 1.7v2h2V2h-2m-9 16.5c0 .8-.7 1.5-1.5 1.5S8 19.3 8 18.5V17l3 .8v.7m9-.5L4 14v-4l16-4v12Z"/></svg>
@@ -460,7 +475,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../configure/custom-domain/" class="md-nav__link">
+      <a href="../custom-domain/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2m-5.15 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56M14.34 14H9.66c-.1-.66-.16-1.32-.16-2 0-.68.06-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2M12 19.96c-.83-1.2-1.5-2.53-1.91-3.96h3.82c-.41 1.43-1.08 2.76-1.91 3.96M8 8H5.08A7.923 7.923 0 0 1 9.4 4.44C8.8 5.55 8.35 6.75 8 8m-2.92 8H8c.35 1.25.8 2.45 1.4 3.56A8.008 8.008 0 0 1 5.08 16m-.82-2C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2M12 4.03c.83 1.2 1.5 2.54 1.91 3.97h-3.82c.41-1.43 1.08-2.77 1.91-3.97M18.92 8h-2.95a15.65 15.65 0 0 0-1.38-3.56c1.84.63 3.37 1.9 4.33 3.56M12 2C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2Z"/></svg>
@@ -488,7 +503,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../configure/auto-attachment/" class="md-nav__link">
+      <a href="../auto-attachment/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.4 7.5c.8.8.8 2.1 0 2.8l-2.8 2.8-7.8-7.8 2.8-2.8c.8-.8 2.1-.8 2.8 0l1.8 1.8 3-3 1.4 1.4-3 3 1.8 1.8m-5.8 5.8-1.4-1.4-2.8 2.8-2.1-2.1 2.8-2.8-1.4-1.4-2.8 2.8-1.5-1.4-2.8 2.8c-.8.8-.8 2.1 0 2.8l1.8 1.8-4 4 1.4 1.4 4-4 1.8 1.8c.8.8 2.1.8 2.8 0l2.8-2.8-1.4-1.4 2.8-2.9Z"/></svg>
@@ -516,7 +531,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../configure/exposing-tags/" class="md-nav__link">
+      <a href="../exposing-tags/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m21.41 11.58-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5 1.5 1.5 0 0 1 6.5 5Z"/></svg>
@@ -544,7 +559,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../configure/list-tags/" class="md-nav__link">
+      <a href="../list-tags/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 13c0 .53-.21 1.04-.59 1.41l-.41.42a6.004 6.004 0 0 0-4.89-5.72L11 4H4v7l5.11 5.11c.51 2.73 2.86 4.8 5.72 4.89l-.42.41c-.37.38-.88.59-1.41.59-.53 0-1.03-.21-1.41-.58l-9-9C2.21 12.04 2 11.53 2 11V4c0-1.1.9-2 2-2h7c.53 0 1.04.21 1.41.58l9 9c.38.38.59.89.59 1.42M5 6.5C5 7.33 5.67 8 6.5 8S8 7.33 8 6.5 7.33 5 6.5 5 5 5.67 5 6.5m10.11 4.11c-2.5 0-4.5 2-4.5 4.5s2 4.5 4.5 4.5c.89 0 1.69-.25 2.39-.68L20.61 22 22 20.61l-3.08-3.11c.44-.68.69-1.5.69-2.39 0-2.5-2-4.5-4.5-4.5m0 2c1.39 0 2.5 1.12 2.5 2.5s-1.11 2.5-2.5 2.5-2.5-1.11-2.5-2.5 1.12-2.5 2.5-2.5"/></svg>
@@ -572,7 +587,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../configure/iam/" class="md-nav__link">
+      <a href="../iam/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 11c0 5.55-3.84 10.74-9 12-5.16-1.26-9-6.45-9-12V5l9-4 9 4v6m-9 10c3.75-1 7-5.46 7-9.78V6.3l-7-3.12L5 6.3v4.92C5 15.54 8.25 20 12 21m2.8-10V9.5C14.8 8.1 13.4 7 12 7S9.2 8.1 9.2 9.5V11c-.6 0-1.2.6-1.2 1.2v3.5c0 .7.6 1.3 1.2 1.3h5.5c.7 0 1.3-.6 1.3-1.2v-3.5c0-.7-.6-1.3-1.2-1.3m-1.3 0h-3V9.5c0-.8.7-1.3 1.5-1.3s1.5.5 1.5 1.3V11Z"/></svg>
@@ -598,9 +613,45 @@ and
                 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../../configure/tracing-requests/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.74 11.72c.47 1.23.42 2.51-.99 3.02-2.9 1.07-3.55-1.74-3.59-1.88l4.58-1.14m-5.03-.81 4.32-1.07c-.19-1.05.1-2.1.1-3.34 0-1.68-1.33-4.97-3.45-4.44-2.42.6-2.77 3.29-2.68 4.59.12 1.3 1.64 4.08 1.71 4.26m12.14 8.94c-.03.15-.69 2.95-3.59 1.89-1.4-.52-1.46-1.8-.99-3.03l4.58 1.14m2.15-6.2c.1-1.3-.24-4-2.67-4.6-2.11-.55-3.44 2.76-3.44 4.45 0 1.23.28 2.28.11 3.33l4.3 1.07c.08-.18 1.59-2.96 1.7-4.25Z"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracing Requests
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--new" title="New Features Added">
+    </span>
+  
+
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.74 11.72c.47 1.23.42 2.51-.99 3.02-2.9 1.07-3.55-1.74-3.59-1.88l4.58-1.14m-5.03-.81 4.32-1.07c-.19-1.05.1-2.1.1-3.34 0-1.68-1.33-4.97-3.45-4.44-2.42.6-2.77 3.29-2.68 4.59.12 1.3 1.64 4.08 1.71 4.26m12.14 8.94c-.03.15-.69 2.95-3.59 1.89-1.4-.52-1.46-1.8-.99-3.03l4.58 1.14m2.15-6.2c.1-1.3-.24-4-2.67-4.6-2.11-.55-3.44 2.76-3.44 4.45 0 1.23.28 2.28.11 3.33l4.3 1.07c.08-.18 1.59-2.96 1.7-4.25Z"/></svg>
@@ -625,6 +676,39 @@ and
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-proxy-port" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <span class="md-typeset">
+          Changing the proxy port
+        </span>
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -691,7 +775,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../install/binary/" class="md-nav__link">
+      <a href="../../install/binary/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9M12 4.15l-1.89 1.07L16 8.61l1.96-1.11L12 4.15M6.04 7.5 12 10.85l1.96-1.1-5.88-3.4L6.04 7.5M5 15.91l6 3.38v-6.71L5 9.21v6.7m14 0v-6.7l-6 3.37v6.71l6-3.38Z"/></svg>
@@ -719,7 +803,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../install/source/" class="md-nav__link">
+      <a href="../../install/source/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h12c1.11 0 2-.89 2-2V8l-6-6m4 18H6V4h7v5h5v11m-8.46-4.35 2.09 2.09L10.35 19 7 15.65l3.35-3.35 1.28 1.26-2.09 2.09m7.46 0L13.65 19l-1.27-1.26 2.09-2.09-2.09-2.09 1.27-1.26L17 15.65Z"/></svg>
@@ -808,7 +892,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../../license/" class="md-nav__link">
+      <a href="../../license/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6m4 18H6V4h7v5h5m-5.17 6a3 3 0 1 0 0 2H14v2h2v-2h1v-2m-7 2a1 1 0 1 1 1-1 1 1 0 0 1-1 1Z"/></svg>
@@ -849,8 +933,6 @@ and
       
   
   
-    
-  
   
     
     
@@ -866,12 +948,12 @@ and
       
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -891,7 +973,7 @@ and
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -908,7 +990,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../../templating/" class="md-nav__link">
+      <a href="../../reference/templating/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.7 18.6v-1l1.1-.8c.1-.1.2-.2.1-.3l-1-1.7c0-.1-.2-.1-.3-.1l-1.2.5c-.3-.2-.6-.4-.9-.5l-.2-1.3c0-.1-.1-.2-.2-.2h-2c-.2 0-.3.1-.3.2l-.2 1.3c-.3.2-.5.3-.8.5l-1.2-.5c-.1 0-.2 0-.3.1l-1 1.7c0 .1 0 .2.1.3l1.1.8v1l-1.1.8c-.1.1-.2.2-.1.3l1 1.7c.1.1.2.1.3.1l1.2-.5c.2.2.5.4.8.5l.2 1.3c.1.1.2.2.3.2h2c.1 0 .2-.1.2-.2l.2-1.3c.3-.2.5-.3.8-.5l1.2.4c.1 0 .2 0 .3-.1l1-1.7c.1-.1.1-.2 0-.2l-1.1-.8m-3.7.9c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5M12.3 22H3c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h18c1.1 0 2 .9 2 2v9.1c-.6-.6-1.3-1.1-2-1.4V6H3v14h8.3c.2.7.5 1.4 1 2Z"/></svg>
@@ -934,8 +1016,6 @@ and
                 
   
   
-    
-  
   
     
     
@@ -953,12 +1033,12 @@ and
       
       
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
           <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
@@ -978,7 +1058,7 @@ and
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -995,7 +1075,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../dns53/" class="md-nav__link">
+      <a href="../../reference/cli/dns53/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12h16m0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16m-7 14v-2h5v2h-5m-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59l3.99-4Z"/></svg>
@@ -1029,37 +1109,9 @@ and
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12h16m0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16m-7 14v-2h5v2h-5m-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59l3.99-4Z"/></svg>
-  
-  <span class="md-ellipsis">
-    
-  
-    dns53 imds
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../reference/cli/dns53-imds/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12h16m0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16m-7 14v-2h5v2h-5m-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59l3.99-4Z"/></svg>
@@ -1076,65 +1128,6 @@ and
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <span class="md-typeset">
-          Usage
-        </span>
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <span class="md-typeset">
-          Flags
-        </span>
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#global-flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <span class="md-typeset">
-          Global Flags
-        </span>
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1146,7 +1139,7 @@ and
   
   
     <li class="md-nav__item">
-      <a href="../dns53-tags/" class="md-nav__link">
+      <a href="../../reference/cli/dns53-tags/" class="md-nav__link">
         
   
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12h16m0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16m-7 14v-2h5v2h-5m-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59l3.99-4Z"/></svg>
@@ -1210,37 +1203,11 @@ and
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
+  <a href="#changing-the-proxy-port" class="md-nav__link">
     <span class="md-ellipsis">
       
         <span class="md-typeset">
-          Usage
-        </span>
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <span class="md-typeset">
-          Flags
-        </span>
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#global-flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        <span class="md-typeset">
-          Global Flags
+          Changing the proxy port
         </span>
       
     </span>
@@ -1267,19 +1234,23 @@ and
   
 
 
-<h1 id="command-line">Command Line<a class="headerlink" href="#command-line" title="Permanent link">&para;</a></h1>
-<p>Toggle EC2 IMDS features</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="language-text no-select no-copy highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dns53 imds [flags]
+<h1 id="tracing-requests-with-a-reverse-proxy">Tracing Requests with a Reverse Proxy<a class="headerlink" href="#tracing-requests-with-a-reverse-proxy" title="Permanent link">&para;</a></h1>
+<p>To trace requests sent to your broadcasted EC2, <code>dns53</code> comes bundled with an internal reverse proxy. To enable proxying:</p>
+<div class="language-sh no-select highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dns53<span class="w"> </span>--proxy
 </span></code></pre></div>
-<h2 id="flags">Flags<a class="headerlink" href="#flags" title="Permanent link">&para;</a></h2>
-<div class="language-text no-select no-copy highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>-h, --help                            help for imds
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    --instance-metadata-tags string   toggle the inclusion of EC2 instance tags
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                                      within IMDS (on|off)
+<p>Once enabled, set the required environment variables to trace both <code>HTTP</code> and <code>HTTPS</code> requests. It is advised not to proxy any requests to IMDS on your EC2.</p>
+<div class="language-sh no-select highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">HTTP_PROXY</span><span class="o">=</span>http://localhost:10080
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">HTTPS_PROXY</span><span class="o">=</span>http://localhost:10080
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">NO_PROXY</span><span class="o">=</span><span class="m">169</span>.254.169.254
 </span></code></pre></div>
-<h2 id="global-flags">Global Flags<a class="headerlink" href="#global-flags" title="Permanent link">&para;</a></h2>
-<div class="language-text no-select no-copy highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>--profile string   the AWS named profile to use when loading credentials
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>--region string    the AWS region to use when querying AWS
+<div class="language-sh no-select highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>http://httpbin.org/headers
+</span></code></pre></div>
+<div class="language-sh no-select highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>https://httpbin.org/ip<span class="w"> </span>-k
+</span></code></pre></div>
+<p>If you do not wish to set any of these environment variables, your preferred CLI tool should support request proxying using a dedicated flag. For <code>curl</code>, that is <code>-x</code>.</p>
+<h2 id="changing-the-proxy-port">Changing the proxy port<a class="headerlink" href="#changing-the-proxy-port" title="Permanent link">&para;</a></h2>
+<p>Feel free to change the default proxy port of <code>:10080</code> by using the <code>proxy-port</code> flag:</p>
+<div class="language-sh no-select highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>dns53<span class="w"> </span>--proxy<span class="w"> </span>--proxy-port<span class="w"> </span><span class="m">10888</span>
 </span></code></pre></div>
 
   
@@ -1372,10 +1343,10 @@ and
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["announce.dismiss", "content.code.annotate", "content.code.copy", "content.code.select", "content.tooltips", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.1e90e0fb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["announce.dismiss", "content.code.annotate", "content.code.copy", "content.code.select", "content.tooltips", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.1e90e0fb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.ef51cdc3.min.js"></script>
+      <script src="../../assets/javascripts/bundle.ef51cdc3.min.js"></script>
       
     
   </body>

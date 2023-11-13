@@ -1,0 +1,39 @@
+.md-banner {
+    color: var(--md-footer-fg-color--lighter);
+}
+
+.md-banner strong {
+    color: var(--md-footer-fg-color);
+}
+
+.md-typeset .mastodon {
+    color: #897ff8;
+}
+
+.md-typeset .twitter {
+    color: #00acee;
+}
+
+.md-typeset a:hover>span * {
+    filter: brightness(85%);
+}
+
+.new-feature {
+    color: #006C39;
+}
+
+.rounded-pill {
+    background-color: var(--md-primary-fg-color);
+    color: var(--md-primary-bg-color);
+    border-radius: 2em;
+    padding: 0.4em 0.8em;
+    text-align: center;
+    font-size: 0.7em;
+    font-weight: bold;
+}
+
+u {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.3em;
+}
